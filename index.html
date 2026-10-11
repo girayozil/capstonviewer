@@ -330,16 +330,49 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     g.globalCompositeOperation = 'destination-over'; g.fillStyle = '#bda985'; g.fillRect(0, 0, 256, 256);
     var t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1 / 0.648, 1 / 0.648); t.encoding = THREE.sRGBEncoding; t.anisotropy = 4; return t;
   }
+  // Calacatta Viola style breccia (after the owner's photo): white and cream fragments in a network of dark plum and burgundy veins,
+  // rust-brown fill here and there, fine grey hairlines and soft clouding. Painted per pixel and seamless, one tile = 2.4 x 1.2 m (see marbleUV).
   function marbleTex() {
-    var c = document.createElement('canvas'); c.width = c.height = 512;
-    var g = c.getContext('2d'), r = rng(23); g.fillStyle = '#efe8e2'; g.fillRect(0, 0, 512, 512);
-    var cols = ['rgba(104,44,68,0.55)', 'rgba(138,86,108,0.4)', 'rgba(176,140,96,0.35)', 'rgba(90,50,70,0.3)'];
-    for (var i = 0; i < 26; i++) {
-      g.strokeStyle = cols[i % 4]; g.lineWidth = 1 + r() * 7; g.beginPath(); var x = r() * 512, y = r() * 512; g.moveTo(x, y);
-      for (var k = 0; k < 3; k++) g.bezierCurveTo(x + r() * 160 - 40, y + r() * 120 - 60, x + r() * 200, y + r() * 160 - 80, x += r() * 220 - 30, y += r() * 160 - 80);
-      g.stroke();
+    var W = 1024, Hh = 512, c = document.createElement('canvas'); c.width = W; c.height = Hh;
+    var g = c.getContext('2d'), img = g.createImageData(W, Hh), px = img.data, r = rng(2305);
+    function lattice(n, m, seed) { var rr = rng(seed), a = []; for (var i = 0; i < n * m; i++) a.push(rr()); return function (x, y) {   // periodic value noise, x in [0,n), y in [0,m)
+      var xi = Math.floor(x), yi = Math.floor(y), fx = x - xi, fy = y - yi, sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy);
+      function at(i, j) { return a[(((j % m) + m) % m) * n + (((i % n) + n) % n)]; }
+      var t = at(xi, yi) + (at(xi + 1, yi) - at(xi, yi)) * sx, b = at(xi, yi + 1) + (at(xi + 1, yi + 1) - at(xi, yi + 1)) * sx; return t + (b - t) * sy; }; }
+    function fbm(f, u, v, n, m) { return f(u * n, v * m) * 0.55 + f(u * n * 2, v * m * 2) * 0.3 + f(u * n * 4, v * m * 4) * 0.15; }
+    var nA = lattice(16, 8, 11), nB = lattice(16, 8, 12), nW = lattice(8, 4, 13), nC = lattice(8, 4, 14), nK = lattice(32, 16, 15);
+    function seeds(gx, gy, jit) { var s2 = []; for (var j = 0; j < gy; j++) for (var i = 0; i < gx; i++) s2.push([(i + 0.5 + (r() - 0.5) * jit) / gx, (j + 0.5 + (r() - 0.5) * jit) / gy]); return s2; }
+    var S1 = seeds(7, 4, 0.9), S2 = seeds(14, 7, 0.95), S3 = seeds(5, 3, 0.9);
+    function vor(u, v, sd, gx, gy) {   // distance between the nearest two seeds on the torus (x stretched to the 2:1 aspect): small along cell edges
+      var ci = Math.floor(u * gx), cj = Math.floor(v * gy), f1 = 9, f2 = 9;
+      for (var dj = -1; dj <= 1; dj++) for (var di = -1; di <= 1; di++) {
+        var ii = ci + di, jj = cj + dj, q = sd[(((jj % gy) + gy) % gy) * gx + (((ii % gx) + gx) % gx)];
+        var sx = q[0] + Math.floor(ii / gx), sy = q[1] + Math.floor(jj / gy), dx = (u - sx) * 2, dy = v - sy, d = Math.sqrt(dx * dx + dy * dy);
+        if (d < f1) { f2 = f1; f1 = d; } else if (d < f2) f2 = d;
+      }
+      return f2 - f1;
     }
-    var t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t;
+    function mix(a, b, t) { t = t < 0 ? 0 : t > 1 ? 1 : t; return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]; }
+    var CREAM = [245, 240, 234], CLOUD = [218, 214, 218], WARM = [239, 228, 212], STAIN = [200, 182, 186], PLUM = [48, 24, 38], WINE = [98, 50, 58], GREYV = [118, 102, 112], RUST = [134, 84, 62], HAIR = [168, 158, 166];
+    for (var y = 0; y < Hh; y++) for (var x = 0; x < W; x++) {
+      var u = x / W, v = y / Hh, ja = nK(u * 32, v * 16) - 0.5, jb = nK(u * 32 + 7.3, v * 16 + 3.1) - 0.5;   // ragged edges
+      var wu = u + (fbm(nA, u, v, 16, 8) - 0.5) * 0.035 + ja * 0.006, wv = v + (fbm(nB, u, v, 16, 8) - 0.5) * 0.035 + jb * 0.006;
+      var big = vor(wu, wv, S1, 7, 4), small = vor(wu, wv, S2, 14, 7), m = Math.min(1, Math.max(0, (nW(u * 8, v * 4) - 0.55) / 0.2));
+      var d = Math.min(big, m > 0 ? small / m : 9);   // only some of the large fragments are broken into smaller ones; their veins taper away
+      var wn = fbm(nC, u + 0.37, v + 0.21, 8, 4), w = 0.003 + 0.055 * Math.pow(wn, 2.4) + (ja + 0.5) * 0.003;   // hairline to broad pools
+      var cl = fbm(nC, u, v, 8, 4), col = mix(CREAM, cl > 0.55 ? CLOUD : WARM, Math.abs(cl - 0.55) * 1.8);
+      var hv = vor(u + (nA(u * 16, v * 8) - 0.5) * 0.05, v + (nB(u * 16, v * 8) - 0.5) * 0.05, S3, 5, 3);   // a few faint grey veins
+      if (hv < 0.0025 && nW(u * 8 + 3, v * 4 + 1) > 0.45) col = mix(col, HAIR, (1 - hv / 0.0025) * 0.55);
+      if (d < w * 4) col = mix(col, STAIN, (1 - d / (w * 4)) * (0.25 + 0.3 * wn));
+      if (d < w) {
+        var k = nK(u * 32 + 1.7, v * 16 + 5.9), k2 = fbm(nA, u + 0.5, v + 0.5, 16, 8), t = d / w;
+        var inner = mix(mix(WINE, k2 > 0.6 ? RUST : GREYV, Math.abs(k2 - 0.5) * 1.4), PLUM, k * 0.6), vc = w > 0.01 ? mix(inner, PLUM, Math.pow(t, 1.5) * 1.3) : mix(PLUM, WINE, k * 0.5);   // wide veins: a dark rim round a mottled core
+        col = mix(col, vc, (1 - t) * 3);
+      }
+      var gr = (r() - 0.5) * 9, o = (y * W + x) * 4; px[o] = col[0] + gr; px[o + 1] = col[1] + gr; px[o + 2] = col[2] + gr; px[o + 3] = 255;   // fine grain
+    }
+    g.putImageData(img, 0, 0);
+    var t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t;
   }
   function hexTex() {
     var c = document.createElement('canvas'); c.width = 128; c.height = 222;
@@ -353,7 +386,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   function M(color, rough) { return new THREE.MeshStandardMaterial({ color: new THREE.Color(color).convertSRGBToLinear(), roughness: rough == null ? 0.85 : rough, metalness: 0 }); }
   var mWall = M(0xf4f0e8), mOak = M(0xb48d60, 0.6), mOakDark = M(0x9a744b, 0.6), mWhite = M(0xfafafa, 0.35);
   var mTabac = M(0x6b4a36), mAnth = M(0x383b3f, 0.5), mHob = M(0x1c1c1e, 0.2), mSteel = M(0x8d8d8d, 0.3);
-  var mMarble = new THREE.MeshStandardMaterial({ map: marbleTex(), roughness: 0.3 });
+  var mMarble = new THREE.MeshStandardMaterial({ map: marbleTex(), roughness: 0.22 });
   var mFloor = new THREE.MeshStandardMaterial({ map: parquetTex(), roughness: 0.75 });
   function tileMat(w, d) { var t = hexTex(); t.repeat.set(w / 0.12, d / 0.208); return new THREE.MeshStandardMaterial({ map: t, roughness: 0.5 }); }
   var mGlass = new THREE.MeshStandardMaterial({ color: 0xa9cbd8, transparent: true, opacity: 0.22, roughness: 0.1, depthWrite: false });
@@ -422,7 +455,15 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   function reg(m) { m.userData.fix = curFix; if (curFix) (FIX[curFix] = FIX[curFix] || []).push(m); return m; }
   function box(g, x0, y0, x1, y1, h, mat, base) {
     var m = new THREE.Mesh(new THREE.BoxGeometry(Math.abs(x1 - x0) * S, h, Math.abs(y1 - y0) * S), mat);
-    m.position.set(X((x0 + x1) / 2), (base || 0) + h / 2, Z((y0 + y1) / 2)); m.castShadow = true; m.receiveShadow = true; g.add(m); return reg(m);
+    m.position.set(X((x0 + x1) / 2), (base || 0) + h / 2, Z((y0 + y1) / 2)); m.castShadow = true; m.receiveShadow = true; g.add(m); if (mat === mMarble) marbleUV(m); return reg(m);
+  }
+  function marbleUV(m) {   // map the marble at real scale from its position in the flat, so it neither stretches nor repeats per face
+    var geo = m.geometry, pos = geo.attributes.position, nor = geo.attributes.normal, uv = geo.attributes.uv, p = m.position, TW = 2.4, TH2 = 1.2;
+    for (var i = 0; i < pos.count; i++) {
+      var x = pos.getX(i) + p.x, y = pos.getY(i) + p.y, z = pos.getZ(i) + p.z, ax = Math.abs(nor.getX(i)), ay = Math.abs(nor.getY(i)), az = Math.abs(nor.getZ(i));
+      if (ay >= ax && ay >= az) uv.setXY(i, x / TW, z / TH2); else if (ax >= az) uv.setXY(i, z / TW, y / TH2); else uv.setXY(i, x / TW, y / TH2);
+    }
+    uv.needsUpdate = true;
   }
   function slant(g, cx, cy, depth, len, h, mat, base) {
     var m = new THREE.Mesh(new THREE.BoxGeometry(depth, h, len), mat);
@@ -437,7 +478,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     var geo = new THREE.ExtrudeGeometry(sh, { depth: h, bevelEnabled: false, curveSegments: 10 }); geo.rotateX(Math.PI / 2);
     var pos = geo.attributes.position, uv = geo.attributes.uv; for (var i = 0; i < pos.count; i++) uv.setXY(i, pos.getX(i) / w + 0.5, pos.getZ(i) / d + 0.5);
     var m2 = mat.clone(); m2.side = THREE.DoubleSide; var m = new THREE.Mesh(geo, m2);
-    m.position.set(X((x0 + x1) / 2), (base || 0) + h, Z((y0 + y1) / 2)); m.castShadow = true; m.receiveShadow = true; g.add(m); return reg(m);
+    m.position.set(X((x0 + x1) / 2), (base || 0) + h, Z((y0 + y1) / 2)); m.castShadow = true; m.receiveShadow = true; g.add(m); if (mat === mMarble) marbleUV(m); return reg(m);
   }
   function wall(x0, y0, x1, y1, mat) { return box(walls, x0, y0, x1, y1, H, mat || mWall); }
   function header(x0, y0, x1, y1, mat) { return box(walls, x0, y0, x1, y1, H - 2.1, mat || mWall, 2.1); }
