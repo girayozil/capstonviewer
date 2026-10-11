@@ -401,6 +401,8 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   var mSynthOrange = M(0xe9552b, 0.4), mSynthScreen = M(0x1d2f4a, 0.2);
   var mOakWarm = M(0xc0945f, 0.55);
   var mOakPale = M(0xd0a36c, 0.6), mOakPaleDark = M(0xbd8f58, 0.6);
+  var mMango = M(0xbb8a55, 0.6), mMangoDark = M(0xa77846, 0.6);   // slatted bookcase
+  var mPothos = M(0x4c8a3c, 0.7), mPothosPale = M(0x86b45c, 0.7), mSnake = M(0x3b5a37, 0.6), mSnakeEdge = M(0xc9c06a, 0.6), mTerracotta = M(0xb8704f, 0.85), mSoil = M(0x3b2b20, 1);
   var mRugPink = M(0xe9c3c6, 0.98);
   var mWhiteMarble = new THREE.MeshStandardMaterial({ map: whiteMarbleTex(), roughness: 0.25 }), mDarkOak = M(0x5b4129, 0.55);
   // crinkled linen for the Neva chair: the owner's fabric swatch, greyscale, tinted by the material colour
@@ -810,6 +812,51 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
         tube(g, x - 0.02, zp, 0.013, 0.013, 0, h, mOakPaleDark); tube(g, x + 0.02, zp, 0.013, 0.013, 0, h, mOakPaleDark);
       }
     },
+    // Freestanding slatted bookcase: round dowels along both sides that curve round the front corners, a slatted back, square legs,
+    // a top with rounded front corners and four shelves at the heights of the owner's photo (15, 52, 88 and 128 cm on a 170 cm unit).
+    slatBookcase: function (g, w, d, h) {
+      var R = Math.min(0.09, w / 6, d / 3), dr = 0.014, pitch = 0.033, inset = R + 0.01, lg = 0.045, fz = d / 2 - 0.015 - lg / 2, bz = -d / 2 + 0.015 + lg / 2;
+      var y0 = 0.035, top = 0.03, yt = h - top;
+      part(g, -w / 2 + R, -d / 2, w / 2 - R, d / 2, yt, h, mMango); part(g, -w / 2, -d / 2, w / 2, d / 2 - R, yt, h, mMango);   // top, then its two rounded front corners
+      tube(g, -w / 2 + R, d / 2 - R, R, R, yt, h, mMango); tube(g, w / 2 - R, d / 2 - R, R, R, yt, h, mMango);
+      [-1, 1].forEach(function (sx) {
+        var lx = sx * (w / 2 - inset - lg / 2);
+        part(g, lx - lg / 2, fz - lg / 2, lx + lg / 2, fz + lg / 2, 0, yt, mMango); part(g, lx - lg / 2, bz - lg / 2, lx + lg / 2, bz + lg / 2, 0, yt, mMango);
+        var xs = sx * (w / 2 - dr), run = d - R - dr, n = Math.max(2, Math.round(run / pitch));   // straight run of side dowels, back to the start of the curve
+        for (var i = 0; i <= n; i++) tube(g, xs, -d / 2 + dr + i * run / n, dr, dr, y0, yt, mMangoDark);
+        var cx = sx * (w / 2 - R), cz = d / 2 - R, m = Math.max(2, Math.round((Math.PI / 2) * (R - dr) / pitch));   // round the front corner
+        for (var j = 1; j <= m; j++) { var a = (j / m) * Math.PI / 2; tube(g, cx + sx * (R - dr) * Math.cos(a), cz + (R - dr) * Math.sin(a), dr, dr, y0, yt, mMangoDark); }
+      });
+      var bw = w - 2 * (inset + lg), nb = Math.max(2, Math.round(bw / pitch)), sy = [0.088, 0.306, 0.518, 0.753];
+      for (var k = 0; k <= nb; k++) tube(g, -bw / 2 + k * bw / nb, -d / 2 + 0.012, 0.011, 0.011, sy[0] * h, yt, mMangoDark);   // slatted back
+      sy.forEach(function (f, i) { var t = i ? 0.024 : 0.03; part(g, -w / 2 + inset, -d / 2 + 0.024, w / 2 - inset, d / 2 - 0.015, f * h - t, f * h, mMango); });
+      part(g, -w / 2 + inset, d / 2 - 0.04, w / 2 - inset, d / 2 - 0.015, sy[0] * h - 0.08, sy[0] * h - 0.03, mMango);   // apron under the bottom shelf
+    },
+    // Trailing pothos in a terracotta pot: a mound of leaves and a few vines that arc out to the edges of its box
+    pothos: function (g, w, d, h) {
+      var r = rng(4219), pr = Math.min(w, d) * 0.27, ph = Math.min(h * 0.38, pr * 1.6);
+      tube(g, 0, 0, pr, pr, 0, ph, mTerracotta); tube(g, 0, 0, pr * 0.9, pr * 0.9, ph, ph + 0.005, mSoil);
+      var geo = new THREE.SphereGeometry(0.5, 8, 6), L = Math.min(0.06, w * 0.18);
+      function leaf(x, y, z, sc) {
+        var m = new THREE.Mesh(geo, r() > 0.3 ? mPothos : mPothosPale); m.scale.set(L * sc, L * sc * 0.14, L * sc * 0.72);
+        m.position.set(Math.max(-w / 2 + L / 2, Math.min(w / 2 - L / 2, x)), Math.max(L * 0.1, Math.min(h - L * 0.2, y)), Math.max(-d / 2 + L / 2, Math.min(d / 2 - L / 2, z)));
+        m.rotation.set((r() - 0.5) * 1.2, r() * 6.28, (r() - 0.5) * 1.2); m.castShadow = true; g.add(m);
+      }
+      for (var i = 0; i < 26; i++) { var a = r() * 6.28, rr = pr * (0.2 + r() * 1.1); leaf(Math.cos(a) * rr, ph + (h - ph) * (0.15 + r() * 0.7) * (1 - rr / (pr * 2.2)), Math.sin(a) * rr * d / w, 0.8 + r() * 0.4); }
+      [[1, 0.2], [-1, 0.5], [0.4, 1], [-0.6, -0.7]].forEach(function (v) {   // vines: out over the rim, then down
+        for (var t = 0.1; t <= 1; t += 0.12) leaf(v[0] * (pr + t * (w / 2 - pr)), ph + (h - ph) * 0.3 - t * (ph + (h - ph) * 0.3), v[1] * (pr + t * (d / 2 - pr)), 0.75 + r() * 0.3);
+      });
+    },
+    // Small snake plant in a white pot: upright blades with pale edges
+    snakePlant: function (g, w, d, h) {
+      var r = rng(733), pr = Math.min(w, d) * 0.42, ph = Math.min(h * 0.32, pr * 1.3);
+      tube(g, 0, 0, pr, pr, 0, ph, mWhite); tube(g, 0, 0, pr * 0.9, pr * 0.9, ph, ph + 0.005, mSoil);
+      for (var i = 0; i < 9; i++) {
+        var a = i * 2.4, rr = pr * 0.45 * r(), bh = (h - ph) * (0.55 + r() * 0.45), bw = 0.04 + r() * 0.02, tilt = 0.12 + r() * 0.18;
+        var b = new THREE.Group(); b.position.set(Math.cos(a) * rr, ph, Math.sin(a) * rr); b.rotation.set(tilt, a, (r() - 0.5) * 0.2); g.add(b);
+        part(b, -bw / 2, -0.004, bw / 2, 0.004, 0, bh * 0.97, mSnake); part(b, -bw / 2 - 0.003, -0.003, -bw / 2, 0.003, 0, bh * 0.9, mSnakeEdge); part(b, bw / 2, -0.003, bw / 2 + 0.003, 0.003, 0, bh * 0.9, mSnakeEdge);
+      }
+    },
     screen: function (g, w, d, h) {
       part(g, -w / 2, -d / 2, w / 2, d / 2, 0, 0.1, mOak); part(g, -w / 2, -d / 2, w / 2, d / 2, h - 0.08, h, mOak);
       if (h > 1.4) part(g, -w / 2, -d / 2, w / 2, d / 2, 0.97, 1.03, mOak);
@@ -903,6 +950,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     { k: 'shelving', b: 'shelving', n: ['Wall shelving, oak 150', 'Duvar rafı, meşe 150'], w: 1.5, d: 0.3, h: 1.8, y: 0.41 },
     { k: 'shelving100', b: 'shelving', n: ['Wall shelving, oak 100', 'Duvar rafı, meşe 100'], w: 1.0, d: 0.3, h: 1.8, y: 0.41 },
     { k: 'bookcase', b: 'storage', n: ['Bookcase', 'Kitaplık'], w: 0.8, d: 0.3, h: 2.0 },
+    { k: 'slatBookcase', b: 'slatBookcase', n: ['Slatted bookcase 120', 'Çubuklu kitaplık 120'], w: 1.2, d: 0.35, h: 1.7, fill: true },
     { k: 'wardrobe', b: 'storage', n: ['Wardrobe', 'Gardırop'], w: 1.0, d: 0.6, h: 2.2 },
     { k: 'screen', b: 'screen', n: ['Glazed partition', 'Camlı bölme'], w: 3.2, d: 0.07, h: 2.6 },
     { k: 'rug', b: 'rug', n: ['Rug', 'Halı'], w: 2.85, d: 1.95, h: 0.015 },
@@ -912,6 +960,8 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     { k: 'rugRound', b: 'rugRound', n: ['Round rug', 'Yuvarlak halı'], w: 2.45, d: 2.45, h: 0.015 },
     { k: 'rig', b: 'rig', n: ['Racing sim rig', 'Yarış simülatörü'], w: 0.7, d: 1.6, h: 1.3 },
     { k: 'plant', b: 'plant', n: ['Plant', 'Bitki'], w: 0.5, d: 0.5, h: 1.5 },
+    { k: 'pothos', b: 'pothos', n: ['Trailing plant (pothos)', 'Sarkan bitki (pothos)'], w: 0.3, d: 0.25, h: 0.32, top: true },
+    { k: 'snakePlant', b: 'snakePlant', n: ['Small snake plant', 'Küçük paşa kılıcı'], w: 0.18, d: 0.18, h: 0.32, top: true },
     { k: 'lamp', b: 'lamp', n: ['Floor lamp', 'Lambader'], w: 0.4, d: 0.4, h: 1.6 },
     { k: 'box', b: 'box', n: ['Custom box', 'Kutu'], w: 1.0, d: 1.0, h: 1.0 }
   ];
@@ -1057,9 +1107,22 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   }
   // ---- fill a wall shelving with a varied set of books: one group per bay on most shelves, some bays left empty, top left clear
   var FILL = ['booksRow', 'booksStack', 'booksNeutral', null, 'booksArt', 'booksLean', 'booksPaper', 'booksRow', null, 'booksNeutral', 'booksStack', 'booksArt', 'booksLean', null, 'booksPaper', 'booksRow'];
-  function isShelving(it) { return BK[it.k].b === 'shelving'; }
+  function isShelving(it) { return BK[it.k].b === 'shelving' || BK[it.k].b === 'slatBookcase'; }
   function hasBooks(it) { return ridersOf(it).some(function (q) { return q.o.k.indexOf('books') === 0; }); }
+  // [shelf as a fraction of the height (1 = on top), key, centre across the width in metres on a 120 cm unit]
+  var SLATFILL = [[0.088, 'booksStack', -0.25], [0.088, 'snakePlant', 0.3], [0.306, 'booksStack', -0.3], [0.306, 'booksRow', 0.12],
+    [0.518, 'booksArt', -0.3], [0.518, 'booksStack', 0], [0.518, 'pothos', 0.31], [0.753, 'booksRow', -0.25], [0.753, 'booksPaper', 0.06], [0.753, 'snakePlant', 0.36], [1, 'pothos', 0.4]];
+  function fillSlat(it) {
+    var ux = dirX(it), uz = dirZ(it), made = 0;
+    SLATFILL.forEach(function (f) {
+      var b = BK[f[1]], lx = f[2] * it.w / 1.2, lz = -it.d / 2 + 0.04 + b.d / 2;
+      var o = norm({ k: f[1], x: it.x + ux.x * lx + uz.x * lz, z: it.z + ux.z * lx + uz.z * lz, r: it.r, y: Math.round((it.y + f[0] * it.h) * 1000) / 1000 });
+      items.push(o); rebuild(o); made++;
+    });
+    return made;
+  }
   function fillShelving(it) {
+    if (BK[it.k].b === 'slatBookcase') return fillSlat(it);
     var cols = Math.max(1, Math.round(it.w / 0.5)), th = 0.035, n = Math.max(2, Math.round(it.h / 0.36)), ux = dirX(it), uz = dirZ(it), bay = it.w / cols, k = 0, made = 0;
     for (var i = 0; i < n; i++) for (var c = 0; c < cols; c++) {
       var key = FILL[(k++ + i) % FILL.length], b = key && BK[key]; if (!b || b.w > bay - 0.08 || b.d > it.d - 0.03 || b.h > (it.h - th) / n - th) continue;
@@ -1378,7 +1441,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   // ================= furniture bank: tap to add at the centre of the view, or drag a card into the flat
   var CATS = [['seat', ['sofa3', 'sofa2', 'sofaCurve', 'armchair', 'neva', 'hudson', 'dchair', 'ochair']], ['bed', ['bedKing', 'bedSuper', 'bedDouble', 'bedSingle']],
     ['table', ['coffee', 'nestBig', 'nestSmall', 'sideTable', 'dining']], ['office', ['desk', 'standDesk', 'deskCorner', 'monitor', 'synth', 'bbgKeyboard', 'rig']],
-    ['store', ['shelving', 'shelving100', 'mediaUnit', 'mediaUnit150', 'mediaUnit350', 'cabinet', 'sideboard', 'bookcase', 'wardrobe']], ['art', ['artSun', 'artLeaf', 'artDunes', 'artGrid', 'artShapes', 'artLine', 'artSea', 'artField']], ['books', ['booksRow', 'booksArt', 'booksNeutral', 'booksLean', 'booksStack', 'booksPaper']], ['other', ['tv65', 'speaker', 'dogBed', 'rug', 'rugMoroccan', 'rugRound', 'screen', 'plant', 'lamp', 'box']]];
+    ['store', ['shelving', 'shelving100', 'mediaUnit', 'mediaUnit150', 'mediaUnit350', 'cabinet', 'sideboard', 'bookcase', 'slatBookcase', 'wardrobe']], ['art', ['artSun', 'artLeaf', 'artDunes', 'artGrid', 'artShapes', 'artLine', 'artSea', 'artField']], ['books', ['booksRow', 'booksArt', 'booksNeutral', 'booksLean', 'booksStack', 'booksPaper']], ['other', ['tv65', 'speaker', 'dogBed', 'rug', 'rugMoroccan', 'rugRound', 'screen', 'plant', 'pothos', 'snakePlant', 'lamp', 'box']]];
   BANK.forEach(function (b) { b.c = 'other'; }); CATS.forEach(function (c) { c[1].forEach(function (k) { if (BK[k]) BK[k].c = c[0]; }); });
   var bankFilter = 'all';
   function bankCard(b, el) {
@@ -1395,8 +1458,8 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     });
     c.addEventListener('pointerup', function (e) {
       if (!st) return; var s0 = st; st = null;
-      if (s0.it) { commit(); endMeasure(); return; }
-      if (Math.hypot(e.clientX - s0.x, e.clientY - s0.y) < 8) { pushUndo(); var it = addItem(b.k, clamp(snapTo(cam.t.x, 0.05), 0.5, 9.5), clamp(snapTo(cam.t.z, 0.05), 0.5, 10.5)); select({ item: it }); commit(); }
+      if (s0.it) { commit(); endMeasure(); if (BK[b.k].fill) { fillShelving(s0.it); commit(); } return; }
+      if (Math.hypot(e.clientX - s0.x, e.clientY - s0.y) < 8) { pushUndo(); var it = addItem(b.k, clamp(snapTo(cam.t.x, 0.05), 0.5, 9.5), clamp(snapTo(cam.t.z, 0.05), 0.5, 10.5)); select({ item: it }); commit(); if (BK[b.k].fill) { fillShelving(it); commit(); } }
     });
     c.addEventListener('pointercancel', function () { if (st && st.it) { commit(); endMeasure(); } st = null; });
   }

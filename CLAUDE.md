@@ -53,7 +53,7 @@ To add a furniture type:
 2. Add a `BANK` entry `{ k, b, n: [english, turkish], w, d, h, y?, top? }`. `k` is the unique key, `b` the builder name.
 3. Add the key to a list in `CATS` so it shows under the right filter. A new category also needs `c<name>` strings in both languages.
 
-Conventions already in use: wall-hung pieces carry a default `y` (wall shelving 0.41, art centred at 1.45). Desk-top pieces use `top: true`. Rugs are under 6 cm tall, which is how Nemo's route finding knows to ignore them.
+Conventions already in use: wall-hung pieces carry a default `y` (wall shelving 0.41, art centred at 1.45). Desk-top pieces use `top: true`. A bank entry with `fill: true` (the slatted bookcase) arrives stocked: adding it from the bank runs `fillShelving`, which for that type places the books and plants listed in `SLATFILL` as separate sitting items. "Fill with books" does the same for any piece `isShelving` accepts. Rugs are under 6 cm tall, which is how Nemo's route finding knows to ignore them.
 
 "Sits on furniture" (`top`): on every `commit()` the object settles onto a surface under its centre. It keeps its current shelf if that shelf is still under it, otherwise it takes the highest surface up to 1.45 m. `surfacesUnder` lists the levels and `stepLevel` backs the Shelf up / Shelf down buttons. Moving a support carries its riders (`ridersOf`).
 
