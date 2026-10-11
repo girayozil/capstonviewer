@@ -320,15 +320,27 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
 
   // ---- textures
   function rng(seed) { return function () { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }; }
+  // Checkerboard parquet after the brochure: squares of five oak strips, each square turned against its neighbours, in a warm mid brown,
+  // with grain, tone varying strip to strip, dark joints and the squares reading slightly lighter or darker by direction. One tile = 0.648 m.
   function parquetTex() {
-    var c = document.createElement('canvas'); c.width = c.height = 256;
-    var g = c.getContext('2d'), r = rng(7), n = 5, q = 128, w = q / n;
+    var c = document.createElement('canvas'), N = 512; c.width = c.height = N;
+    var g = c.getContext('2d'), r = rng(7), n = 5, q = N / 2, w = q / n, jn = 2;
+    g.fillStyle = '#3e2a1c'; g.fillRect(0, 0, N, N);   // joints
     for (var i = 0; i < 2; i++) for (var j = 0; j < 2; j++) for (var k = 0; k < n; k++) {
-      g.fillStyle = 'hsl(36,' + (30 + r() * 8) + '%,' + (78 + r() * 7) + '%)';
-      if ((i + j) % 2 === 0) g.fillRect(i * q + k * w, j * q, w - 1, q - 1); else g.fillRect(i * q, j * q + k * w, q - 1, w - 1);
+      var along = (i + j) % 2 === 0, x0 = along ? i * q + k * w : i * q, y0 = along ? j * q : j * q + k * w, sw = along ? w - jn : q - jn, sh = along ? q - jn : w - jn;
+      var L = 36 + r() * 9 + (along ? 2.5 : -2.5);
+      g.fillStyle = 'hsl(' + (26 + r() * 6) + ',' + (26 + r() * 9) + '%,' + L + '%)'; g.fillRect(x0, y0, sw, sh);
+      g.save(); g.beginPath(); g.rect(x0, y0, sw, sh); g.clip();
+      for (var m = 0; m < 22; m++) {   // grain running along the strip
+        var o = r() * (along ? sw : sh), amp = 0.5 + r() * 2.5, dark = r() > 0.45;
+        g.strokeStyle = dark ? 'rgba(60,36,20,' + (0.08 + r() * 0.18) + ')' : 'rgba(230,180,130,' + (0.05 + r() * 0.1) + ')'; g.lineWidth = 0.6 + r() * 1.4; g.beginPath();
+        for (var t = 0; t <= q; t += 8) { var wob = Math.sin(t / q * 6.283 * (1 + r() * 0.2) + m) * amp; if (along) { if (t) g.lineTo(x0 + o + wob, y0 + t); else g.moveTo(x0 + o + wob, y0 + t); } else { if (t) g.lineTo(x0 + t, y0 + o + wob); else g.moveTo(x0 + t, y0 + o + wob); } }
+        g.stroke();
+      }
+      if (r() > 0.6) { var kx = x0 + r() * sw, ky = y0 + r() * sh; g.fillStyle = 'rgba(55,32,18,0.35)'; g.beginPath(); g.ellipse(kx, ky, along ? 1.5 : 4, along ? 4 : 1.5, 0, 0, 6.283); g.fill(); }   // the odd small knot
+      g.restore();
     }
-    g.globalCompositeOperation = 'destination-over'; g.fillStyle = '#bda985'; g.fillRect(0, 0, 256, 256);
-    var t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1 / 0.648, 1 / 0.648); t.encoding = THREE.sRGBEncoding; t.anisotropy = 4; return t;
+    var t2 = new THREE.CanvasTexture(c); t2.wrapS = t2.wrapT = THREE.RepeatWrapping; t2.repeat.set(1 / 0.648, 1 / 0.648); t2.encoding = THREE.sRGBEncoding; t2.anisotropy = 8; return t2;
   }
   // Calacatta Viola style breccia (after the owner's photo): white and cream fragments in a network of dark plum and burgundy veins,
   // rust-brown fill here and there, fine grey hairlines and soft clouding. Painted per pixel and seamless, one tile = 2.4 x 1.2 m (see planarUV).
@@ -409,7 +421,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   var mWall = M(0xf4f0e8), mOak = M(0xb48d60, 0.6), mOakDark = M(0x9a744b, 0.6), mWhite = M(0xfafafa, 0.35);
   var mTabac = M(0x6b4a36), mAnth = M(0x383b3f, 0.5), mHob = M(0x1c1c1e, 0.2), mSteel = M(0x8d8d8d, 0.3);
   var mMarble = new THREE.MeshStandardMaterial({ map: marbleTex(), roughness: 0.22 }); mMarble.userData.planar = [2.4, 1.2];
-  var mFloor = new THREE.MeshStandardMaterial({ map: parquetTex(), roughness: 0.75 });
+  var mFloor = new THREE.MeshStandardMaterial({ map: parquetTex(), roughness: 0.6 });
   function tileMat(w, d) { var t = hexTex(); t.repeat.set(w / 0.12, d / 0.208); return new THREE.MeshStandardMaterial({ map: t, roughness: 0.5 }); }
   var mGlass = new THREE.MeshStandardMaterial({ color: 0xa9cbd8, transparent: true, opacity: 0.22, roughness: 0.1, depthWrite: false });
   var mLinen = new THREE.MeshStandardMaterial({ color: 0xece2cc, transparent: true, opacity: 0.5, roughness: 0.4, depthWrite: false });
