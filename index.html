@@ -201,11 +201,11 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
         <button id="a-dup" data-i18n="dup">Duplicate</button>
         <button id="a-lock" data-i18n="lock">Lock</button>
         <button id="a-del" data-i18n="del">Delete</button>
+        <button id="a-fill" hidden>Fill with books</button>
         <button id="a-more" aria-expanded="false" aria-controls="insp-more"></button>
       </div>
       <div class="row small" id="insp-more" hidden>
         <button id="a-top" aria-pressed="false" data-i18n="sits">Sits on furniture</button>
-        <button id="a-fill" data-i18n="fill" hidden>Fill with books</button>
         <button id="a-lvup" data-i18n="lvup" hidden>Shelf up</button>
         <button id="a-lvdown" data-i18n="lvdown" hidden>Shelf down</button>
       </div>
@@ -258,7 +258,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       undo: 'Undo', magnet: 'Magnet', screens: 'Partitions', display: 'Display', more: 'More', resetq: 'Replace the current layout with the starting layout?', walk: 'Walk through', exitwalk: 'Exit walk', menu: 'Menu', walkhint: 'W A S D or the stick to walk · drag to look · Space calls Nemo · B sends him to bed · Esc to leave', done: 'Done', move: 'Move', rotate: 'Rotate', scale: 'Resize', dup: 'Duplicate', sits: 'Sits on furniture', lock: 'Lock', unlock: 'Unlock', del: 'Delete',
       fw: 'Width cm', fd: 'Depth cm', fh: 'Height cm', fy: 'Off floor', fr: 'Angle °',
       tbank: 'Furniture', tlay: 'Layouts', over: 'Overview', plan: 'Plan', living: 'Living', nook: 'Play corner', office: 'Guest bedroom',
-      walls: 'Walls', cut: 'Cut away', full: 'Full height', bankhint: 'Tap to add, or drag into the flat', call: 'All', cseat: 'Seating', cbed: 'Beds', ctable: 'Tables', coffice: 'Office furniture', cstore: 'Storage', cart: 'Wall art', cbooks: 'Books', fill: 'Fill with books', ncall: 'Call', nbed: 'Bed', lvup: 'Shelf up', lvdown: 'Shelf down', cother: 'Other',
+      walls: 'Walls', cut: 'Cut away', full: 'Full height', bankhint: 'Tap to add, or drag into the flat', call: 'All', cseat: 'Seating', cbed: 'Beds', ctable: 'Tables', coffice: 'Office furniture', cstore: 'Storage', cart: 'Wall art', cbooks: 'Books', fill: 'Fill with books', clearsh: 'Clear shelves', ncall: 'Call', nbed: 'Bed', lvup: 'Shelf up', lvdown: 'Shelf down', cother: 'Other',
       lname: 'Layout name', save: 'Save', copy: 'Copy layout as text', reset: 'Back to starting layout', load: 'Open',
       builtin: 'Built-in', locked: 'Locked', fixedmsg: 'Built-in feature. It cannot be moved or resized.', size: 'Size',
       nosaved: 'No saved layouts yet.', shared: 'shared', device: 'this device', savedShared: 'Saved. Everyone who can open this page while signed in will see it.',
@@ -268,7 +268,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       undo: 'Geri al', magnet: 'Mıknatıs', screens: 'Bölmeler', display: 'Görünüm', more: 'Daha fazla', resetq: 'Mevcut yerleşim başlangıç yerleşimiyle değiştirilsin mi?', walk: 'İçeride gezin', exitwalk: 'Yürüyüşten çık', menu: 'Menü', walkhint: 'Yürümek için W A S D veya çubuk · bakmak için sürükleyin · Boşluk Nemo’yu çağırır · B yatağına yollar · çıkmak için Esc', done: 'Tamam', move: 'Taşı', rotate: 'Döndür', scale: 'Boyut', dup: 'Çoğalt', sits: 'Mobilya üstünde durur', lock: 'Kilitle', unlock: 'Kilidi aç', del: 'Sil',
       fw: 'Genişlik cm', fd: 'Derinlik cm', fh: 'Yükseklik cm', fy: 'Yerden', fr: 'Açı °',
       tbank: 'Mobilya', tlay: 'Yerleşimler', over: 'Genel', plan: 'Plan', living: 'Salon', nook: 'Oyun köşesi', office: 'Misafir odası',
-      walls: 'Duvarlar', cut: 'Alçak', full: 'Tam boy', bankhint: 'Eklemek için dokunun veya daireye sürükleyin', call: 'Tümü', cseat: 'Oturma', cbed: 'Yataklar', ctable: 'Masalar', coffice: 'Ofis mobilyası', cstore: 'Dolaplar', cart: 'Duvar sanatı', cbooks: 'Kitaplar', fill: 'Kitaplarla doldur', ncall: 'Çağır', nbed: 'Yatağa', lvup: 'Üst raf', lvdown: 'Alt raf', cother: 'Diğer',
+      walls: 'Duvarlar', cut: 'Alçak', full: 'Tam boy', bankhint: 'Eklemek için dokunun veya daireye sürükleyin', call: 'Tümü', cseat: 'Oturma', cbed: 'Yataklar', ctable: 'Masalar', coffice: 'Ofis mobilyası', cstore: 'Dolaplar', cart: 'Duvar sanatı', cbooks: 'Kitaplar', fill: 'Kitaplarla doldur', clearsh: 'Rafları boşalt', ncall: 'Çağır', nbed: 'Yatağa', lvup: 'Üst raf', lvdown: 'Alt raf', cother: 'Diğer',
       lname: 'Yerleşim adı', save: 'Kaydet', copy: 'Yerleşimi metin olarak kopyala', reset: 'Başlangıç yerleşimine dön', load: 'Aç',
       builtin: 'Sabit', locked: 'Kilitli', fixedmsg: 'Sabit öğe. Taşınamaz ve boyutu değiştirilemez.', size: 'Ölçü',
       nosaved: 'Henüz kayıtlı yerleşim yok.', shared: 'ortak', device: 'bu cihaz', savedShared: 'Kaydedildi. Oturum açıp bu sayfayı açabilen herkes görür.',
@@ -950,7 +950,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     { k: 'shelving', b: 'shelving', n: ['Wall shelving, oak 150', 'Duvar rafı, meşe 150'], w: 1.5, d: 0.3, h: 1.8, y: 0.41 },
     { k: 'shelving100', b: 'shelving', n: ['Wall shelving, oak 100', 'Duvar rafı, meşe 100'], w: 1.0, d: 0.3, h: 1.8, y: 0.41 },
     { k: 'bookcase', b: 'storage', n: ['Bookcase', 'Kitaplık'], w: 0.8, d: 0.3, h: 2.0 },
-    { k: 'slatBookcase', b: 'slatBookcase', n: ['Slatted bookcase 120', 'Çubuklu kitaplık 120'], w: 1.2, d: 0.35, h: 1.7, fill: true },
+    { k: 'slatBookcase', b: 'slatBookcase', n: ['Slatted bookcase 120', 'Çubuklu kitaplık 120'], w: 1.2, d: 0.35, h: 1.7 },
     { k: 'wardrobe', b: 'storage', n: ['Wardrobe', 'Gardırop'], w: 1.0, d: 0.6, h: 2.2 },
     { k: 'screen', b: 'screen', n: ['Glazed partition', 'Camlı bölme'], w: 3.2, d: 0.07, h: 2.6 },
     { k: 'rug', b: 'rug', n: ['Rug', 'Halı'], w: 2.85, d: 1.95, h: 0.015 },
@@ -1139,6 +1139,14 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   }
   function settle(it) { if (!it.top) return false; var y = surfaceUnder(it); if (Math.abs(y - it.y) < 0.0005) return false; it.y = y; pose(it); return true; }
   function settleAll() { var any = false; items.forEach(function (it) { if (settle(it)) any = true; }); if (any) { refreshGizmo(); refreshInspector(); dirty = true; } }
+  function captureRiders(it) {   // what sits on it, in its own coordinates
+    var ux = dirX(it), uz = dirZ(it);
+    return ridersOf(it).map(function (q) { return { o: q.o, lx: q.dx * ux.x + q.dz * ux.z, lz: q.dx * uz.x + q.dz * uz.z, dr: q.o.r - it.r }; });
+  }
+  function carryRiders(it, rs) {   // put them back after it has moved or turned
+    var ux = dirX(it), uz = dirZ(it);
+    rs.forEach(function (q) { q.o.x = it.x + ux.x * q.lx + uz.x * q.lz; q.o.z = it.z + ux.z * q.lx + uz.z * q.lz; q.o.r = (((it.r + q.dr) % 360) + 360) % 360; pose(q.o); });
+  }
   function ridersOf(it) {
     var ux = dirX(it), uz = dirZ(it);
     return items.filter(function (o) {
@@ -1175,7 +1183,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       $('insp-name').textContent = nm(BK[it.k].n); $('insp-badge').hidden = !it.lock; $('insp-badge').textContent = tr('locked');
       $('f-w').value = cm(it.w); $('f-d').value = cm(it.d); $('f-h').value = cm(it.h); $('f-y').value = cm(it.y); $('f-r').value = Math.round(it.r * 10) / 10;
       ['f-w', 'f-d', 'f-h', 'f-y', 'f-r'].forEach(function (id) { $(id).disabled = it.lock || (id === 'f-y' && it.top); });
-      $('a-top').setAttribute('aria-pressed', String(!!it.top)); $('a-top').disabled = it.lock; $('a-fill').hidden = !isShelving(it) || it.lock; (function () { var lv = it.top && !it.lock ? surfacesUnder(it) : [0], multi = lv.length > 2; $('a-lvup').hidden = $('a-lvdown').hidden = !multi; if (multi) { $('a-lvup').disabled = !lv.some(function (v) { return v > it.y + 0.03; }); $('a-lvdown').disabled = !lv.some(function (v) { return v < it.y - 0.03 && v > 0.03; }); } })();
+      $('a-top').setAttribute('aria-pressed', String(!!it.top)); $('a-top').disabled = it.lock; $('a-fill').hidden = !isShelving(it) || it.lock; $('a-fill').textContent = tr(ridersOf(it).length ? 'clearsh' : 'fill'); (function () { var lv = it.top && !it.lock ? surfacesUnder(it) : [0], multi = lv.length > 2; $('a-lvup').hidden = $('a-lvdown').hidden = !multi; if (multi) { $('a-lvup').disabled = !lv.some(function (v) { return v > it.y + 0.03; }); $('a-lvdown').disabled = !lv.some(function (v) { return v < it.y - 0.03 && v > 0.03; }); } })();
       each('[data-tool]', function (b) { b.setAttribute('aria-pressed', String(b.dataset.tool === tool)); b.disabled = it.lock; });
       var mo = !$('insp-more').hidden; $('a-more').textContent = tr('more') + (mo ? ' ▴' : ' ▾'); $('a-more').setAttribute('aria-expanded', String(mo));
       $('a-lock').textContent = tr(it.lock ? 'unlock' : 'lock'); $('a-lock').setAttribute('aria-pressed', String(it.lock));
@@ -1199,7 +1207,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   });
   $('f-r').addEventListener('change', function () {
     var it = sel && sel.item, v = parseFloat(this.value); if (!it || it.lock || isNaN(v)) return refreshInspector();
-    pushUndo(); it.r = ((v % 360) + 360) % 360; changed(it); commit();
+    pushUndo(); var rs = captureRiders(it); it.r = ((v % 360) + 360) % 360; carryRiders(it, rs); changed(it); commit();
   });
   each('[data-tool]', function (b) { b.addEventListener('click', function () { tool = b.dataset.tool; refreshGizmo(); refreshInspector(); dirty = true; }); });
   $('insp-close').addEventListener('click', function () { select(null); });
@@ -1221,7 +1229,11 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     else if (k === 'f' && it) { goal = { t: new THREE.Vector3(it.x, it.y + it.h / 2, it.z), r: Math.max(3, Math.max(it.w, it.d) * 2.5), pol: cam.pol, az: cam.az }; dirty = true; }
   });
 
-  $('a-fill').addEventListener('click', function () { var it = sel && sel.item; if (!it || !isShelving(it)) return; pushUndo(); fillShelving(it); commit(); dirty = true; });
+  $('a-fill').addEventListener('click', function () {
+    var it = sel && sel.item; if (!it || !isShelving(it) || it.lock) return; pushUndo(); var rs = ridersOf(it);
+    if (rs.length) rs.forEach(function (q) { itemsG.remove(q.o.g); items.splice(items.indexOf(q.o), 1); }); else fillShelving(it);
+    commit(); refreshInspector(); dirty = true;
+  });
   $('a-lvup').addEventListener('click', function () { var it = sel && sel.item; if (it && it.top && !it.lock) stepLevel(it, 1); });
   $('a-lvdown').addEventListener('click', function () { var it = sel && sel.item; if (it && it.top && !it.lock) stepLevel(it, -1); });
   $('a-top').addEventListener('click', function () { var it = sel && sel.item; if (!it || it.lock) return; pushUndo(); it.top = !it.top; if (it.top) it.y = surfaceUnder(it); changed(it); commit(); });
@@ -1358,18 +1370,18 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   function startDrag(e, hit) {
     var it = sel && sel.item; if (!it || it.lock || !hit) return null;
     var base = { x: it.x, z: it.z, w: it.w, d: it.d, h: it.h, r: it.r };
-    if (hit.handle === 'rot') { var p = onPlane(e, UP, new THREE.Vector3(0, 0.04, 0)); if (!p) return null; return { kind: 'rot', it: it, base: base, a0: Math.atan2(p.z - it.z, p.x - it.x) }; }
+    if (hit.handle === 'rot') { var p = onPlane(e, UP, new THREE.Vector3(0, 0.04, 0)); if (!p) return null; return { kind: 'rot', it: it, base: base, a0: Math.atan2(p.z - it.z, p.x - it.x), riders: captureRiders(it) }; }
     if (hit.handle === 'top') { var n = new THREE.Vector3(camera.position.x - it.x, 0, camera.position.z - it.z); if (n.lengthSq() < 1e-4) return null; n.normalize(); var q = onPlane(e, n, new THREE.Vector3(it.x, 0, it.z)); if (!q) return null; return { kind: 'top', it: it, base: base, n: n, y0: q.y }; }
     if (hit.handle) return { kind: hit.handle, it: it, base: base };
-    if (hit.item === it && tool === 'move') { var m = onPlane(e, UP, new THREE.Vector3(0, it.y, 0)); if (!m) return null; return { kind: 'move', it: it, base: base, ox: it.x - m.x, oz: it.z - m.z, riders: ridersOf(it) }; }
+    if (hit.item === it && tool === 'move') { var m = onPlane(e, UP, new THREE.Vector3(0, it.y, 0)); if (!m) return null; return { kind: 'move', it: it, base: base, ox: it.x - m.x, oz: it.z - m.z, riders: captureRiders(it) }; }
     return null;
   }
   function applyDrag(e) {
     var d = drag, it = d.it, b = d.base;
     if (!d.touched) { pushUndo(); d.touched = true; measuring = true; }
     if (d.kind === 'move') { var m = onPlane(e, UP, new THREE.Vector3(0, it.y, 0)); if (!m) return; it.x = clamp(m.x + d.ox, -2, 13); it.z = clamp(m.z + d.oz, -2, 14); if (!magnetize(it, e.altKey)) { it.x = snapTo(it.x, 0.05); it.z = snapTo(it.z, 0.05); }
-      (d.riders || []).forEach(function (r) { r.o.x = it.x + r.dx; r.o.z = it.z + r.dz; pose(r.o); }); if (it.top) it.y = surfaceUnder(it); changed(it); return; }
-    if (d.kind === 'rot') { var p = onPlane(e, UP, new THREE.Vector3(0, 0.04, 0)); if (!p) return; it.r = snapAngle(b.r + (Math.atan2(p.z - b.z, p.x - b.x) - d.a0) * 180 / Math.PI); changed(it); return; }
+      carryRiders(it, d.riders || []); if (it.top) it.y = surfaceUnder(it); changed(it); return; }
+    if (d.kind === 'rot') { var p = onPlane(e, UP, new THREE.Vector3(0, 0.04, 0)); if (!p) return; it.r = snapAngle(b.r + (Math.atan2(p.z - b.z, p.x - b.x) - d.a0) * 180 / Math.PI); carryRiders(it, d.riders || []); changed(it); return; }
     if (d.kind === 'top') { var q = onPlane(e, d.n, new THREE.Vector3(b.x, 0, b.z)); if (!q) return; it.h = clamp(snapTo(b.h + q.y - d.y0, 0.05), 0.02, 4); changed(it, true); return; }
     var hpt = onPlane(e, UP, new THREE.Vector3(0, it.y + it.h, 0)); if (!hpt) return;
     var ax = d.kind[0] === 'x', sign = d.kind[1] === 'p' ? 1 : -1, u = ax ? dirX(it) : dirZ(it), size0 = ax ? b.w : b.d;
@@ -1458,8 +1470,8 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     });
     c.addEventListener('pointerup', function (e) {
       if (!st) return; var s0 = st; st = null;
-      if (s0.it) { commit(); endMeasure(); if (BK[b.k].fill) { fillShelving(s0.it); commit(); } return; }
-      if (Math.hypot(e.clientX - s0.x, e.clientY - s0.y) < 8) { pushUndo(); var it = addItem(b.k, clamp(snapTo(cam.t.x, 0.05), 0.5, 9.5), clamp(snapTo(cam.t.z, 0.05), 0.5, 10.5)); select({ item: it }); commit(); if (BK[b.k].fill) { fillShelving(it); commit(); } }
+      if (s0.it) { commit(); endMeasure(); return; }
+      if (Math.hypot(e.clientX - s0.x, e.clientY - s0.y) < 8) { pushUndo(); var it = addItem(b.k, clamp(snapTo(cam.t.x, 0.05), 0.5, 9.5), clamp(snapTo(cam.t.z, 0.05), 0.5, 10.5)); select({ item: it }); commit(); }
     });
     c.addEventListener('pointercancel', function () { if (st && st.it) { commit(); endMeasure(); } st = null; });
   }
