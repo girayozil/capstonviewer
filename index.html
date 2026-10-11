@@ -88,6 +88,9 @@ button:disabled { opacity: 0.45; cursor: default; }
 @media (prefers-reduced-motion: reduce) { #walkbtn.fresh { animation: none; } }
 #walkbtn[aria-pressed="true"] { font-size: 0.8rem; font-weight: 500; padding: 6px 12px; background: var(--panel); color: var(--fg); border-color: var(--line); box-shadow: none; }
 #walkbtn[aria-pressed="true"] svg { display: none; }
+#nemo-btn::before { content: ""; display: inline-block; width: 26px; height: 14px; margin-right: 7px; vertical-align: -2px; border-radius: 7px;
+  background: radial-gradient(circle at 7px 7px, var(--panel) 4.5px, transparent 5px), var(--muted); }
+#nemo-btn[aria-checked="true"]::before { background: radial-gradient(circle at 19px 7px, var(--panel) 4.5px, transparent 5px), var(--accent); }
 #walkhud { position: absolute; left: 16px; top: 8px; max-width: calc(100% - 150px); width: fit-content; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center;
   font-size: 0.75rem; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 6px 10px; z-index: 2; }
 /* walk mode: the dock is a drawer behind the Menu button; furniture editing and the wall height choice are not offered */
@@ -154,7 +157,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
 <div id="stage">
   <canvas id="view" aria-label="3D model of apartment N11.01"></canvas>
   <button id="walkbtn" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13" cy="4" r="2"/><path d="M10 21l2-6 2.5 2.5V21"/><path d="M12 15l-.5-5.5L15 11l2.5 2"/><path d="M11.5 9.5L8 12v3"/></svg><span id="walklab">Walk through</span></button>
-  <div id="walkhud" hidden><span id="walkhint"></span><span class="row small"><button id="nemo-btn" aria-pressed="true">Nemo</button><button id="nemo-call" data-i18n="ncall" title="Space" aria-keyshortcuts="Space">Call</button><button id="nemo-bed" data-i18n="nbed" title="B" aria-keyshortcuts="B">Bed</button></span></div>
+  <div id="walkhud" hidden><span id="walkhint"></span><span class="row small"><button id="nemo-btn" role="switch" aria-checked="true" data-i18n="nhome">Nemo is at home</button><button id="nemo-call" data-i18n="ncall" title="Space" aria-keyshortcuts="Space">Call Nemo</button><button id="nemo-bed" data-i18n="nbed" title="B" aria-keyshortcuts="B">Send Nemo to bed</button></span></div>
   <button id="dispbtn" aria-expanded="false" aria-controls="dispmenu"><span data-i18n="display">Display</span> ▾</button>
   <div id="dispmenu" hidden>
     <div class="row small" role="group" aria-label="Walls" id="walls-row">
@@ -258,7 +261,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       undo: 'Undo', magnet: 'Magnet', screens: 'Partitions', display: 'Display', more: 'More', resetq: 'Replace the current layout with the starting layout?', walk: 'Walk through', exitwalk: 'Exit walk', menu: 'Menu', walkhint: 'W A S D or the stick to walk · drag to look · Space calls Nemo · B sends him to bed · Esc to leave', done: 'Done', move: 'Move', rotate: 'Rotate', scale: 'Resize', dup: 'Duplicate', sits: 'Sits on furniture', lock: 'Lock', unlock: 'Unlock', del: 'Delete',
       fw: 'Width cm', fd: 'Depth cm', fh: 'Height cm', fy: 'Off floor', fr: 'Angle °',
       tbank: 'Furniture', tlay: 'Layouts', over: 'Overview', plan: 'Plan', living: 'Living', nook: 'Play corner', office: 'Guest bedroom',
-      walls: 'Walls', cut: 'Cut away', full: 'Full height', bankhint: 'Tap to add, or drag into the flat', call: 'All', cseat: 'Seating', cbed: 'Beds', ctable: 'Tables', coffice: 'Office furniture', cstore: 'Storage', cart: 'Wall art', cbooks: 'Books', fill: 'Fill with books', clearsh: 'Clear shelves', ncall: 'Call', nbed: 'Bed', lvup: 'Shelf up', lvdown: 'Shelf down', cother: 'Other',
+      walls: 'Walls', cut: 'Cut away', full: 'Full height', bankhint: 'Tap to add, or drag into the flat', call: 'All', cseat: 'Seating', cbed: 'Beds', ctable: 'Tables', coffice: 'Office furniture', cstore: 'Storage', cart: 'Wall art', cbooks: 'Books', fill: 'Fill with books', clearsh: 'Clear shelves', nhome: 'Nemo is at home', ncall: 'Call Nemo', nbed: 'Send Nemo to bed', lvup: 'Shelf up', lvdown: 'Shelf down', cother: 'Other',
       lname: 'Layout name', save: 'Save', copy: 'Copy layout as text', reset: 'Back to starting layout', load: 'Open',
       builtin: 'Built-in', locked: 'Locked', fixedmsg: 'Built-in feature. It cannot be moved or resized.', size: 'Size',
       nosaved: 'No saved layouts yet.', shared: 'shared', device: 'this device', savedShared: 'Saved. Everyone who can open this page while signed in will see it.',
@@ -268,7 +271,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       undo: 'Geri al', magnet: 'Mıknatıs', screens: 'Bölmeler', display: 'Görünüm', more: 'Daha fazla', resetq: 'Mevcut yerleşim başlangıç yerleşimiyle değiştirilsin mi?', walk: 'İçeride gezin', exitwalk: 'Yürüyüşten çık', menu: 'Menü', walkhint: 'Yürümek için W A S D veya çubuk · bakmak için sürükleyin · Boşluk Nemo’yu çağırır · B yatağına yollar · çıkmak için Esc', done: 'Tamam', move: 'Taşı', rotate: 'Döndür', scale: 'Boyut', dup: 'Çoğalt', sits: 'Mobilya üstünde durur', lock: 'Kilitle', unlock: 'Kilidi aç', del: 'Sil',
       fw: 'Genişlik cm', fd: 'Derinlik cm', fh: 'Yükseklik cm', fy: 'Yerden', fr: 'Açı °',
       tbank: 'Mobilya', tlay: 'Yerleşimler', over: 'Genel', plan: 'Plan', living: 'Salon', nook: 'Oyun köşesi', office: 'Misafir odası',
-      walls: 'Duvarlar', cut: 'Alçak', full: 'Tam boy', bankhint: 'Eklemek için dokunun veya daireye sürükleyin', call: 'Tümü', cseat: 'Oturma', cbed: 'Yataklar', ctable: 'Masalar', coffice: 'Ofis mobilyası', cstore: 'Dolaplar', cart: 'Duvar sanatı', cbooks: 'Kitaplar', fill: 'Kitaplarla doldur', clearsh: 'Rafları boşalt', ncall: 'Çağır', nbed: 'Yatağa', lvup: 'Üst raf', lvdown: 'Alt raf', cother: 'Diğer',
+      walls: 'Duvarlar', cut: 'Alçak', full: 'Tam boy', bankhint: 'Eklemek için dokunun veya daireye sürükleyin', call: 'Tümü', cseat: 'Oturma', cbed: 'Yataklar', ctable: 'Masalar', coffice: 'Ofis mobilyası', cstore: 'Dolaplar', cart: 'Duvar sanatı', cbooks: 'Kitaplar', fill: 'Kitaplarla doldur', clearsh: 'Rafları boşalt', nhome: 'Nemo evde', ncall: 'Nemo’yu çağır', nbed: 'Nemo’yu yatağına yolla', lvup: 'Üst raf', lvdown: 'Alt raf', cother: 'Diğer',
       lname: 'Yerleşim adı', save: 'Kaydet', copy: 'Yerleşimi metin olarak kopyala', reset: 'Başlangıç yerleşimine dön', load: 'Aç',
       builtin: 'Sabit', locked: 'Kilitli', fixedmsg: 'Sabit öğe. Taşınamaz ve boyutu değiştirilemez.', size: 'Ölçü',
       nosaved: 'Henüz kayıtlı yerleşim yok.', shared: 'ortak', device: 'bu cihaz', savedShared: 'Kaydedildi. Oturum açıp bu sayfayı açabilen herkes görür.',
@@ -1734,7 +1737,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       g.position.set(S.x, S.y + (S.moving && S.st !== 'jump' ? Math.abs(Math.sin(S.phase)) * 0.012 : 0), S.z); g.rotation.y = S.h;
     }
     function spawn() { var pt = randomFree() || [walk.x, walk.z]; S.x = pt[0]; S.z = pt[1]; S.y = 0; S.h = Math.random() * 6.28; S.jump = null; rest('sit', 1 + Math.random() * 2); }
-    function refresh() { $('nemo-btn').setAttribute('aria-pressed', String(on)); $('nemo-call').hidden = $('nemo-bed').hidden = !on; g.visible = on && walk.on; dirty = true; }
+    function refresh() { $('nemo-btn').setAttribute('aria-checked', String(on)); $('nemo-call').hidden = $('nemo-bed').hidden = !on; g.visible = on && walk.on; dirty = true; }
     $('nemo-btn').addEventListener('click', function () { on = !on; try { localStorage.setItem('capston-nemo', on ? 'on' : 'off'); } catch (e) {} if (on && walk.on) spawn(); refresh(); });
     function command(c) { if (on && walk.on) S.cmd = c; }
     $('nemo-call').addEventListener('click', function () { command('call'); }); $('nemo-bed').addEventListener('click', function () { command('bed'); });

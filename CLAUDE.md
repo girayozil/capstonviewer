@@ -74,13 +74,13 @@ The layouts section first looks for `window.claude.use('db')`, which only exists
 Walk mode is a first-person camera with collision (`freeWay`), a ceiling, full-height walls and a painted backdrop outside the windows. All of those are hidden outside walk mode.
 
 - Eye height is fixed at 1.70 m (`walk.eye`); there is no setting for it.
-- The Walk button ("Walk through") is the prominent filled button at the top right of the stage, with Top view below it.
-- While walking, `body.walking` hides the dock, the furniture sidebar, Magnet and Undo. A Menu button opens the dock as a drawer (`body.drawer`) with View and Layouts only; the Furniture tab and the Walls buttons stay hidden.
+- The Walk button ("Walk through") is the prominent filled button at the top right of the stage, with the Display menu below it.
+- While walking, `body.walking` hides the dock, the furniture sidebar, the view buttons and Undo. A Menu button opens the dock as a drawer (`body.drawer`) with Layouts only; the Furniture tab and the Walls buttons stay hidden. Leaving walk mode reopens the tab that was open before.
 
 Nemo is the owners' dog, a 10 kg apricot labradoodle, modelled in a block style. He exists only in walk mode, is never saved, and can be toggled off.
 
 - State machine in `think`: `wander`, `follow`, `greet`, `rest`, `toperch`, `jump`, `perched`. `decide` picks the next activity. About 11% of decisions go to his bed when one is placed (`dogBed`), which works out near 20% of his time.
-- Commands: Space or the Call button brings him to the player. B or the Bed button sends him to the nearest bed.
+- Controls in the walk panel: a "Nemo is at home" switch (`#nemo-btn`, `role="switch"`), then "Call Nemo" (or Space) brings him to the player and "Send Nemo to bed" (or B) sends him to the nearest bed. The two commands hide while he is away.
 - Route finding: the floor is sampled into 15 cm cells when walk mode starts (`gridBuild`, a few hundred cells per frame), then `plan` runs A*. Obstacles are detected by casting rays upward from below the floor (`obstacleAt`). Casting downward from inside a wall finds nothing, which was a real bug.
 - `moveToward` follows the route and uses short horizontal rays (`blocked`) to slide around anything the grid missed.
 
