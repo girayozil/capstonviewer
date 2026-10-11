@@ -65,14 +65,21 @@ button:disabled { opacity: 0.45; cursor: default; }
 #stage canvas { display: block; width: 100%; height: 100%; touch-action: none; }
 #hint { position: absolute; left: 16px; right: 16px; bottom: 8px; width: fit-content; max-width: calc(100% - 32px); font-size: 0.72rem; color: var(--muted);
   background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 4px 10px; pointer-events: none; }
-#topbtn { position: absolute; top: 8px; right: 16px; background: var(--panel); z-index: 2; }
+#topbtn { position: absolute; top: 60px; right: 16px; background: var(--panel); z-index: 2; }
 #topbtn[aria-pressed="true"] { background: var(--accent); }
-#walkbtn { position: absolute; top: 46px; right: 16px; background: var(--panel); z-index: 2; }
-#walkbtn[aria-pressed="true"] { background: var(--accent); }
+#walkbtn { position: absolute; top: 8px; right: 16px; z-index: 2; display: inline-flex; align-items: center; gap: 6px;
+  font-size: 0.95rem; font-weight: 600; padding: 9px 18px 9px 14px; background: var(--accent); color: var(--accent-fg); border-color: var(--accent);
+  box-shadow: 0 2px 10px rgba(40, 28, 20, 0.28); }
+#walkbtn svg { width: 20px; height: 20px; flex: 0 0 auto; }
+#walkbtn.fresh { animation: walkpulse 2.2s ease-out infinite; }
+@keyframes walkpulse { 0% { box-shadow: 0 2px 10px rgba(40, 28, 20, 0.28), 0 0 0 0 var(--accent); } 70%, 100% { box-shadow: 0 2px 10px rgba(40, 28, 20, 0.28), 0 0 0 12px transparent; } }
+@media (prefers-reduced-motion: reduce) { #walkbtn.fresh { animation: none; } }
+#walkbtn[aria-pressed="true"] { font-size: 0.8rem; font-weight: 500; padding: 6px 12px; background: var(--panel); color: var(--fg); border-color: var(--line); box-shadow: none; }
+#walkbtn[aria-pressed="true"] svg { display: none; }
 #walkhud { position: absolute; left: 16px; top: 8px; max-width: calc(100% - 150px); width: fit-content; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center;
   font-size: 0.75rem; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 6px 10px; z-index: 2; }
 /* walk mode: the dock is a drawer behind the Menu button; furniture editing and the wall height choice are not offered */
-body.walking:not(.drawer) .dock, body.walking #side, body.walking #tab-bank, body.walking #walls-row { display: none; }
+body.walking:not(.drawer) .dock, body.walking #side, body.walking #magnet, body.walking #undo, body.walking #tab-bank, body.walking #walls-row { display: none; }
 #drawerbtn { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--panel); z-index: 2; }
 #stick { position: absolute; left: 20px; bottom: 20px; width: 112px; height: 112px; border-radius: 50%; background: var(--panel); opacity: 0.85; border: 1px solid var(--line); touch-action: none; z-index: 2; }
 #knob { position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; background: var(--accent); pointer-events: none; }
@@ -129,7 +136,7 @@ body.walking:not(.drawer) .dock, body.walking #side, body.walking #tab-bank, bod
 <div id="stage">
   <canvas id="view" aria-label="3D model of apartment N11.01"></canvas>
   <button id="topbtn" aria-pressed="false" data-i18n="topview" title="Alt+J" aria-keyshortcuts="Alt+J">Top view</button>
-  <button id="walkbtn" aria-pressed="false">Walk</button>
+  <button id="walkbtn" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13" cy="4" r="2"/><path d="M10 21l2-6 2.5 2.5V21"/><path d="M12 15l-.5-5.5L15 11l2.5 2"/><path d="M11.5 9.5L8 12v3"/></svg><span id="walklab">Walk through</span></button>
   <div id="walkhud" hidden><span id="walkhint"></span><span class="row small"><button id="nemo-btn" aria-pressed="true">Nemo</button><button id="nemo-call" data-i18n="ncall" title="Space" aria-keyshortcuts="Space">Call</button><button id="nemo-bed" data-i18n="nbed" title="B" aria-keyshortcuts="B">Bed</button></span></div>
   <button id="drawerbtn" aria-expanded="false" aria-controls="dock" hidden></button>
   <div id="stick" hidden><div id="knob"></div></div>
@@ -220,7 +227,7 @@ body.walking:not(.drawer) .dock, body.walking #side, body.walking #tab-bank, bod
   // ================= language: English / Turkish. A link ending in #tr opens in Turkish.
   var TXT = {
     en: { hint: 'Tap an object to select it · drag empty space to turn the view · pinch or scroll to zoom', fail: 'This device could not start the 3D view.',
-      undo: 'Undo', magnet: 'Magnet', screens: 'Partitions', topview: 'Top view', walk: 'Walk', exitwalk: 'Exit walk', menu: 'Menu', walkhint: 'W A S D or the stick to walk · drag to look · Space calls Nemo · B sends him to bed · Esc to leave', done: 'Done', move: 'Move', rotate: 'Rotate', scale: 'Resize', dup: 'Duplicate', sits: 'Sits on furniture', lock: 'Lock', unlock: 'Unlock', del: 'Delete',
+      undo: 'Undo', magnet: 'Magnet', screens: 'Partitions', topview: 'Top view', walk: 'Walk through', exitwalk: 'Exit walk', menu: 'Menu', walkhint: 'W A S D or the stick to walk · drag to look · Space calls Nemo · B sends him to bed · Esc to leave', done: 'Done', move: 'Move', rotate: 'Rotate', scale: 'Resize', dup: 'Duplicate', sits: 'Sits on furniture', lock: 'Lock', unlock: 'Unlock', del: 'Delete',
       fw: 'Width cm', fd: 'Depth cm', fh: 'Height cm', fy: 'Off floor', fr: 'Angle °',
       tview: 'View', tbank: 'Furniture', tlay: 'Layouts', over: 'Overview', plan: 'Plan', living: 'Living', nook: 'Nook', office: 'Office',
       walls: 'Walls', cut: 'Cut away', full: 'Full height', bankhint: 'Tap to add, or drag into the flat', call: 'All', cseat: 'Seating', cbed: 'Beds', ctable: 'Tables', coffice: 'Office', cstore: 'Storage', cart: 'Wall art', cbooks: 'Books', fill: 'Fill with books', ncall: 'Call', nbed: 'Bed', lvup: 'Shelf up', lvdown: 'Shelf down', cother: 'Other',
@@ -230,7 +237,7 @@ body.walking:not(.drawer) .dock, body.walking #side, body.walking #tab-bank, bod
       savedLocal: 'Saved on this device only.', copied: 'Layout copied. Paste it into the chat.', copyfail: 'Select the text below and copy it.', needname: 'Type a name first.',
       aria: '3D model of apartment N11.01' },
     tr: { hint: 'Seçmek için bir nesneye dokunun · görünümü çevirmek için boş alanı sürükleyin · yakınlaştırmak için iki parmağınızı açın', fail: 'Bu cihazda 3B görünüm açılamadı.',
-      undo: 'Geri al', magnet: 'Mıknatıs', screens: 'Bölmeler', topview: 'Üstten', walk: 'Yürü', exitwalk: 'Yürüyüşten çık', menu: 'Menü', walkhint: 'Yürümek için W A S D veya çubuk · bakmak için sürükleyin · Boşluk Nemo’yu çağırır · B yatağına yollar · çıkmak için Esc', done: 'Tamam', move: 'Taşı', rotate: 'Döndür', scale: 'Boyut', dup: 'Çoğalt', sits: 'Mobilya üstünde durur', lock: 'Kilitle', unlock: 'Kilidi aç', del: 'Sil',
+      undo: 'Geri al', magnet: 'Mıknatıs', screens: 'Bölmeler', topview: 'Üstten', walk: 'İçeride gezin', exitwalk: 'Yürüyüşten çık', menu: 'Menü', walkhint: 'Yürümek için W A S D veya çubuk · bakmak için sürükleyin · Boşluk Nemo’yu çağırır · B yatağına yollar · çıkmak için Esc', done: 'Tamam', move: 'Taşı', rotate: 'Döndür', scale: 'Boyut', dup: 'Çoğalt', sits: 'Mobilya üstünde durur', lock: 'Kilitle', unlock: 'Kilidi aç', del: 'Sil',
       fw: 'Genişlik cm', fd: 'Derinlik cm', fh: 'Yükseklik cm', fy: 'Yerden', fr: 'Açı °',
       tview: 'Görünüm', tbank: 'Mobilya', tlay: 'Yerleşimler', over: 'Genel', plan: 'Plan', living: 'Salon', nook: 'Misafir köşesi', office: 'Çalışma odası',
       walls: 'Duvarlar', cut: 'Alçak', full: 'Tam boy', bankhint: 'Eklemek için dokunun veya daireye sürükleyin', call: 'Tümü', cseat: 'Oturma', cbed: 'Yataklar', ctable: 'Masalar', coffice: 'Ofis', cstore: 'Dolaplar', cart: 'Duvar sanatı', cbooks: 'Kitaplar', fill: 'Kitaplarla doldur', ncall: 'Çağır', nbed: 'Yatağa', lvup: 'Üst raf', lvdown: 'Alt raf', cother: 'Diğer',
@@ -1179,7 +1186,7 @@ body.walking:not(.drawer) .dock, body.walking #side, body.walking #tab-bank, bod
   // ================= walk mode: first-person camera at eye height, with collisions against walls, glazing and furniture
   var walk = { on: false, x: 2.73, z: 11.2, yaw: 0, pitch: 0, eye: 1.70, prevWalls: 'cut', last: 0, sx: 0, sy: 0, look: null, locked: false }, walkKeys = {};
   function updateWalkUI() {
-    $('walkbtn').textContent = tr(walk.on ? 'exitwalk' : 'walk'); $('walkbtn').setAttribute('aria-pressed', String(walk.on));
+    $('walklab').textContent = tr(walk.on ? 'exitwalk' : 'walk'); $('walkbtn').setAttribute('aria-pressed', String(walk.on));
     $('walkhint').textContent = tr('walkhint');
     $('walkhud').hidden = $('stick').hidden = $('drawerbtn').hidden = !walk.on;
     var open = walk.on && document.body.classList.contains('drawer'); document.body.classList.toggle('walking', walk.on);
@@ -1195,7 +1202,11 @@ body.walking:not(.drawer) .dock, body.walking #side, body.walking #tab-bank, bod
     if (!walk.on) return; walk.on = false; if (document.exitPointerLock && walk.locked) document.exitPointerLock();
     ceiling.visible = false; backdrop.visible = false; nemo.leave(); setWalls(walk.prevWalls); updateWalkUI(); resize();
   }
-  $('walkbtn').addEventListener('click', function () { if (walk.on) exitWalk(); else enterWalk(); });
+  try { if (!localStorage.getItem('capston-walked')) $('walkbtn').classList.add('fresh'); } catch (e) {}
+  $('walkbtn').addEventListener('click', function () {
+    $('walkbtn').classList.remove('fresh'); try { localStorage.setItem('capston-walked', '1'); } catch (e) {}
+    if (walk.on) exitWalk(); else enterWalk();
+  });
   $('drawerbtn').addEventListener('click', function () { document.body.classList.toggle('drawer'); updateWalkUI(); resize(); });
   function placeWalk() {
     var cp = Math.cos(walk.pitch); camera.position.set(walk.x, walk.eye, walk.z);

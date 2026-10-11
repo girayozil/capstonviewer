@@ -56,12 +56,17 @@ Browser localStorage, all per device:
 - `capston-n1101-work`: the working layout, `{v, items}`. `v` is currently 4. Loading an older version runs one-off migrations (rug sizes, first fill of shelving with books). Bump `v` and add a migration when a change must alter layouts people already have.
 - `capston-n1101-saved`: named layouts.
 - `capston-lang`, `capston-magnet`, `capston-screens` (glazed partitions, hidden unless `on`), `capston-nemo`.
+- `capston-walked`: set after the first use of the Walk button, which pulses until then.
 
 The layouts section first looks for `window.claude.use('db')`, which only exists when the page is hosted as a Claude artifact. On GitHub Pages that is absent and named layouts fall back to localStorage, so they are not shared between visitors. Everyone still opens on `START`.
 
 ## Walk mode and Nemo
 
 Walk mode is a first-person camera with collision (`freeWay`), a ceiling, full-height walls and a painted backdrop outside the windows. All of those are hidden outside walk mode.
+
+- Eye height is fixed at 1.70 m (`walk.eye`); there is no setting for it.
+- The Walk button ("Walk through") is the prominent filled button at the top right of the stage, with Top view below it.
+- While walking, `body.walking` hides the dock, the furniture sidebar, Magnet and Undo. A Menu button opens the dock as a drawer (`body.drawer`) with View and Layouts only; the Furniture tab and the Walls buttons stay hidden.
 
 Nemo is the owners' dog, a 10 kg apricot labradoodle, modelled in a block style. He exists only in walk mode, is never saved, and can be toggled off.
 
