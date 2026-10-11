@@ -28,7 +28,7 @@ A single-page 3D layout planner for flat N11.01 at The Capston (Embassy Gardens,
 
 - `language`: `TXT.en` / `TXT.tr`, `tr(key)`, `data-i18n` attributes, `onLang` callbacks. A URL ending in `#tr` opens in Turkish.
 - `plan coordinates`, `textures`, `materials`: `M(color, roughness)` makes a material from an sRGB hex. Canvas textures use `rng(seed)` for repeatable noise.
-- `the fixed shell`: walls, glazing, kitchen, bathrooms, built-in joinery. Groups: `walls`, `tall`, `low`. Each built-in is registered under `curFix` so it can be selected and measured but not moved. Cut-away mode scales `walls` and `tall` to 0.42 height.
+- `the fixed shell`: walls, glazing, kitchen, bathrooms, built-in joinery. Groups: `walls`, `tall`, `low`. Each built-in is registered under `curFix` so it can be selected and measured but not moved. Cut-away mode scales `walls` and `tall` to 0.42 height. The utility cupboard and hall closet use `builtIn(x0, y0, x1, y1, face, n)`: a white body and bulkhead that read as wall, `n` flush oak doors on the `'e'` or `'w'` face with shadow gaps and slim black bar handles.
 - `furniture bank`: `BUILD[type](g, w, d, h)` builders, the `BANK` array, `BK` lookup, `CATS` category lists, `START` (the default layout).
 - `items`: the movable objects. `norm`, `plain`, `rebuild`, `pose`, `setItems`, `commit`.
 - `selection, gizmo`, `magnetism`, `sits on furniture`, `inspector`, `keyboard shortcuts`.

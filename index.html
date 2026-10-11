@@ -441,6 +441,23 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   }
   function wall(x0, y0, x1, y1, mat) { return box(walls, x0, y0, x1, y1, H, mat || mWall); }
   function header(x0, y0, x1, y1, mat) { return box(walls, x0, y0, x1, y1, H - 2.1, mat || mWall, 2.1); }
+  // Built-in cupboard as in the owner's photo: oak doors set flush into a white wall, white reveals at the ends and a white bulkhead
+  // up to the ceiling, shadow gaps between the doors and slim black bar handles (the first doors at their right edge, the last at its left).
+  // face: 'e' or 'w', the side that opens onto the room; n: number of doors.
+  function builtIn(x0, y0, x1, y1, face, n) {
+    var p = function (m) { return m / S; }, t = p(0.02), rv = p(0.03), gap = p(0.004), hd = 2.4, e = face === 'e', sg = e ? 1 : -1;
+    var fx = e ? x1 : x0, bx = fx - sg * t;   // door face, and the face of the body behind the doors
+    box(tall, e ? x0 : bx, y0, e ? bx : x1, y1, H, mWall);
+    box(tall, bx, y0, fx, y0 + rv, H, mWall); box(tall, bx, y1 - rv, fx, y1, H, mWall); box(tall, bx, y0 + rv, fx, y1 - rv, H - hd, mWall, hd);
+    var a = y0 + rv, dw = (y1 - y0 - 2 * rv) / n, ins = bx + sg * p(0.004);
+    box(tall, bx, a, ins, y1 - rv, hd, mAnth);   // dark behind the gaps
+    for (var i = 0; i < n; i++) {   // i counts from the viewer's left: facing an east face the left is south (high y), facing a west face it is north
+      var k = e ? n - 1 - i : i, d0 = a + k * dw + gap / 2, d1 = a + (k + 1) * dw - gap / 2;
+      box(tall, ins, d0, fx, d1, hd - 0.006, mOakWarm, 0.003);
+      var right = i < n - 1, hy = (right === e) ? d0 + p(0.07) : d1 - p(0.07);   // right edge is low y on an east face, high y on a west face
+      box(tall, fx, hy - p(0.006), fx + sg * p(0.025), hy + p(0.006), 0.74, mHob, 0.68);
+    }
+  }
 
   (function () {
     var pts = [[296, 948], [gx(948) + 14, 948], [gx(1612) + 14, 1612], [582, 1612], [582, 1690], [426, 1690], [426, 1606], [296, 1606]];
@@ -505,8 +522,8 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   })();
   curFix = 'wardrobe'; box(tall, 447, 956, 670, 993, 2.45, mOak);
   for (var wi = 1; wi < 6; wi++) box(tall, 447 + wi * 37.2, 992.6, 447 + wi * 37.2 + 0.6, 993.6, 2.45, mOakDark);
-  curFix = 'utility'; box(tall, 380, 1470, 439, 1583, 2.45, mOak);
-  curFix = 'closet'; box(tall, 520, 1562, 560, 1672, 2.45, mOak);
+  curFix = 'utility'; builtIn(380, 1470, 439, 1583, 'e', 3);
+  curFix = 'closet'; builtIn(520, 1562, 560, 1672, 'w', 3);
   curFix = 'fridge'; box(tall, 584, 1556, 620, 1596, 2.3, mOak);
   curFix = 'oven'; box(tall, 835, 1556, 858, 1596, 2.3, mOak);
   curFix = 'door'; box(tall, 442.5, 1673, 500.5, 1676, 2.1, mOakDark);
