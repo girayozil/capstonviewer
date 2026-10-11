@@ -479,9 +479,11 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     var x0 = W * 0.17, pier = 3 * M2, bay = 4.6 * M2, fl = 3.15 * M2, nb = 6, x1 = x0 + pier + nb * (bay + pier);
     g.fillStyle = '#22252b'; g.fillRect(x0, 0, x1 - x0, Hc);
     for (var b = 0; b < nb; b++) { var bx0 = x0 + pier + b * (bay + pier); for (var f = -1; f * fl < Hc; f++) { var fy = f * fl + 22;
-        var gl = g.createLinearGradient(0, fy + 30, 0, fy + fl); gl.addColorStop(0, '#3a4a5c'); gl.addColorStop(1, '#232b36'); g.fillStyle = gl; g.fillRect(bx0 + 5, fy + 30, bay - 10, fl - 30);
-        g.fillStyle = '#191b20'; g.fillRect(bx0, fy, bay, 30); for (j = 1; j < 3; j++) g.fillRect(bx0 + j * bay / 3 - 2, fy + 30, 4, fl - 30); g.fillRect(bx0, fy + 30 + (fl - 30) * 0.36, bay, 3);
-        if (r() > 0.72) { g.fillStyle = 'rgba(255,214,150,0.28)'; g.fillRect(bx0 + 5 + ((r() * 3) | 0) * bay / 3, fy + 30 + (fl - 30) * 0.36, bay / 3 - 8, (fl - 30) * 0.64); } } }
+        var sp = Math.round(fl * 0.46), gy0 = fy + sp, gh = fl - sp, tr = gy0 + gh * 0.32;   // a deep slate band between floors, then glazing in three panes with a transom
+        var gl = g.createLinearGradient(0, gy0, 0, fy + fl); gl.addColorStop(0, '#6a7b8b'); gl.addColorStop(1, '#2c3743'); g.fillStyle = gl; g.fillRect(bx0 + 6, gy0, bay - 12, gh);
+        g.fillStyle = '#2b2f36'; g.fillRect(bx0, fy, bay, sp); g.fillStyle = 'rgba(255,255,255,0.12)'; g.fillRect(bx0, fy, bay, 3); g.fillStyle = 'rgba(0,0,0,0.38)'; g.fillRect(bx0, fy + sp - 5, bay, 5);
+        g.fillStyle = '#121418'; g.fillRect(bx0, gy0, 6, gh); g.fillRect(bx0 + bay - 6, gy0, 6, gh); for (j = 1; j < 3; j++) g.fillRect(bx0 + j * bay / 3 - 3, gy0, 6, gh); g.fillRect(bx0 + 6, tr, bay - 12, 5);
+        if (r() > 0.72) { g.fillStyle = 'rgba(255,214,150,0.28)'; g.fillRect(bx0 + 6 + ((r() * 3) | 0) * (bay - 12) / 3 + 3, tr + 5, (bay - 12) / 3 - 6, fy + fl - tr - 5); } } }
     for (b = 0; b <= nb; b++) { var px0 = x0 + b * (bay + pier); g.fillStyle = '#8c2d2b'; g.fillRect(px0, 0, pier, Hc);
       for (y = 0; y < Hc; y += 3) { g.fillStyle = 'rgba(' + (r() > 0.5 ? '40,8,8,' : '225,120,105,') + (0.06 + r() * 0.16) + ')'; g.fillRect(px0, y, pier, 2); }
       var sh = g.createLinearGradient(px0, 0, px0 + pier, 0); sh.addColorStop(0, 'rgba(255,200,180,0.10)'); sh.addColorStop(1, 'rgba(0,0,0,0.22)'); g.fillStyle = sh; g.fillRect(px0, 0, pier, Hc); }
