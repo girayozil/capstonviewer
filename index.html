@@ -71,7 +71,9 @@ button:disabled { opacity: 0.45; cursor: default; }
 #walkbtn[aria-pressed="true"] { background: var(--accent); }
 #walkhud { position: absolute; left: 16px; top: 8px; max-width: calc(100% - 150px); width: fit-content; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center;
   font-size: 0.75rem; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 6px 10px; z-index: 2; }
-#walkhud b { font-variant-numeric: tabular-nums; min-width: 3.6em; text-align: center; }
+/* walk mode: the dock is a drawer behind the Menu button; furniture editing and the wall height choice are not offered */
+body.walking:not(.drawer) .dock, body.walking #side, body.walking #tab-bank, body.walking #walls-row { display: none; }
+#drawerbtn { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--panel); z-index: 2; }
 #stick { position: absolute; left: 20px; bottom: 20px; width: 112px; height: 112px; border-radius: 50%; background: var(--panel); opacity: 0.85; border: 1px solid var(--line); touch-action: none; z-index: 2; }
 #knob { position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; background: var(--accent); pointer-events: none; }
 #fail { position: absolute; inset: 0; display: grid; place-items: center; padding: 16px; text-align: center; color: var(--muted); }
@@ -128,7 +130,8 @@ button:disabled { opacity: 0.45; cursor: default; }
   <canvas id="view" aria-label="3D model of apartment N11.01"></canvas>
   <button id="topbtn" aria-pressed="false" data-i18n="topview" title="Alt+J" aria-keyshortcuts="Alt+J">Top view</button>
   <button id="walkbtn" aria-pressed="false">Walk</button>
-  <div id="walkhud" hidden><span id="walkhint"></span><span class="row small"><span id="eyelab"></span><button id="eye-dn" aria-label="Lower">−</button><b id="eyeval"></b><button id="eye-up" aria-label="Higher">+</button><button id="nemo-btn" aria-pressed="true">Nemo</button><button id="nemo-call" data-i18n="ncall" title="Space" aria-keyshortcuts="Space">Call</button><button id="nemo-bed" data-i18n="nbed" title="B" aria-keyshortcuts="B">Bed</button></span></div>
+  <div id="walkhud" hidden><span id="walkhint"></span><span class="row small"><button id="nemo-btn" aria-pressed="true">Nemo</button><button id="nemo-call" data-i18n="ncall" title="Space" aria-keyshortcuts="Space">Call</button><button id="nemo-bed" data-i18n="nbed" title="B" aria-keyshortcuts="B">Bed</button></span></div>
+  <button id="drawerbtn" aria-expanded="false" aria-controls="dock" hidden></button>
   <div id="stick" hidden><div id="knob"></div></div>
   <div id="dimtag" class="tag" hidden></div>
   <div id="gap0" class="tag" hidden></div><div id="gap1" class="tag" hidden></div><div id="gap2" class="tag" hidden></div><div id="gap3" class="tag" hidden></div>
@@ -168,7 +171,7 @@ button:disabled { opacity: 0.45; cursor: default; }
   <p id="insp-fixed" hidden></p>
 </div>
 
-<div class="dock">
+<div class="dock" id="dock">
   <div class="tabs" role="tablist">
     <button role="tab" id="tab-view" data-tab="view" aria-selected="true" data-i18n="tview">View</button>
     <button role="tab" id="tab-bank" data-tab="bank" aria-selected="false" data-i18n="tbank">Furniture</button>
@@ -182,7 +185,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       <button id="v-nook" data-view="nook" aria-pressed="false" data-i18n="nook">Nook</button>
       <button id="v-bed" data-view="bed" aria-pressed="false" data-i18n="office">Office</button>
     </div>
-    <div class="row" role="group" aria-label="Walls">
+    <div class="row" role="group" aria-label="Walls" id="walls-row">
       <span class="cap" data-i18n="walls">Walls</span>
       <button id="w-cut" data-walls="cut" aria-pressed="true" data-i18n="cut">Cut away</button>
       <button id="w-full" data-walls="full" aria-pressed="false" data-i18n="full">Full height</button>
@@ -217,7 +220,7 @@ button:disabled { opacity: 0.45; cursor: default; }
   // ================= language: English / Turkish. A link ending in #tr opens in Turkish.
   var TXT = {
     en: { hint: 'Tap an object to select it · drag empty space to turn the view · pinch or scroll to zoom', fail: 'This device could not start the 3D view.',
-      undo: 'Undo', magnet: 'Magnet', screens: 'Partitions', topview: 'Top view', walk: 'Walk', exitwalk: 'Exit walk', eye: 'Eye height', walkhint: 'W A S D or the stick to walk · drag to look · Space calls Nemo · B sends him to bed · Esc to leave', done: 'Done', move: 'Move', rotate: 'Rotate', scale: 'Resize', dup: 'Duplicate', sits: 'Sits on furniture', lock: 'Lock', unlock: 'Unlock', del: 'Delete',
+      undo: 'Undo', magnet: 'Magnet', screens: 'Partitions', topview: 'Top view', walk: 'Walk', exitwalk: 'Exit walk', menu: 'Menu', walkhint: 'W A S D or the stick to walk · drag to look · Space calls Nemo · B sends him to bed · Esc to leave', done: 'Done', move: 'Move', rotate: 'Rotate', scale: 'Resize', dup: 'Duplicate', sits: 'Sits on furniture', lock: 'Lock', unlock: 'Unlock', del: 'Delete',
       fw: 'Width cm', fd: 'Depth cm', fh: 'Height cm', fy: 'Off floor', fr: 'Angle °',
       tview: 'View', tbank: 'Furniture', tlay: 'Layouts', over: 'Overview', plan: 'Plan', living: 'Living', nook: 'Nook', office: 'Office',
       walls: 'Walls', cut: 'Cut away', full: 'Full height', bankhint: 'Tap to add, or drag into the flat', call: 'All', cseat: 'Seating', cbed: 'Beds', ctable: 'Tables', coffice: 'Office', cstore: 'Storage', cart: 'Wall art', cbooks: 'Books', fill: 'Fill with books', ncall: 'Call', nbed: 'Bed', lvup: 'Shelf up', lvdown: 'Shelf down', cother: 'Other',
@@ -227,7 +230,7 @@ button:disabled { opacity: 0.45; cursor: default; }
       savedLocal: 'Saved on this device only.', copied: 'Layout copied. Paste it into the chat.', copyfail: 'Select the text below and copy it.', needname: 'Type a name first.',
       aria: '3D model of apartment N11.01' },
     tr: { hint: 'Seçmek için bir nesneye dokunun · görünümü çevirmek için boş alanı sürükleyin · yakınlaştırmak için iki parmağınızı açın', fail: 'Bu cihazda 3B görünüm açılamadı.',
-      undo: 'Geri al', magnet: 'Mıknatıs', screens: 'Bölmeler', topview: 'Üstten', walk: 'Yürü', exitwalk: 'Yürüyüşten çık', eye: 'Göz hizası', walkhint: 'Yürümek için W A S D veya çubuk · bakmak için sürükleyin · Boşluk Nemo’yu çağırır · B yatağına yollar · çıkmak için Esc', done: 'Tamam', move: 'Taşı', rotate: 'Döndür', scale: 'Boyut', dup: 'Çoğalt', sits: 'Mobilya üstünde durur', lock: 'Kilitle', unlock: 'Kilidi aç', del: 'Sil',
+      undo: 'Geri al', magnet: 'Mıknatıs', screens: 'Bölmeler', topview: 'Üstten', walk: 'Yürü', exitwalk: 'Yürüyüşten çık', menu: 'Menü', walkhint: 'Yürümek için W A S D veya çubuk · bakmak için sürükleyin · Boşluk Nemo’yu çağırır · B yatağına yollar · çıkmak için Esc', done: 'Tamam', move: 'Taşı', rotate: 'Döndür', scale: 'Boyut', dup: 'Çoğalt', sits: 'Mobilya üstünde durur', lock: 'Kilitle', unlock: 'Kilidi aç', del: 'Sil',
       fw: 'Genişlik cm', fd: 'Derinlik cm', fh: 'Yükseklik cm', fy: 'Yerden', fr: 'Açı °',
       tview: 'Görünüm', tbank: 'Mobilya', tlay: 'Yerleşimler', over: 'Genel', plan: 'Plan', living: 'Salon', nook: 'Misafir köşesi', office: 'Çalışma odası',
       walls: 'Duvarlar', cut: 'Alçak', full: 'Tam boy', bankhint: 'Eklemek için dokunun veya daireye sürükleyin', call: 'Tümü', cseat: 'Oturma', cbed: 'Yataklar', ctable: 'Masalar', coffice: 'Ofis', cstore: 'Dolaplar', cart: 'Duvar sanatı', cbooks: 'Kitaplar', fill: 'Kitaplarla doldur', ncall: 'Çağır', nbed: 'Yatağa', lvup: 'Üst raf', lvdown: 'Alt raf', cother: 'Diğer',
@@ -912,7 +915,7 @@ button:disabled { opacity: 0.45; cursor: default; }
   function pose(it) { it.g.position.set(it.x, it.y, it.z); it.g.rotation.y = -it.r * Math.PI / 180; }
   function setItems(list) {
     items.forEach(function (it) { itemsG.remove(it.g); it.g.traverse(function (o) { if (o.geometry) o.geometry.dispose(); }); });
-    items = list.filter(function (it) { return it && BK[it.k]; }).map(norm); items.forEach(rebuild); select(null); dirty = true;
+    items = list.filter(function (it) { return it && BK[it.k]; }).map(norm); items.forEach(rebuild); select(null); dirty = true; if (nemo) nemo.regrid();
   }
 
   // ---- undo and autosave on this device
@@ -1174,15 +1177,18 @@ button:disabled { opacity: 0.45; cursor: default; }
     return best == null ? Math.round(a) : best % 360;
   }
   // ================= walk mode: first-person camera at eye height, with collisions against walls, glazing and furniture
-  var walk = { on: false, x: 2.73, z: 11.2, yaw: 0, pitch: 0, eye: 1.65, prevWalls: 'cut', last: 0, sx: 0, sy: 0, look: null, locked: false }, walkKeys = {};
+  var walk = { on: false, x: 2.73, z: 11.2, yaw: 0, pitch: 0, eye: 1.70, prevWalls: 'cut', last: 0, sx: 0, sy: 0, look: null, locked: false }, walkKeys = {};
   function updateWalkUI() {
     $('walkbtn').textContent = tr(walk.on ? 'exitwalk' : 'walk'); $('walkbtn').setAttribute('aria-pressed', String(walk.on));
-    $('walkhint').textContent = tr('walkhint'); $('eyelab').textContent = tr('eye'); $('eyeval').textContent = Math.round(walk.eye * 100) + ' cm';
-    $('walkhud').hidden = $('stick').hidden = !walk.on; $('topbtn').hidden = walk.on; if (walk.on) $('hint').hidden = true;
+    $('walkhint').textContent = tr('walkhint');
+    $('walkhud').hidden = $('stick').hidden = $('drawerbtn').hidden = !walk.on;
+    var open = walk.on && document.body.classList.contains('drawer'); document.body.classList.toggle('walking', walk.on);
+    $('drawerbtn').textContent = tr('menu') + (open ? ' ▾' : ' ▴'); $('drawerbtn').setAttribute('aria-expanded', String(open)); $('topbtn').hidden = walk.on; if (walk.on) $('hint').hidden = true;
   }
   onLang.push(updateWalkUI);
   function enterWalk() {
     walk.prevWalls = document.querySelector('[data-walls][aria-pressed="true"]').dataset.walls; select(null); goal = null; topPrev = null; $('topbtn').setAttribute('aria-pressed', 'false');
+    if ($('tab-bank').getAttribute('aria-selected') === 'true') $('tab-view').click(); document.body.classList.remove('drawer');
     walk.on = true; walk.pitch = 0; walkKeys = {}; walk.sx = walk.sy = 0; setWalls('full'); ceiling.visible = true; backdrop.visible = true; nemo.enter(); updateWalkUI(); resize();
   }
   function exitWalk() {
@@ -1190,8 +1196,7 @@ button:disabled { opacity: 0.45; cursor: default; }
     ceiling.visible = false; backdrop.visible = false; nemo.leave(); setWalls(walk.prevWalls); updateWalkUI(); resize();
   }
   $('walkbtn').addEventListener('click', function () { if (walk.on) exitWalk(); else enterWalk(); });
-  $('eye-dn').addEventListener('click', function () { walk.eye = clamp(walk.eye - 0.05, 0.9, 2.1); updateWalkUI(); dirty = true; });
-  $('eye-up').addEventListener('click', function () { walk.eye = clamp(walk.eye + 0.05, 0.9, 2.1); updateWalkUI(); dirty = true; });
+  $('drawerbtn').addEventListener('click', function () { document.body.classList.toggle('drawer'); updateWalkUI(); resize(); });
   function placeWalk() {
     var cp = Math.cos(walk.pitch); camera.position.set(walk.x, walk.eye, walk.z);
     camera.lookAt(walk.x + Math.sin(walk.yaw) * cp, walk.eye + Math.sin(walk.pitch), walk.z - Math.cos(walk.yaw) * cp);
