@@ -33,6 +33,14 @@ A single-page 3D layout planner for flat N11.01 at The Capston (Embassy Gardens,
 - `items`: the movable objects. `norm`, `plain`, `rebuild`, `pose`, `setItems`, `commit`.
 - `selection, gizmo`, `magnetism`, `sits on furniture`, `inspector`, `keyboard shortcuts`.
 - `camera rig`, `walk mode`, `dock`, `layouts`, `light, frame loop`.
+
+## Where the controls live
+
+- Header: title and one EN / TR toggle (`#langbtn`).
+- On the 3D view: Walk through (top right), the Display menu below it (`#dispmenu`: Walls and Partitions), the view buttons along the bottom (`#views`; Alt+J toggles Plan), and a floating Undo (`#undo`) shown only when there is something to undo. The hint shows on a first visit only.
+- Item panel (`#inspector`): modes Move / Rotate / Resize as a segmented control plus Magnet; actions Duplicate / Lock / Delete; less common ones (Sits on furniture, Fill with books, Shelf up / down) behind More (`#insp-more`).
+- Dock (`#dock`): Furniture and Layouts tabs, `openTab(name)`. On phones it sits under the 3D view, both tabs can be closed, and `body.editing` hides it while an item is selected. On screens 900 px and wider `placeBank` moves the whole dock into the right sidebar (`#side`), with one tab always open.
+- Wall gap measurements (`gap0..3`, `gapLines`) show only while an item is being moved, turned or resized (`measuring`); a selected item shows just its own size.
 - `Nemo`: the dog, described below.
 
 ## Objects
@@ -57,6 +65,7 @@ Browser localStorage, all per device:
 - `capston-n1101-saved`: named layouts.
 - `capston-lang`, `capston-magnet`, `capston-screens` (glazed partitions, hidden unless `on`), `capston-nemo`.
 - `capston-walked`: set after the first use of the Walk button, which pulses until then.
+- `capston-hint`: set once the first-visit hint has been dismissed.
 
 The layouts section first looks for `window.claude.use('db')`, which only exists when the page is hosted as a Claude artifact. On GitHub Pages that is absent and named layouts fall back to localStorage, so they are not shared between visitors. Everyone still opens on `START`.
 

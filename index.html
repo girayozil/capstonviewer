@@ -63,10 +63,22 @@ button:disabled { opacity: 0.45; cursor: default; }
 .cathead { font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin: 6px 0 0; flex: 0 0 auto; align-self: center; }
 #side .cathead { align-self: flex-start; }
 #stage canvas { display: block; width: 100%; height: 100%; touch-action: none; }
-#hint { position: absolute; left: 16px; right: 16px; bottom: 8px; width: fit-content; max-width: calc(100% - 32px); font-size: 0.72rem; color: var(--muted);
-  background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 4px 10px; pointer-events: none; }
-#topbtn { position: absolute; top: 60px; right: 16px; background: var(--panel); z-index: 2; }
-#topbtn[aria-pressed="true"] { background: var(--accent); }
+#hint { position: absolute; left: 16px; bottom: 52px; width: fit-content; max-width: calc(100% - 110px); font-size: 0.72rem; color: var(--muted);
+  background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 4px 10px; pointer-events: none; transition: opacity 0.5s; }
+#hint.fading { opacity: 0; }
+/* on the 3D view: views along the bottom, Undo above them on the right, the Display menu under the Walk button */
+#views { position: absolute; left: 16px; right: 16px; bottom: 10px; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; touch-action: pan-x; padding: 2px; z-index: 2; }
+#views::-webkit-scrollbar { display: none; }
+#views button { flex: 0 0 auto; background: var(--panel); }
+#views button[aria-pressed="true"] { background: var(--accent); }
+#undo { position: absolute; right: 16px; bottom: 52px; background: var(--panel); z-index: 2; }
+#dispbtn { position: absolute; top: 60px; right: 16px; background: var(--panel); z-index: 2; }
+#dispbtn[aria-expanded="true"] { border-color: var(--accent); }
+#dispmenu { position: absolute; top: 98px; right: 16px; max-width: calc(100% - 32px); z-index: 3; display: flex; flex-direction: column; gap: 8px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; box-shadow: 0 4px 16px rgba(40, 28, 20, 0.18); }
+#langbtn { padding: 4px 10px; font-size: 0.74rem; }
+#langbtn span { color: var(--muted); }
+#langbtn span.on { color: var(--fg); font-weight: 700; }
 #walkbtn { position: absolute; top: 8px; right: 16px; z-index: 2; display: inline-flex; align-items: center; gap: 6px;
   font-size: 0.95rem; font-weight: 600; padding: 9px 18px 9px 14px; background: var(--accent); color: var(--accent-fg); border-color: var(--accent);
   box-shadow: 0 2px 10px rgba(40, 28, 20, 0.28); }
@@ -79,7 +91,7 @@ button:disabled { opacity: 0.45; cursor: default; }
 #walkhud { position: absolute; left: 16px; top: 8px; max-width: calc(100% - 150px); width: fit-content; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center;
   font-size: 0.75rem; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 6px 10px; z-index: 2; }
 /* walk mode: the dock is a drawer behind the Menu button; furniture editing and the wall height choice are not offered */
-body.walking:not(.drawer) .dock, body.walking #side, body.walking #magnet, body.walking #undo, body.walking #tab-bank, body.walking #walls-row { display: none; }
+body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #undo, body.walking #views, body.walking #tab-bank, body.walking #walls-row { display: none; }
 #drawerbtn { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--panel); z-index: 2; }
 #stick { position: absolute; left: 20px; bottom: 20px; width: 112px; height: 112px; border-radius: 50%; background: var(--panel); opacity: 0.85; border: 1px solid var(--line); touch-action: none; z-index: 2; }
 #knob { position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; background: var(--accent); pointer-events: none; }
@@ -95,6 +107,9 @@ body.walking:not(.drawer) .dock, body.walking #side, body.walking #magnet, body.
 #insp-name { font-weight: 600; font-size: 0.95rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #insp-badge { font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--fix); color: var(--fix); }
 #insp-close { margin-left: auto; }
+.insp-rows { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+.seg { display: inline-flex; gap: 2px; padding: 2px; border: 1px solid var(--line); border-radius: 999px; }
+.seg button { border-color: transparent; }
 .fields { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
 .fields label { display: flex; flex-direction: column; gap: 2px; font-size: 0.64rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); min-width: 0; }
 .fields input { box-sizing: border-box; width: 100%; min-width: 0; font: 600 0.9rem var(--body); font-variant-numeric: tabular-nums; color: var(--fg);
@@ -104,6 +119,15 @@ body.walking:not(.drawer) .dock, body.walking #side, body.walking #magnet, body.
 .dock { background: var(--panel); border-top: 1px solid var(--line); padding-block: 8px; padding-inline: 16px;
   padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 8px; }
 .tabs { display: flex; gap: 6px; }
+#bankfilter button { flex: 0 0 auto; }
+.dock #bankfilter { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; touch-action: pan-x; }
+.dock #bankfilter::-webkit-scrollbar { display: none; }
+/* wide screens: the dock moves into the sidebar, with Furniture and Layouts as its tabs */
+#side .dock { flex: 1 1 auto; min-height: 0; padding: 0; border-top: none; background: none; }
+#side #bankfilter { flex-wrap: wrap; overflow-x: visible; }
+/* phones: the item panel takes the dock's place while something is selected */
+@media (max-width: 899px) { body.editing .dock { display: none; } #p-bank > .cap { display: none; } }
+.linkbtn { align-self: flex-start; border: none; background: none; padding: 0; font-size: 0.74rem; color: var(--muted); text-decoration: underline; }
 .panel { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
 #bank { display: flex; gap: 8px; overflow-x: auto; touch-action: pan-x; padding-bottom: 4px; width: 100%; }
 .card { flex: 0 0 auto; text-align: left; border-radius: 10px; padding: 6px 10px; display: flex; flex-direction: column; gap: 1px; touch-action: pan-x; user-select: none; -webkit-user-select: none; }
@@ -123,21 +147,31 @@ body.walking:not(.drawer) .dock, body.walking #side, body.walking #magnet, body.
 
 <header>
   <h1>Capston N11.01</h1>
-  <div class="row small">
-    <button id="magnet" aria-pressed="true" data-i18n="magnet" title="Alt">Magnet</button>
-    <button id="screens" aria-pressed="true" data-i18n="screens">Partitions</button>
-    <button id="undo" data-i18n="undo" disabled>Undo</button>
-    <button id="lang-en" data-lang="en" aria-pressed="true">English</button>
-    <button id="lang-tr" data-lang="tr" aria-pressed="false" lang="tr">Türkçe</button>
-  </div>
+  <button id="langbtn" aria-label="Language / Dil"><span data-lang="en">EN</span> / <span data-lang="tr" lang="tr">TR</span></button>
 </header>
 
 <div id="main">
 <div id="stage">
   <canvas id="view" aria-label="3D model of apartment N11.01"></canvas>
-  <button id="topbtn" aria-pressed="false" data-i18n="topview" title="Alt+J" aria-keyshortcuts="Alt+J">Top view</button>
   <button id="walkbtn" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13" cy="4" r="2"/><path d="M10 21l2-6 2.5 2.5V21"/><path d="M12 15l-.5-5.5L15 11l2.5 2"/><path d="M11.5 9.5L8 12v3"/></svg><span id="walklab">Walk through</span></button>
   <div id="walkhud" hidden><span id="walkhint"></span><span class="row small"><button id="nemo-btn" aria-pressed="true">Nemo</button><button id="nemo-call" data-i18n="ncall" title="Space" aria-keyshortcuts="Space">Call</button><button id="nemo-bed" data-i18n="nbed" title="B" aria-keyshortcuts="B">Bed</button></span></div>
+  <button id="dispbtn" aria-expanded="false" aria-controls="dispmenu"><span data-i18n="display">Display</span> ▾</button>
+  <div id="dispmenu" hidden>
+    <div class="row small" role="group" aria-label="Walls" id="walls-row">
+      <span class="cap" data-i18n="walls">Walls</span>
+      <button id="w-cut" data-walls="cut" aria-pressed="true" data-i18n="cut">Cut away</button>
+      <button id="w-full" data-walls="full" aria-pressed="false" data-i18n="full">Full height</button>
+    </div>
+    <div class="row small"><button id="screens" aria-pressed="false" data-i18n="screens">Partitions</button></div>
+  </div>
+  <div id="views" role="group" aria-label="View" class="small">
+    <button id="v-over" data-view="over" aria-pressed="true" data-i18n="over">Overview</button>
+    <button id="v-top" data-view="top" aria-pressed="false" data-i18n="plan" title="Alt+J" aria-keyshortcuts="Alt+J">Plan</button>
+    <button id="v-living" data-view="living" aria-pressed="false" data-i18n="living">Living</button>
+    <button id="v-nook" data-view="nook" aria-pressed="false" data-i18n="nook">Play corner</button>
+    <button id="v-bed" data-view="bed" aria-pressed="false" data-i18n="office">Guest bedroom</button>
+  </div>
+  <button id="undo" class="small" data-i18n="undo" title="Ctrl+Z" aria-keyshortcuts="Control+Z" hidden>Undo</button>
   <button id="drawerbtn" aria-expanded="false" aria-controls="dock" hidden></button>
   <div id="stick" hidden><div id="knob"></div></div>
   <div id="dimtag" class="tag" hidden></div>
@@ -154,18 +188,27 @@ body.walking:not(.drawer) .dock, body.walking #side, body.walking #magnet, body.
     <button id="insp-close" class="small" data-i18n="done">Done</button>
   </div>
   <div id="insp-edit">
-    <div class="row" role="group" aria-label="Tool" style="margin-bottom:8px">
-      <button id="t-move" data-tool="move" aria-pressed="true" data-i18n="move" title="W" aria-keyshortcuts="W">Move</button>
-      <button id="t-rotate" data-tool="rotate" aria-pressed="false" data-i18n="rotate" title="E" aria-keyshortcuts="E">Rotate</button>
-      <button id="t-scale" data-tool="scale" aria-pressed="false" data-i18n="scale" title="R" aria-keyshortcuts="R">Resize</button>
-      <span style="flex:1"></span>
-      <button id="a-dup" data-i18n="dup">Duplicate</button>
-      <button id="a-top" aria-pressed="false" data-i18n="sits">Sits on furniture</button>
-      <button id="a-fill" data-i18n="fill" hidden>Fill with books</button>
-      <button id="a-lvup" data-i18n="lvup" hidden>Shelf up</button>
-      <button id="a-lvdown" data-i18n="lvdown" hidden>Shelf down</button>
-      <button id="a-lock" data-i18n="lock">Lock</button>
-      <button id="a-del" data-i18n="del">Delete</button>
+    <div class="insp-rows">
+      <div class="row">
+        <div class="seg" role="group" aria-label="Tool">
+          <button id="t-move" data-tool="move" aria-pressed="true" data-i18n="move" title="W" aria-keyshortcuts="W">Move</button>
+          <button id="t-rotate" data-tool="rotate" aria-pressed="false" data-i18n="rotate" title="E" aria-keyshortcuts="E">Rotate</button>
+          <button id="t-scale" data-tool="scale" aria-pressed="false" data-i18n="scale" title="R" aria-keyshortcuts="R">Resize</button>
+        </div>
+        <button id="magnet" aria-pressed="true" data-i18n="magnet" title="Alt">Magnet</button>
+      </div>
+      <div class="row small">
+        <button id="a-dup" data-i18n="dup">Duplicate</button>
+        <button id="a-lock" data-i18n="lock">Lock</button>
+        <button id="a-del" data-i18n="del">Delete</button>
+        <button id="a-more" aria-expanded="false" aria-controls="insp-more"></button>
+      </div>
+      <div class="row small" id="insp-more" hidden>
+        <button id="a-top" aria-pressed="false" data-i18n="sits">Sits on furniture</button>
+        <button id="a-fill" data-i18n="fill" hidden>Fill with books</button>
+        <button id="a-lvup" data-i18n="lvup" hidden>Shelf up</button>
+        <button id="a-lvdown" data-i18n="lvdown" hidden>Shelf down</button>
+      </div>
     </div>
     <div class="fields">
       <label><span data-i18n="fw">Width cm</span><input id="f-w" type="number" inputmode="decimal" min="1" max="1500" step="1"></label>
@@ -179,24 +222,9 @@ body.walking:not(.drawer) .dock, body.walking #side, body.walking #magnet, body.
 </div>
 
 <div class="dock" id="dock">
-  <div class="tabs" role="tablist">
-    <button role="tab" id="tab-view" data-tab="view" aria-selected="true" data-i18n="tview">View</button>
-    <button role="tab" id="tab-bank" data-tab="bank" aria-selected="false" data-i18n="tbank">Furniture</button>
-    <button role="tab" id="tab-layouts" data-tab="layouts" aria-selected="false" data-i18n="tlay">Layouts</button>
-  </div>
-  <div class="panel" id="p-view">
-    <div class="row" role="group" aria-label="View">
-      <button id="v-over" data-view="over" aria-pressed="true" data-i18n="over">Overview</button>
-      <button id="v-top" data-view="top" aria-pressed="false" data-i18n="plan">Plan</button>
-      <button id="v-living" data-view="living" aria-pressed="false" data-i18n="living">Living</button>
-      <button id="v-nook" data-view="nook" aria-pressed="false" data-i18n="nook">Nook</button>
-      <button id="v-bed" data-view="bed" aria-pressed="false" data-i18n="office">Guest bedroom</button>
-    </div>
-    <div class="row" role="group" aria-label="Walls" id="walls-row">
-      <span class="cap" data-i18n="walls">Walls</span>
-      <button id="w-cut" data-walls="cut" aria-pressed="true" data-i18n="cut">Cut away</button>
-      <button id="w-full" data-walls="full" aria-pressed="false" data-i18n="full">Full height</button>
-    </div>
+  <div class="tabs" role="group" aria-label="Panels">
+    <button id="tab-bank" data-tab="bank" aria-pressed="false" aria-controls="p-bank" data-i18n="tbank">Furniture</button>
+    <button id="tab-layouts" data-tab="layouts" aria-pressed="false" aria-controls="p-layouts" data-i18n="tlay">Layouts</button>
   </div>
   <div class="panel" id="p-bank" hidden>
     <span class="cap" data-i18n="bankhint">Tap to add, or drag into the flat</span>
@@ -210,9 +238,9 @@ body.walking:not(.drawer) .dock, body.walking #side, body.walking #magnet, body.
       <button id="l-save" data-i18n="save">Save</button>
     </div>
     <div class="row small">
-      <button id="l-copy" data-i18n="copy">Copy layout as text</button>
       <button id="l-reset" data-i18n="reset">Back to starting layout</button>
     </div>
+    <button id="l-copy" class="linkbtn" data-i18n="copy">Copy layout as text</button>
     <textarea id="copybox" readonly hidden></textarea>
     <p id="status"></p>
   </div>
@@ -227,20 +255,20 @@ body.walking:not(.drawer) .dock, body.walking #side, body.walking #magnet, body.
   // ================= language: English / Turkish. A link ending in #tr opens in Turkish.
   var TXT = {
     en: { hint: 'Tap an object to select it · drag empty space to turn the view · pinch or scroll to zoom', fail: 'This device could not start the 3D view.',
-      undo: 'Undo', magnet: 'Magnet', screens: 'Partitions', topview: 'Top view', walk: 'Walk through', exitwalk: 'Exit walk', menu: 'Menu', walkhint: 'W A S D or the stick to walk · drag to look · Space calls Nemo · B sends him to bed · Esc to leave', done: 'Done', move: 'Move', rotate: 'Rotate', scale: 'Resize', dup: 'Duplicate', sits: 'Sits on furniture', lock: 'Lock', unlock: 'Unlock', del: 'Delete',
+      undo: 'Undo', magnet: 'Magnet', screens: 'Partitions', display: 'Display', more: 'More', resetq: 'Replace the current layout with the starting layout?', walk: 'Walk through', exitwalk: 'Exit walk', menu: 'Menu', walkhint: 'W A S D or the stick to walk · drag to look · Space calls Nemo · B sends him to bed · Esc to leave', done: 'Done', move: 'Move', rotate: 'Rotate', scale: 'Resize', dup: 'Duplicate', sits: 'Sits on furniture', lock: 'Lock', unlock: 'Unlock', del: 'Delete',
       fw: 'Width cm', fd: 'Depth cm', fh: 'Height cm', fy: 'Off floor', fr: 'Angle °',
-      tview: 'View', tbank: 'Furniture', tlay: 'Layouts', over: 'Overview', plan: 'Plan', living: 'Living', nook: 'Nook', office: 'Guest bedroom',
-      walls: 'Walls', cut: 'Cut away', full: 'Full height', bankhint: 'Tap to add, or drag into the flat', call: 'All', cseat: 'Seating', cbed: 'Beds', ctable: 'Tables', coffice: 'Office', cstore: 'Storage', cart: 'Wall art', cbooks: 'Books', fill: 'Fill with books', ncall: 'Call', nbed: 'Bed', lvup: 'Shelf up', lvdown: 'Shelf down', cother: 'Other',
+      tbank: 'Furniture', tlay: 'Layouts', over: 'Overview', plan: 'Plan', living: 'Living', nook: 'Play corner', office: 'Guest bedroom',
+      walls: 'Walls', cut: 'Cut away', full: 'Full height', bankhint: 'Tap to add, or drag into the flat', call: 'All', cseat: 'Seating', cbed: 'Beds', ctable: 'Tables', coffice: 'Office furniture', cstore: 'Storage', cart: 'Wall art', cbooks: 'Books', fill: 'Fill with books', ncall: 'Call', nbed: 'Bed', lvup: 'Shelf up', lvdown: 'Shelf down', cother: 'Other',
       lname: 'Layout name', save: 'Save', copy: 'Copy layout as text', reset: 'Back to starting layout', load: 'Open',
       builtin: 'Built-in', locked: 'Locked', fixedmsg: 'Built-in feature. It cannot be moved or resized.', size: 'Size',
       nosaved: 'No saved layouts yet.', shared: 'shared', device: 'this device', savedShared: 'Saved. Everyone who can open this page while signed in will see it.',
       savedLocal: 'Saved on this device only.', copied: 'Layout copied. Paste it into the chat.', copyfail: 'Select the text below and copy it.', needname: 'Type a name first.',
       aria: '3D model of apartment N11.01' },
     tr: { hint: 'Seçmek için bir nesneye dokunun · görünümü çevirmek için boş alanı sürükleyin · yakınlaştırmak için iki parmağınızı açın', fail: 'Bu cihazda 3B görünüm açılamadı.',
-      undo: 'Geri al', magnet: 'Mıknatıs', screens: 'Bölmeler', topview: 'Üstten', walk: 'İçeride gezin', exitwalk: 'Yürüyüşten çık', menu: 'Menü', walkhint: 'Yürümek için W A S D veya çubuk · bakmak için sürükleyin · Boşluk Nemo’yu çağırır · B yatağına yollar · çıkmak için Esc', done: 'Tamam', move: 'Taşı', rotate: 'Döndür', scale: 'Boyut', dup: 'Çoğalt', sits: 'Mobilya üstünde durur', lock: 'Kilitle', unlock: 'Kilidi aç', del: 'Sil',
+      undo: 'Geri al', magnet: 'Mıknatıs', screens: 'Bölmeler', display: 'Görünüm', more: 'Daha fazla', resetq: 'Mevcut yerleşim başlangıç yerleşimiyle değiştirilsin mi?', walk: 'İçeride gezin', exitwalk: 'Yürüyüşten çık', menu: 'Menü', walkhint: 'Yürümek için W A S D veya çubuk · bakmak için sürükleyin · Boşluk Nemo’yu çağırır · B yatağına yollar · çıkmak için Esc', done: 'Tamam', move: 'Taşı', rotate: 'Döndür', scale: 'Boyut', dup: 'Çoğalt', sits: 'Mobilya üstünde durur', lock: 'Kilitle', unlock: 'Kilidi aç', del: 'Sil',
       fw: 'Genişlik cm', fd: 'Derinlik cm', fh: 'Yükseklik cm', fy: 'Yerden', fr: 'Açı °',
-      tview: 'Görünüm', tbank: 'Mobilya', tlay: 'Yerleşimler', over: 'Genel', plan: 'Plan', living: 'Salon', nook: 'Oyun köşesi', office: 'Misafir odası',
-      walls: 'Duvarlar', cut: 'Alçak', full: 'Tam boy', bankhint: 'Eklemek için dokunun veya daireye sürükleyin', call: 'Tümü', cseat: 'Oturma', cbed: 'Yataklar', ctable: 'Masalar', coffice: 'Ofis', cstore: 'Dolaplar', cart: 'Duvar sanatı', cbooks: 'Kitaplar', fill: 'Kitaplarla doldur', ncall: 'Çağır', nbed: 'Yatağa', lvup: 'Üst raf', lvdown: 'Alt raf', cother: 'Diğer',
+      tbank: 'Mobilya', tlay: 'Yerleşimler', over: 'Genel', plan: 'Plan', living: 'Salon', nook: 'Oyun köşesi', office: 'Misafir odası',
+      walls: 'Duvarlar', cut: 'Alçak', full: 'Tam boy', bankhint: 'Eklemek için dokunun veya daireye sürükleyin', call: 'Tümü', cseat: 'Oturma', cbed: 'Yataklar', ctable: 'Masalar', coffice: 'Ofis mobilyası', cstore: 'Dolaplar', cart: 'Duvar sanatı', cbooks: 'Kitaplar', fill: 'Kitaplarla doldur', ncall: 'Çağır', nbed: 'Yatağa', lvup: 'Üst raf', lvdown: 'Alt raf', cother: 'Diğer',
       lname: 'Yerleşim adı', save: 'Kaydet', copy: 'Yerleşimi metin olarak kopyala', reset: 'Başlangıç yerleşimine dön', load: 'Aç',
       builtin: 'Sabit', locked: 'Kilitli', fixedmsg: 'Sabit öğe. Taşınamaz ve boyutu değiştirilemez.', size: 'Ölçü',
       nosaved: 'Henüz kayıtlı yerleşim yok.', shared: 'ortak', device: 'bu cihaz', savedShared: 'Kaydedildi. Oturum açıp bu sayfayı açabilen herkes görür.',
@@ -263,11 +291,11 @@ body.walking:not(.drawer) .dock, body.walking #side, body.walking #magnet, body.
     each('[data-i18n]', function (el) { el.textContent = tr(el.dataset.i18n); });
     each('[data-i18n-ph]', function (el) { el.placeholder = tr(el.dataset.i18nPh); });
     $('view').setAttribute('aria-label', tr('aria'));
-    each('[data-lang]', function (b) { b.setAttribute('aria-pressed', String(b.dataset.lang === lang)); });
+    each('[data-lang]', function (b) { b.classList.toggle('on', b.dataset.lang === lang); });
     if (save) { try { localStorage.setItem('capston-lang', lang); } catch (e) {} }
     onLang.forEach(function (f) { f(); });
   }
-  each('[data-lang]', function (b) { b.addEventListener('click', function () { setLang(b.dataset.lang, true); }); });
+  $('langbtn').addEventListener('click', function () { setLang(lang === 'en' ? 'tr' : 'en', true); });
 
   // ================= renderer
   var canvas = $('view'), stage = $('stage');
@@ -891,7 +919,7 @@ body.walking:not(.drawer) .dock, body.walking #side, body.walking #magnet, body.
   var START = [{"k":"screen","x":2.31,"z":5.84,"r":90,"w":3.2,"d":0.07,"h":2.6,"y":0,"top":false},{"k":"mediaUnit350","x":5.36,"z":4.06,"r":0,"w":3.5,"d":0.4,"h":0.43,"y":0,"top":false},{"k":"standDesk","x":6.7,"z":5.5,"r":270,"w":2,"d":0.8,"h":0.74,"y":0,"top":false},{"k":"ochair","x":7.35,"z":5.75,"r":90,"w":0.68,"d":0.66,"h":1.28,"y":0,"top":false},{"k":"monitor","x":6.65,"z":5.8,"r":90,"w":1.24,"d":0.2,"h":0.56,"y":0.74,"top":true},{"k":"synth","x":6.8,"z":4.85,"r":270,"w":0.58,"d":0.23,"h":0.06,"y":0.74,"top":true},{"k":"tv65","x":4.82,"z":3.88,"r":0,"w":1.44,"d":0.05,"h":0.81,"y":0.6,"top":false},{"k":"bbgKeyboard","x":7,"z":5.8,"r":270,"w":0.45,"d":0.16,"h":0.03,"y":0.74,"top":true},{"k":"shelving100","x":6.59,"z":4.01,"r":0,"w":1,"d":0.3,"h":1.8,"y":0.41,"top":false},{"k":"speaker","x":3.86,"z":4,"r":0,"w":0.23,"d":0.28,"h":0.4,"y":0.41,"top":true},{"k":"speaker","x":5.81,"z":4,"r":0,"w":0.23,"d":0.28,"h":0.4,"y":0.41,"top":true},{"k":"rugRound","x":4.6,"z":5.85,"r":0,"w":2.45,"d":2.45,"h":0.02,"y":0,"top":false},{"k":"neva","x":3.75,"z":6.4,"r":216,"w":1.12,"d":1.04,"h":0.84,"y":0,"top":false},{"k":"hudson","x":5.35,"z":6.4,"r":143,"w":0.66,"d":0.82,"h":0.74,"y":0,"top":false},{"k":"nestBig","x":4.85,"z":5.5,"r":0,"w":0.8,"d":0.8,"h":0.34,"y":0,"top":false},{"k":"nestSmall","x":4.35,"z":5.5,"r":0,"w":0.5,"d":0.5,"h":0.46,"y":0,"top":false},{"k":"rig","x":1.1,"z":5.5,"r":180,"w":0.7,"d":1.6,"h":1.3,"y":0,"top":false},{"k":"artSun","x":0.03,"z":7.72,"r":270,"w":0.21,"d":0.03,"h":0.3,"y":1.3,"top":false},{"k":"artLeaf","x":0.02,"z":7.36,"r":270,"w":0.3,"d":0.03,"h":0.4,"y":1.25,"top":false},{"k":"artDunes","x":0.02,"z":6.87,"r":270,"w":0.4,"d":0.03,"h":0.5,"y":1.2,"top":false},{"k":"artShapes","x":0.02,"z":6.3,"r":270,"w":0.5,"d":0.03,"h":0.7,"y":1.1,"top":false},{"k":"artLine","x":0.02,"z":5.71,"r":270,"w":0.5,"d":0.03,"h":0.7,"y":1.1,"top":false},{"k":"artField","x":0.02,"z":4.99,"r":270,"w":0.7,"d":0.03,"h":1,"y":0.95,"top":false},{"k":"booksStack","x":6.45,"z":3.4,"r":0,"w":0.28,"d":0.22,"h":0.12,"y":0.45,"top":true},{"k":"booksRow","x":6.32,"z":3.99,"r":0,"w":0.36,"d":0.2,"h":0.26,"y":0.45,"top":true},{"k":"booksStack","x":6.9,"z":4,"r":0,"w":0.28,"d":0.22,"h":0.12,"y":0.45,"top":true},{"k":"booksArt","x":6.79,"z":4.01,"r":0,"w":0.3,"d":0.24,"h":0.3,"y":0.8,"top":true},{"k":"booksPaper","x":6.26,"z":3.95,"r":0,"w":0.22,"d":0.13,"h":0.19,"y":1.15,"top":true},{"k":"booksRow","x":6.86,"z":3.99,"r":0,"w":0.36,"d":0.2,"h":0.26,"y":1.15,"top":true},{"k":"booksNeutral","x":6.36,"z":3.98,"r":0,"w":0.36,"d":0.18,"h":0.22,"y":1.5,"top":true},{"k":"booksStack","x":6.78,"z":4,"r":0,"w":0.28,"d":0.22,"h":0.12,"y":1.5,"top":true},{"k":"booksLean","x":6.29,"z":3.99,"r":0,"w":0.3,"d":0.2,"h":0.25,"y":1.86,"top":true},{"k":"rugMoroccan","x":1.05,"z":5.55,"r":270,"w":2.15,"d":1.5,"h":0.01,"y":0,"top":false},{"k":"bedKing","x":5.15,"z":2.74,"r":180,"w":1.5,"d":2,"h":1.1,"y":0,"top":false},{"k":"rug","x":5.15,"z":2.35,"r":0,"w":2.85,"d":1.95,"h":0.02,"y":0,"top":false},{"k":"sideTable","x":3.95,"z":3.4,"r":0,"w":0.48,"d":0.48,"h":0.45,"y":0,"top":false},{"k":"sideTable","x":6.35,"z":3.35,"r":0,"w":0.48,"d":0.48,"h":0.45,"y":0,"top":false},{"k":"dogBed","x":0.4,"z":7.5,"r":0,"w":0.8,"d":0.65,"h":0.2,"y":0,"top":false}];
 
   // ================= items (movable objects)
-  var items = [], seq = 1, sel = null, tool = 'move';
+  var items = [], seq = 1, sel = null, tool = 'move', measuring = false;
   function r2(v) { return Math.round(v * 100) / 100; }
   function norm(it) {
     var b = BK[it.k] || BK.box;
@@ -927,10 +955,10 @@ body.walking:not(.drawer) .dock, body.walking #side, body.walking #magnet, body.
 
   // ---- undo and autosave on this device
   var undoStack = [];
-  function pushUndo() { undoStack.push(snapshot()); if (undoStack.length > 60) undoStack.shift(); $('undo').disabled = false; }
+  function pushUndo() { undoStack.push(snapshot()); if (undoStack.length > 60) undoStack.shift(); $('undo').hidden = false; }
   function commit() { settleAll(); try { localStorage.setItem('capston-n1101-work', JSON.stringify({ v: 4, items: items.map(plain) })); } catch (e) {} }
   $('undo').addEventListener('click', function () {
-    var s = undoStack.pop(); if (!s) return; setItems(JSON.parse(s)); commit(); $('undo').disabled = !undoStack.length;
+    var s = undoStack.pop(); if (!s) return; setItems(JSON.parse(s)); commit(); $('undo').hidden = !undoStack.length;
   });
 
   // ================= selection, gizmo, real-world dimension tags
@@ -1058,7 +1086,7 @@ body.walking:not(.drawer) .dock, body.walking #side, body.walking #magnet, body.
 
   function cm(v) { return Math.round(v * 100); }
   function refreshGizmo() {
-    var it = sel && sel.item; gizmo.visible = !!it && !it.lock; gapLines.visible = !!it;
+    var it = sel && sel.item; gizmo.visible = !!it && !it.lock; gapLines.visible = !!it && measuring;
     if (ring) { gizmo.remove(ring); ring.geometry.dispose(); ring = null; }
     if (!it) return;
     gizmo.position.set(it.x, 0, it.z); gizmo.rotation.y = -it.r * Math.PI / 180;
@@ -1077,7 +1105,7 @@ body.walking:not(.drawer) .dock, body.walking #side, body.walking #magnet, body.
     refreshGizmo(); refreshInspector(); dirty = true;
   }
   function refreshInspector() {
-    var insp = $('inspector'); insp.hidden = !sel; if (!sel) { resizeSoon(); return; }
+    var insp = $('inspector'); insp.hidden = !sel; document.body.classList.toggle('editing', !!sel); if (!sel) { resizeSoon(); return; }
     var it = sel.item;
     $('insp-edit').hidden = !it; $('insp-fixed').hidden = !!it;
     if (it) {
@@ -1086,6 +1114,7 @@ body.walking:not(.drawer) .dock, body.walking #side, body.walking #magnet, body.
       ['f-w', 'f-d', 'f-h', 'f-y', 'f-r'].forEach(function (id) { $(id).disabled = it.lock || (id === 'f-y' && it.top); });
       $('a-top').setAttribute('aria-pressed', String(!!it.top)); $('a-top').disabled = it.lock; $('a-fill').hidden = !isShelving(it) || it.lock; (function () { var lv = it.top && !it.lock ? surfacesUnder(it) : [0], multi = lv.length > 2; $('a-lvup').hidden = $('a-lvdown').hidden = !multi; if (multi) { $('a-lvup').disabled = !lv.some(function (v) { return v > it.y + 0.03; }); $('a-lvdown').disabled = !lv.some(function (v) { return v < it.y - 0.03 && v > 0.03; }); } })();
       each('[data-tool]', function (b) { b.setAttribute('aria-pressed', String(b.dataset.tool === tool)); b.disabled = it.lock; });
+      var mo = !$('insp-more').hidden; $('a-more').textContent = tr('more') + (mo ? ' ▴' : ' ▾'); $('a-more').setAttribute('aria-expanded', String(mo));
       $('a-lock').textContent = tr(it.lock ? 'unlock' : 'lock'); $('a-lock').setAttribute('aria-pressed', String(it.lock));
     } else {
       $('insp-name').textContent = nm(FIXNAME[sel.fix]); $('insp-badge').hidden = false; $('insp-badge').textContent = tr('builtin');
@@ -1111,6 +1140,7 @@ body.walking:not(.drawer) .dock, body.walking #side, body.walking #magnet, body.
   });
   each('[data-tool]', function (b) { b.addEventListener('click', function () { tool = b.dataset.tool; refreshGizmo(); refreshInspector(); dirty = true; }); });
   $('insp-close').addEventListener('click', function () { select(null); });
+  $('a-more').addEventListener('click', function () { $('insp-more').hidden = !$('insp-more').hidden; refreshInspector(); });
   // ---- keyboard shortcuts, as in Unreal Editor: W move, E rotate, R scale, Space cycles, F focus, Delete, Ctrl+D, Ctrl+Z, Esc
   function setTool(t) { tool = t; refreshGizmo(); refreshInspector(); dirty = true; }
   window.addEventListener('keydown', function (e) {
@@ -1119,12 +1149,12 @@ body.walking:not(.drawer) .dock, body.walking #side, body.walking #magnet, body.
     if (walk.on) { if (k === 'escape') exitWalk(); else if (k === ' ' && !e.repeat) nemo.call(); else if (k === 'b' && !e.repeat) nemo.bed(); else walkKeys[k] = true; if (k.indexOf('arrow') === 0 || k === ' ') e.preventDefault(); return; }
     if (mod && k === 'z') { e.preventDefault(); $('undo').click(); return; }
     if (mod && k === 'd') { e.preventDefault(); if (it) $('a-dup').click(); return; }
-    if (e.altKey && k === 'j') { e.preventDefault(); toggleTop(); return; }
+    if (e.altKey && k === 'j') { e.preventDefault(); $($('v-top').getAttribute('aria-pressed') === 'true' ? 'v-over' : 'v-top').click(); return; }
     if (mod || e.altKey) return;
     if (k === 'w') setTool('move'); else if (k === 'e') setTool('rotate'); else if (k === 'r') setTool('scale');
     else if (k === ' ') { e.preventDefault(); setTool({ move: 'rotate', rotate: 'scale', scale: 'move' }[tool]); }
     else if (k === 'delete' || k === 'backspace') { if (it) { e.preventDefault(); $('a-del').click(); } }
-    else if (k === 'escape') select(null);
+    else if (k === 'escape') { if (!$('dispmenu').hidden) closeDisplay(); else select(null); }
     else if (k === 'f' && it) { goal = { t: new THREE.Vector3(it.x, it.y + it.h / 2, it.z), r: Math.max(3, Math.max(it.w, it.d) * 2.5), pol: cam.pol, az: cam.az }; dirty = true; }
   });
 
@@ -1190,17 +1220,17 @@ body.walking:not(.drawer) .dock, body.walking #side, body.walking #magnet, body.
     $('walkhint').textContent = tr('walkhint');
     $('walkhud').hidden = $('stick').hidden = $('drawerbtn').hidden = !walk.on;
     var open = walk.on && document.body.classList.contains('drawer'); document.body.classList.toggle('walking', walk.on);
-    $('drawerbtn').textContent = tr('menu') + (open ? ' ▾' : ' ▴'); $('drawerbtn').setAttribute('aria-expanded', String(open)); $('topbtn').hidden = walk.on; if (walk.on) $('hint').hidden = true;
+    $('drawerbtn').textContent = tr('menu') + (open ? ' ▾' : ' ▴'); $('drawerbtn').setAttribute('aria-expanded', String(open)); if (walk.on) $('hint').hidden = true;
   }
   onLang.push(updateWalkUI);
   function enterWalk() {
-    walk.prevWalls = document.querySelector('[data-walls][aria-pressed="true"]').dataset.walls; select(null); goal = null; topPrev = null; $('topbtn').setAttribute('aria-pressed', 'false');
-    if ($('tab-bank').getAttribute('aria-selected') === 'true') $('tab-view').click(); document.body.classList.remove('drawer');
-    walk.on = true; walk.pitch = 0; walkKeys = {}; walk.sx = walk.sy = 0; setWalls('full'); ceiling.visible = true; backdrop.visible = true; nemo.enter(); updateWalkUI(); resize();
+    walk.prevWalls = document.querySelector('[data-walls][aria-pressed="true"]').dataset.walls; select(null); goal = null;
+    walk.prevTab = $('tab-bank').getAttribute('aria-pressed') === 'true' ? 'bank' : $('tab-layouts').getAttribute('aria-pressed') === 'true' ? 'layouts' : null; openTab('layouts'); document.body.classList.remove('drawer');
+    hideHint(); walk.on = true; walk.pitch = 0; walkKeys = {}; walk.sx = walk.sy = 0; setWalls('full'); ceiling.visible = true; backdrop.visible = true; nemo.enter(); updateWalkUI(); resize();
   }
   function exitWalk() {
     if (!walk.on) return; walk.on = false; if (document.exitPointerLock && walk.locked) document.exitPointerLock();
-    ceiling.visible = false; backdrop.visible = false; nemo.leave(); setWalls(walk.prevWalls); updateWalkUI(); resize();
+    ceiling.visible = false; backdrop.visible = false; nemo.leave(); setWalls(walk.prevWalls); openTab(wideMode && !walk.prevTab ? 'bank' : walk.prevTab); updateWalkUI(); resize();
   }
   try { if (!localStorage.getItem('capston-walked')) $('walkbtn').classList.add('fresh'); } catch (e) {}
   $('walkbtn').addEventListener('click', function () {
@@ -1273,7 +1303,7 @@ body.walking:not(.drawer) .dock, body.walking #side, body.walking #magnet, body.
   }
   function applyDrag(e) {
     var d = drag, it = d.it, b = d.base;
-    if (!d.touched) { pushUndo(); d.touched = true; }
+    if (!d.touched) { pushUndo(); d.touched = true; measuring = true; }
     if (d.kind === 'move') { var m = onPlane(e, UP, new THREE.Vector3(0, it.y, 0)); if (!m) return; it.x = clamp(m.x + d.ox, -2, 13); it.z = clamp(m.z + d.oz, -2, 14); if (!magnetize(it, e.altKey)) { it.x = snapTo(it.x, 0.05); it.z = snapTo(it.z, 0.05); }
       (d.riders || []).forEach(function (r) { r.o.x = it.x + r.dx; r.o.z = it.z + r.dz; pose(r.o); }); if (it.top) it.y = surfaceUnder(it); changed(it); return; }
     if (d.kind === 'rot') { var p = onPlane(e, UP, new THREE.Vector3(0, 0.04, 0)); if (!p) return; it.r = snapAngle(b.r + (Math.atan2(p.z - b.z, p.x - b.x) - d.a0) * 180 / Math.PI); changed(it); return; }
@@ -1285,7 +1315,7 @@ body.walking:not(.drawer) .dock, body.walking #side, body.walking #magnet, body.
     if (ax) it.w = size; else it.d = size; it.x = b.x + u.x * c; it.z = b.z + u.z * c; changed(it, true);
   }
   canvas.addEventListener('pointerdown', function (e) {
-    canvas.setPointerCapture(e.pointerId); ptrs[e.pointerId] = { x: e.clientX, y: e.clientY }; goal = null; $('hint').hidden = true;
+    canvas.setPointerCapture(e.pointerId); ptrs[e.pointerId] = { x: e.clientX, y: e.clientY }; goal = null; hideHint();
     if (pts().length === 1) { var hit = pick(e); down = { x: e.clientX, y: e.clientY, hit: hit, moved: 0 }; drag = startDrag(e, hit); }
     else { if (drag && drag.touched) commit(); drag = null; down = null; }
   });
@@ -1309,28 +1339,36 @@ body.walking:not(.drawer) .dock, body.walking #side, body.walking #magnet, body.
     if (drag && drag.touched) commit();
     if (drag && drag.it && drag.it.ol && !drag.it.lock) drag.it.ol.material.color.set(0x1f6fd9);
     if (down && down.moved < 6 && e.type === 'pointerup') { var h = down.hit; if (!h) select(null); else if (h.item) select({ item: h.item }); else if (h.fix) select({ fix: h.fix }); }
-    drag = null; down = null; dirty = true;
+    drag = null; down = null; dirty = true; endMeasure();
   }
+  function endMeasure() { if (!measuring) return; measuring = false; refreshGizmo(); dirty = true; }
   canvas.addEventListener('pointerup', up); canvas.addEventListener('pointercancel', up);
   canvas.addEventListener('contextmenu', function (e) { e.preventDefault(); });
   canvas.addEventListener('wheel', function (e) { e.preventDefault(); goal = null; cam.r *= Math.exp(e.deltaY * 0.0012); dirty = true; }, { passive: false });
 
 
-  // ---- top-down camera toggle: keeps the current centre and zoom, north up; press again to return to the previous angle
-  var topPrev = null;
-  function toggleTop() {
-    var on = !topPrev; goal = { t: cam.t.clone(), r: cam.r, pol: on ? 0.03 : topPrev.pol, az: on ? 0 : topPrev.az };
-    topPrev = on ? { pol: Math.max(cam.pol, 0.5), az: cam.az } : null; $('topbtn').setAttribute('aria-pressed', String(on)); dirty = true;
+  // ---- the hint shows on a first visit only, and fades on the first touch
+  try { if (localStorage.getItem('capston-hint')) $('hint').hidden = true; } catch (e) {}
+  function hideHint() {
+    var h = $('hint'); if (h.hidden || h.classList.contains('fading')) return; h.classList.add('fading');
+    setTimeout(function () { h.hidden = true; }, 500); try { localStorage.setItem('capston-hint', 'seen'); } catch (e) {}
   }
-  $('topbtn').addEventListener('click', toggleTop);
 
-  // ================= dock: tabs, views, walls
+  // ================= dock: Furniture and Layouts tabs; on phones a tab closes again when pressed twice. Views and walls sit on the 3D view.
   function press(sel_, on) { each(sel_, function (b) { b.setAttribute('aria-pressed', String(on(b))); }); }
-  each('[data-tab]', function (b) { b.addEventListener('click', function () {
-    each('[data-tab]', function (x) { x.setAttribute('aria-selected', String(x === b)); });
-    ['view', 'bank', 'layouts'].forEach(function (n) { if (n === 'bank' && wideMode) return; $('p-' + n).hidden = n !== b.dataset.tab; }); resizeSoon();
-  }); });
-  each('[data-view]', function (b) { b.addEventListener('click', function () { topPrev = null; $('topbtn').setAttribute('aria-pressed', 'false'); setView(b.dataset.view); press('[data-view]', function (x) { return x === b; }); }); });
+  function openTab(n) {
+    each('[data-tab]', function (x) { x.setAttribute('aria-pressed', String(x.dataset.tab === n)); });
+    ['bank', 'layouts'].forEach(function (k) { $('p-' + k).hidden = k !== n; }); resizeSoon();
+  }
+  each('[data-tab]', function (b) { b.addEventListener('click', function () { openTab(b.getAttribute('aria-pressed') === 'true' && !wideMode && !walk.on ? null : b.dataset.tab); }); });
+  each('[data-view]', function (b) { b.addEventListener('click', function () { setView(b.dataset.view); press('[data-view]', function (x) { return x === b; }); }); });
+  // ---- Display menu: wall height and glazed partitions
+  function closeDisplay() { $('dispmenu').hidden = true; $('dispbtn').setAttribute('aria-expanded', 'false'); }
+  $('dispbtn').addEventListener('click', function () { var open = $('dispmenu').hidden; $('dispmenu').hidden = !open; $('dispbtn').setAttribute('aria-expanded', String(open)); });
+  document.addEventListener('pointerdown', function (e) {   // a tap outside closes the menu and does nothing else on the 3D view
+    if ($('dispmenu').hidden || $('dispmenu').contains(e.target) || $('dispbtn').contains(e.target)) return;
+    closeDisplay(); if (e.target === canvas) { e.stopPropagation(); e.preventDefault(); }
+  }, true);
   function setWalls(mode) {
     var k = mode === 'cut' ? 0.42 : 1; walls.scale.y = tall.scale.y = k; press('[data-walls]', function (x) { return x.dataset.walls === mode; });
     if (sel) select(sel); dirty = true;
@@ -1352,15 +1390,15 @@ body.walking:not(.drawer) .dock, body.walking #side, body.walking #magnet, body.
     c.addEventListener('pointerdown', function (e) { st = { x: e.clientX, y: e.clientY, it: null }; try { c.setPointerCapture(e.pointerId); } catch (x) {} });
     c.addEventListener('pointermove', function (e) {
       if (!st) return;
-      if (!st.it && overCanvas(e) && Math.hypot(e.clientX - st.x, e.clientY - st.y) > 10) { pushUndo(); st.it = addItem(b.k, cam.t.x, cam.t.z); select({ item: st.it }); }
+      if (!st.it && overCanvas(e) && Math.hypot(e.clientX - st.x, e.clientY - st.y) > 10) { pushUndo(); measuring = true; st.it = addItem(b.k, cam.t.x, cam.t.z); select({ item: st.it }); }
       if (st.it) { var p = onPlane(e, UP, new THREE.Vector3(0, 0, 0)); if (p) { st.it.x = clamp(p.x, -2, 13); st.it.z = clamp(p.z, -2, 14); if (!magnetize(st.it, e.altKey)) { st.it.x = snapTo(st.it.x, 0.05); st.it.z = snapTo(st.it.z, 0.05); } if (st.it.top) st.it.y = surfaceUnder(st.it); changed(st.it); } }
     });
     c.addEventListener('pointerup', function (e) {
       if (!st) return; var s0 = st; st = null;
-      if (s0.it) { commit(); return; }
+      if (s0.it) { commit(); endMeasure(); return; }
       if (Math.hypot(e.clientX - s0.x, e.clientY - s0.y) < 8) { pushUndo(); var it = addItem(b.k, clamp(snapTo(cam.t.x, 0.05), 0.5, 9.5), clamp(snapTo(cam.t.z, 0.05), 0.5, 10.5)); select({ item: it }); commit(); }
     });
-    c.addEventListener('pointercancel', function () { if (st && st.it) commit(); st = null; });
+    c.addEventListener('pointercancel', function () { if (st && st.it) { commit(); endMeasure(); } st = null; });
   }
   function renderBank() {
     var f = $('bankfilter'); f.textContent = '';
@@ -1378,12 +1416,12 @@ body.walking:not(.drawer) .dock, body.walking #side, body.walking #magnet, body.
       list.forEach(function (b) { bankCard(b, el); });
     });
   }
-  // wide screens: the furniture list lives in a sidebar beside the 3D view; narrow screens: in the Furniture tab
+  // wide screens: the dock (Furniture and Layouts) lives in a sidebar beside the 3D view, with one tab always open; narrow screens: under the 3D view
   var wideMq = window.matchMedia ? window.matchMedia('(min-width: 900px)') : null, wideMode = false;
   function placeBank() {
-    wideMode = !!(wideMq && wideMq.matches); var pb = $('p-bank'), side = $('side'), dock = document.querySelector('.dock');
-    if (wideMode) { side.appendChild(pb); side.hidden = false; pb.hidden = false; $('tab-bank').hidden = true; if ($('tab-bank').getAttribute('aria-selected') === 'true') $('tab-view').click(); }
-    else { dock.insertBefore(pb, $('p-layouts')); side.hidden = true; $('tab-bank').hidden = false; pb.hidden = $('tab-bank').getAttribute('aria-selected') !== 'true'; }
+    wideMode = !!(wideMq && wideMq.matches); var side = $('side'), dock = $('dock');
+    if (wideMode) { side.appendChild(dock); side.hidden = false; if ($('tab-layouts').getAttribute('aria-pressed') !== 'true') openTab('bank'); }
+    else { $('inspector').after(dock); side.hidden = true; }
     resizeSoon();
   }
   if (wideMq && wideMq.addEventListener) wideMq.addEventListener('change', placeBank);
@@ -1423,7 +1461,7 @@ body.walking:not(.drawer) .dock, body.walking #side, body.walking #magnet, body.
     function fallback() { box.hidden = false; box.value = text; box.focus(); box.select(); say('copyfail'); resizeSoon(); }
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { say('copied'); }, fallback); else fallback();
   });
-  $('l-reset').addEventListener('click', function () { pushUndo(); setItems(START); commit(); });
+  $('l-reset').addEventListener('click', function () { if (!window.confirm(tr('resetq'))) return; pushUndo(); setItems(START); commit(); });
   if (window.claude && typeof window.claude.use === 'function') {
     window.claude.use('db').then(function (d) {
       if (!d) return; db = d;
@@ -1460,7 +1498,7 @@ body.walking:not(.drawer) .dock, body.walking #side, body.walking #magnet, body.
     var dt = $('dimtag'), it = sel && sel.item;
     if (it) {
       dt.classList.remove('fixed'); tag(dt, new THREE.Vector3(it.x, it.y + it.h, it.z), cm(it.w) + ' × ' + cm(it.d) + ' × ' + cm(it.h) + ' cm', -34);
-      for (var i = 0; i < 4; i++) { var g = $('gap' + i); if (gaps[i] != null && gaps[i] > 0.015 && gaps[i] < 4) tag(g, gapMid[i], cm(gaps[i]) + ' cm'); else g.hidden = true; }
+      for (var i = 0; i < 4; i++) { var g = $('gap' + i); if (measuring && gaps[i] != null && gaps[i] > 0.015 && gaps[i] < 4) tag(g, gapMid[i], cm(gaps[i]) + ' cm'); else g.hidden = true; }
     } else {
       for (var j = 0; j < 4; j++) $('gap' + j).hidden = true;
       var dm = sel && sel.fix && FIXDIM[sel.fix];
