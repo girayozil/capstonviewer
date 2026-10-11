@@ -328,7 +328,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     g.fillStyle = '#3e2a1c'; g.fillRect(0, 0, N, N);   // joints
     for (var i = 0; i < 2; i++) for (var j = 0; j < 2; j++) for (var k = 0; k < n; k++) {
       var along = (i + j) % 2 === 0, x0 = along ? i * q + k * w : i * q, y0 = along ? j * q : j * q + k * w, sw = along ? w - jn : q - jn, sh = along ? q - jn : w - jn;
-      var L = 36 + r() * 9 + (along ? 2.5 : -2.5);
+      var L = 41 + r() * 9 + (along ? 2.5 : -2.5);
       g.fillStyle = 'hsl(' + (26 + r() * 6) + ',' + (26 + r() * 9) + '%,' + L + '%)'; g.fillRect(x0, y0, sw, sh);
       g.save(); g.beginPath(); g.rect(x0, y0, sw, sh); g.clip();
       for (var m = 0; m < 22; m++) {   // grain running along the strip
