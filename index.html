@@ -1388,6 +1388,21 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
         var m = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.011, v.length(), 12), mDarkOakG); m.position.copy(A).add(B).multiplyScalar(0.5); m.quaternion.setFromUnitVectors(up, v.normalize().negate()); m.castShadow = true; u.add(m);
       });
     },
+    palissadeTable: function (g, w, d, h) {
+      // HAY Palissade table, 82.5 x 90 x 74 cm, olive powder-coated steel: four straight tube legs, a tube frame round the top with rounded
+      // corners, and flat straps running front to back across it, turned down over the front and back rails.
+      var u = new THREE.Group(); u.scale.set(w / 0.825, h / 0.74, d / 0.9); g.add(u);
+      var up = new THREE.Vector3(0, 1, 0), V = function (x, y, z) { return new THREE.Vector3(x, y, z); }, X = 0.395, Z = 0.43, yr = 0.712;
+      function rod(A, B) { var v = B.clone().sub(A), m = new THREE.Mesh(new THREE.CylinderGeometry(0.0125, 0.0125, v.length() + 0.012, 10), mPalOlive); m.position.copy(A).add(B).multiplyScalar(0.5); m.quaternion.setFromUnitVectors(up, v.normalize()); m.castShadow = m.receiveShadow = true; u.add(m); }
+      [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(function (c) { rod(V(c[0] * X, 0.004, c[1] * Z), V(c[0] * X, yr, c[1] * Z)); var f = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.012, 10), mHob); f.position.set(c[0] * X, 0.006, c[1] * Z); u.add(f); });
+      rod(V(-X, yr, -Z), V(X, yr, -Z)); rod(V(-X, yr, Z), V(X, yr, Z)); rod(V(-X, yr, -Z), V(-X, yr, Z)); rod(V(X, yr, -Z), V(X, yr, Z));
+      var n = 20, sw = 0.03, gap = (2 * X - 0.02 - n * sw) / (n - 1);
+      for (var i = 0; i < n; i++) {
+        var x = -X + 0.01 + sw / 2 + i * (sw + gap);
+        part(u, x - sw / 2, -Z - 0.01, x + sw / 2, Z + 0.01, 0.732, 0.738, mPalOlive);
+        [-1, 1].forEach(function (sd) { part(u, x - sw / 2, sd * (Z + 0.01) - (sd > 0 ? 0 : 0.006), x + sw / 2, sd * (Z + 0.01) + (sd > 0 ? 0.006 : 0), 0.705, 0.738, mPalOlive); });   // turned down over the rail
+      }
+    },
     palissade: function (g, w, d, h) {
       // HAY Palissade dining armchair, 63 x 66 x 80 cm, olive powder-coated steel: a tube frame (front legs that bend back into the armrests
       // and down into the back legs, side and front rails under the seat, a back frame leaning back with a top rail) and nine flat straps
@@ -1995,6 +2010,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     { k: 'rugLayered', b: 'rugLayered', n: ['Layered rug, rose wool 300 × 400', 'Layered halı, gül rengi yün 300 × 400'], w: 3.0, d: 4.0, h: 0.015 },
     { k: 'rugRound', b: 'rugRound', n: ['Round rug', 'Yuvarlak halı'], w: 2.45, d: 2.45, h: 0.015 },
     { k: 'rig', b: 'rig', n: ['Racing sim rig', 'Yarış simülatörü'], w: 0.7, d: 1.6, h: 1.3 },
+    { k: 'palissadeTable', b: 'palissadeTable', n: ['Outdoor table, olive (HAY Palissade)', 'Bahçe masası, zeytin yeşili (HAY Palissade)'], w: 0.825, d: 0.9, h: 0.74 },
     { k: 'palissade', b: 'palissade', n: ['Outdoor armchair, olive (HAY Palissade)', 'Bahçe koltuğu, zeytin yeşili (HAY Palissade)'], w: 0.63, d: 0.66, h: 0.80 },
     { k: 'figPlant', b: 'figPlant', n: ['Fiddle-leaf fig in a charcoal pot', 'Keman yapraklı incir, antrasit saksıda'], w: 0.7, d: 0.7, h: 1.6 },
     { k: 'birdPlant', b: 'birdPlant', n: ['Bird of paradise in a taupe pot (elho)', 'Cennet kuşu çiçeği, vizon saksıda (elho)'], w: 1.0, d: 1.0, h: 2.08 },
@@ -2098,11 +2114,13 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   saveCustom();
   // N11.02's default: the master bedroom, Teodora's studio desk, and the living room with the Nockeby, the Layered rug, the wing chair, the
   // sage table by the dining bench, the TV, her painting and Nemo's crate
-  // two HAY Palissade chairs on the balcony, side by side and facing out over the glass balustrade
-  var BALC02 = [{ k: 'palissade', x: 9.72, z: 9.35, r: 251.1, w: 0.63, d: 0.66, h: 0.8, y: 0, top: false }, { k: 'palissade', x: 9.95, z: 10.45, r: 251.1, w: 0.63, d: 0.66, h: 0.8, y: 0, top: false }];
+  // the HAY Palissade set on the balcony: the table in the middle, square to the slanted balustrade, and a chair at each end of it facing the other
+  var BALC02 = [{ k: 'palissadeTable', x: 9.84, z: 10.0, r: 251.1, w: 0.825, d: 0.9, h: 0.74, y: 0, top: false },
+    { k: 'palissade', x: 9.66, z: 9.35, r: 341.1, w: 0.63, d: 0.66, h: 0.8, y: 0, top: false }, { k: 'palissade', x: 10.03, z: 10.65, r: 161.1, w: 0.63, d: 0.66, h: 0.8, y: 0, top: false }];
   var START02 = [{"k":"bedSuper","x":5.38,"z":1.05,"r":0,"w":2.04,"d":2.1,"h":1.1,"y":0,"top":false},{"k":"diningOak","x":1.2,"z":10.07,"r":360,"w":2,"d":0.95,"h":0.76,"y":0,"top":false},{"k":"ochair","x":0.8,"z":9.4,"r":360,"w":0.68,"d":0.66,"h":1.28,"y":0,"top":false},{"k":"monitor","x":0.85,"z":9.97,"r":0,"w":0.8,"d":0.2,"h":0.56,"y":0.76,"top":true},{"k":"bbgKeyboard","x":0.85,"z":9.72,"r":180,"w":0.45,"d":0.16,"h":0.03,"y":0.76,"top":true},{"k":"c-dog-crate-black-46hz","x":4.85,"z":11.6,"r":0,"w":0.76,"d":0.48,"h":0.55,"y":0,"top":false},{"k":"wingChair","x":5.45,"z":8,"r":334,"w":0.76,"d":0.9,"h":1.05,"y":0,"top":false},{"k":"rugLayered","x":5.85,"z":9.55,"r":0,"w":3,"d":4,"h":0.02,"y":0,"top":false},{"k":"nockeby","x":7.1,"z":9.45,"r":90,"w":2.77,"d":1.71,"h":0.66,"y":0,"top":false},{"k":"paintT1","x":4.92,"z":11.69,"r":180,"w":1.04,"d":0.05,"h":1.04,"y":0.93,"top":false},{"k":"sageTable","x":7.43,"z":6.65,"r":0,"w":1.6,"d":1.2,"h":0.75,"y":0,"top":false},{"k":"greenChest","x":3.69,"z":1.15,"r":270,"w":0.76,"d":0.4,"h":1.27,"y":0,"top":false},{"k":"tv65","x":3.82,"z":9.54,"r":270,"w":1.44,"d":0.05,"h":0.81,"y":0.6,"top":false},{"k":"caneSideboard","x":1.05,"z":11.48,"r":180,"w":1.36,"d":0.41,"h":0.7,"y":0,"top":false},{"k":"pothos","x":1.5,"z":11.45,"r":0,"w":0.3,"d":0.25,"h":0.32,"y":0.7,"top":true},{"k":"snakePlant","x":1.15,"z":11.45,"r":0,"w":0.18,"d":0.18,"h":0.32,"y":0.7,"top":true},{"k":"rug","x":1.63,"z":10,"r":180,"w":2.85,"d":1.95,"h":0.02,"y":0,"top":false},{"k":"booksStack","x":1.85,"z":10.23,"r":0,"w":0.28,"d":0.22,"h":0.12,"y":0.76,"top":true},{"k":"booksNeutral","x":0.7,"z":11.5,"r":0,"w":0.36,"d":0.18,"h":0.22,"y":0.7,"top":true},{"k":"pothos","x":1.85,"z":9.95,"r":0,"w":0.3,"d":0.25,"h":0.32,"y":0.76,"top":true},{"k":"paintT2","x":0.23,"z":10.47,"r":270,"w":1.2,"d":0.05,"h":1.4,"y":0.85,"top":false},{"k":"daliSpeaker","x":4.15,"z":8.35,"r":285,"w":0.2,"d":0.38,"h":0.99,"y":0,"top":false},{"k":"daliSpeaker","x":4.15,"z":10.6,"r":261,"w":0.2,"d":0.38,"h":0.99,"y":0,"top":false},{"k":"easelT3","x":3.39,"z":7.73,"r":90,"w":0.54,"d":0.61,"h":1.6,"y":0,"top":false},{"k":"teakChair","x":7.1,"z":7.35,"r":180,"w":0.5,"d":0.54,"h":0.76,"y":0,"top":false},{"k":"teakChair","x":7.7,"z":7.35,"r":180,"w":0.5,"d":0.54,"h":0.76,"y":0,"top":false},{"k":"teakChair","x":8.3,"z":6.7,"r":90,"w":0.5,"d":0.54,"h":0.76,"y":0,"top":false}].concat(BALC02);
-  function withBalcony(list, v) {   // one-off (layouts before version 5): N11.02 layouts get the balcony chairs unless they already have some
-    return v < 5 && !list.some(function (it) { return it && it.k === 'palissade'; }) ? list.concat(BALC02.map(function (c) { var q = {}; for (var f in c) q[f] = c[f]; return q; })) : list;
+  function withBalcony(list, v) {   // one-off (layouts before version 6): N11.02 layouts without the balcony table get the whole set, replacing chairs already out there
+    if (v >= 6 || list.some(function (it) { return it && it.k === 'palissadeTable'; })) return list;
+    return list.filter(function (it) { return !(it && it.k === 'palissade' && +it.x > 9.1 && +it.z > 7.9); }).concat(BALC02.map(function (c) { var q = {}; for (var f in c) q[f] = c[f]; return q; }));
   }
   function shift02(list) { return list.map(function (it) { var c = {}; for (var f in it) c[f] = it[f]; c.x = (+c.x || 0) + DX2; c.z = (+c.z || 0) + DZ2; return c; }); }
   var START = FLAT === 'n1102' ? START02 : [{"k":"screen","x":2.31,"z":5.84,"r":90,"w":3.2,"d":0.07,"h":2.6,"y":0,"top":false},{"k":"mediaUnit350","x":5.36,"z":4.06,"r":0,"w":3.5,"d":0.4,"h":0.43,"y":0,"top":false},{"k":"standDesk","x":6.7,"z":5.5,"r":270,"w":2,"d":0.8,"h":0.74,"y":0,"top":false},{"k":"ochair","x":7.35,"z":5.75,"r":90,"w":0.68,"d":0.66,"h":1.28,"y":0,"top":false},{"k":"monitor","x":6.65,"z":5.8,"r":90,"w":1.24,"d":0.2,"h":0.56,"y":0.74,"top":true},{"k":"synth","x":6.8,"z":4.85,"r":270,"w":0.58,"d":0.23,"h":0.06,"y":0.74,"top":true},{"k":"tv65","x":4.82,"z":3.88,"r":0,"w":1.44,"d":0.05,"h":0.81,"y":0.6,"top":false},{"k":"bbgKeyboard","x":7,"z":5.8,"r":270,"w":0.45,"d":0.16,"h":0.03,"y":0.74,"top":true},{"k":"shelving100","x":6.59,"z":4.01,"r":0,"w":1,"d":0.3,"h":1.8,"y":0.41,"top":false},{"k":"speaker","x":3.86,"z":4,"r":0,"w":0.23,"d":0.28,"h":0.4,"y":0.41,"top":true},{"k":"speaker","x":5.81,"z":4,"r":0,"w":0.23,"d":0.28,"h":0.4,"y":0.41,"top":true},{"k":"rugRound","x":4.55,"z":6,"r":0,"w":3,"d":3,"h":0.02,"y":0,"top":false},{"k":"neva","x":3.75,"z":6.4,"r":216,"w":1.12,"d":1.04,"h":0.84,"y":0,"top":false},{"k":"hudson","x":5.35,"z":6.4,"r":143,"w":0.66,"d":0.82,"h":0.74,"y":0,"top":false},{"k":"nestBig","x":4.85,"z":5.5,"r":0,"w":0.8,"d":0.8,"h":0.34,"y":0,"top":false},{"k":"nestSmall","x":4.35,"z":5.5,"r":0,"w":0.5,"d":0.5,"h":0.46,"y":0,"top":false},{"k":"rig","x":1.1,"z":5.25,"r":180,"w":0.7,"d":1.6,"h":1.3,"y":0,"top":false},{"k":"artShapes","x":0.02,"z":5.78,"r":270,"w":0.5,"d":0.03,"h":0.7,"y":1.1,"top":false},{"k":"artLine","x":0.02,"z":5.05,"r":270,"w":0.5,"d":0.03,"h":0.7,"y":1.1,"top":false},{"k":"artField","x":1.74,"z":8.42,"r":180,"w":0.7,"d":0.03,"h":1,"y":0.75,"top":false},{"k":"booksStack","x":6.45,"z":3.4,"r":0,"w":0.28,"d":0.22,"h":0.12,"y":0.45,"top":true},{"k":"booksRow","x":6.32,"z":3.99,"r":0,"w":0.36,"d":0.2,"h":0.26,"y":0.45,"top":true},{"k":"booksStack","x":6.9,"z":4,"r":0,"w":0.28,"d":0.22,"h":0.12,"y":0.45,"top":true},{"k":"booksArt","x":6.79,"z":4.01,"r":0,"w":0.3,"d":0.24,"h":0.3,"y":0.8,"top":true},{"k":"booksPaper","x":6.26,"z":3.95,"r":0,"w":0.22,"d":0.13,"h":0.19,"y":1.15,"top":true},{"k":"booksRow","x":6.86,"z":3.99,"r":0,"w":0.36,"d":0.2,"h":0.26,"y":1.15,"top":true},{"k":"booksNeutral","x":6.36,"z":3.98,"r":0,"w":0.36,"d":0.18,"h":0.22,"y":1.5,"top":true},{"k":"booksStack","x":6.78,"z":4,"r":0,"w":0.28,"d":0.22,"h":0.12,"y":1.5,"top":true},{"k":"booksLean","x":6.29,"z":3.99,"r":0,"w":0.3,"d":0.2,"h":0.25,"y":1.86,"top":true},{"k":"rugMoroccan","x":1.07,"z":5.31,"r":270,"w":2.15,"d":1.5,"h":0.01,"y":0,"top":false},{"k":"bedKing","x":5.15,"z":2.74,"r":180,"w":1.5,"d":2,"h":1.1,"y":0,"top":false},{"k":"rug","x":5.15,"z":2.35,"r":0,"w":2.85,"d":1.95,"h":0.02,"y":0,"top":false},{"k":"sideTable","x":3.95,"z":3.4,"r":0,"w":0.48,"d":0.48,"h":0.45,"y":0,"top":false},{"k":"sideTable","x":6.35,"z":3.35,"r":0,"w":0.48,"d":0.48,"h":0.45,"y":0,"top":false},{"k":"dogBed","x":1.76,"z":8.11,"r":0,"w":0.8,"d":0.65,"h":0.2,"y":0,"top":false},{"k":"slatBookcase","x":0.18,"z":7.32,"r":270,"w":1.2,"d":0.35,"h":1.7,"y":0,"top":false},{"k":"booksStack","x":0.15,"z":7.57,"r":270,"w":0.28,"d":0.22,"h":0.12,"y":0.15,"top":true},{"k":"snakePlant","x":0.13,"z":7.02,"r":270,"w":0.18,"d":0.18,"h":0.32,"y":0.15,"top":true},{"k":"booksStack","x":0.15,"z":7.62,"r":270,"w":0.28,"d":0.22,"h":0.12,"y":0.52,"top":true},{"k":"booksRow","x":0.14,"z":7.2,"r":270,"w":0.36,"d":0.2,"h":0.26,"y":0.52,"top":true},{"k":"booksArt","x":0.16,"z":7.62,"r":270,"w":0.3,"d":0.24,"h":0.3,"y":0.88,"top":true},{"k":"booksStack","x":0.15,"z":7.32,"r":270,"w":0.28,"d":0.22,"h":0.12,"y":0.88,"top":true},{"k":"pothos","x":0.17,"z":7.01,"r":270,"w":0.3,"d":0.25,"h":0.32,"y":0.88,"top":true},{"k":"booksRow","x":0.14,"z":7.57,"r":270,"w":0.36,"d":0.2,"h":0.26,"y":1.28,"top":true},{"k":"booksPaper","x":0.11,"z":7.26,"r":270,"w":0.22,"d":0.13,"h":0.19,"y":1.28,"top":true},{"k":"snakePlant","x":0.13,"z":6.96,"r":270,"w":0.18,"d":0.18,"h":0.32,"y":1.28,"top":true},{"k":"pothos","x":0.17,"z":6.92,"r":270,"w":0.3,"d":0.25,"h":0.32,"y":1.7,"top":true},{"k":"plant","x":9.07,"z":8.83,"r":0,"w":0.5,"d":0.5,"h":1.5,"y":0,"top":false},{"k":"artSea","x":8.48,"z":7.24,"r":75,"w":0.7,"d":0.03,"h":0.5,"y":1.2,"top":false}];
@@ -2152,8 +2170,8 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   function commit() { settleAll(); shadowDirty = true; dirty = true; try {
     if (FLAT === 'both') {   // each piece is saved with the flat it stands in, so both flats show what was arranged here
       var a = [], b = []; items.forEach(function (it) { var q = plain(it); if (inN1102(it.x, it.z)) { q.x = r2(q.x - DX2); q.z = r2(q.z - DZ2); b.push(q); } else a.push(q); });
-      localStorage.setItem('capston-n1101-work', JSON.stringify({ v: 5, items: a, types: typesFor(a) })); localStorage.setItem('capston-n1102-work', JSON.stringify({ v: 5, items: b, types: typesFor(b) }));
-    } else localStorage.setItem(KEY + '-work', JSON.stringify({ v: 5, items: items.map(plain), types: typesFor(items) }));
+      localStorage.setItem('capston-n1101-work', JSON.stringify({ v: 6, items: a, types: typesFor(a) })); localStorage.setItem('capston-n1102-work', JSON.stringify({ v: 6, items: b, types: typesFor(b) }));
+    } else localStorage.setItem(KEY + '-work', JSON.stringify({ v: 6, items: items.map(plain), types: typesFor(items) }));
   } catch (e) {} }
   $('undo').addEventListener('click', function () {
     var s = undoStack.pop(); if (!s) return; setItems(JSON.parse(s)); commit(); $('undo').hidden = !undoStack.length;
@@ -2697,7 +2715,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
 
   // ================= furniture bank: tap to add at the centre of the view, or drag a card into the flat
   var CATS = [['seat', ['nockeby', 'sofa3', 'sofa2', 'sofaCurve', 'armchair', 'neva', 'hudson', 'wingChair', 'teakChair', 'palissade', 'dchair', 'ochair']], ['bed', ['bedKing', 'bedSuper', 'bedDouble', 'bedSingle']],
-    ['table', ['coffee', 'nestBig', 'nestSmall', 'sideTable', 'dining', 'diningOak', 'sageTable']], ['office', ['desk', 'standDesk', 'deskCorner', 'monitor', 'synth', 'bbgKeyboard', 'rig']],
+    ['table', ['coffee', 'nestBig', 'nestSmall', 'sideTable', 'dining', 'diningOak', 'sageTable', 'palissadeTable']], ['office', ['desk', 'standDesk', 'deskCorner', 'monitor', 'synth', 'bbgKeyboard', 'rig']],
     ['store', ['shelving', 'shelving100', 'mediaUnit', 'mediaUnit150', 'mediaUnit350', 'swoonMedia', 'cabinet', 'sideboard', 'caneSideboard', 'greenChest', 'bookcase', 'slatBookcase', 'wardrobe']], ['art', ['paintT1', 'paintT2', 'artSun', 'artLeaf', 'artDunes', 'artGrid', 'artShapes', 'artLine', 'artSea', 'artField']], ['books', ['booksRow', 'booksArt', 'booksNeutral', 'booksLean', 'booksStack', 'booksPaper']], ['other', ['tv65', 'speaker', 'daliSpeaker', 'easel', 'easelT3', 'dogBed', 'rug', 'rugMoroccan', 'rugLayered', 'rugRound', 'screen', 'plant', 'birdPlant', 'figPlant', 'pothos', 'snakePlant', 'lamp', 'box']]];
   BANK.forEach(function (b) { if (!b.spec) b.c = 'other'; }); CATS.forEach(function (c) { c[1].forEach(function (k) { if (BK[k]) BK[k].c = c[0]; }); });
   var bankFilter = 'all';
@@ -3321,13 +3339,13 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     if (FLAT === 'both') {   // the two flats' own layouts, N11.02's moved into place
       var rd = function (k) { try { var w = JSON.parse(localStorage.getItem(k) || 'null'); if (w) addTypes(w.types); return w && Array.isArray(w.items) ? (k === 'capston-n1102-work' ? withBalcony(w.items, +w.v || 0) : w.items) : null; } catch (e) { return null; } };
       var B = shift02(rd('capston-n1102-work') || START02);
-      work = { v: 5, items: (rd('capston-n1101-work') || START).concat(B) };
+      work = { v: 6, items: (rd('capston-n1101-work') || START).concat(B) };
     }
-    var ok = work && (work.v >= 1 && work.v <= 5) && Array.isArray(work.items);
+    var ok = work && (work.v >= 1 && work.v <= 6) && Array.isArray(work.items);
     if (ok) addTypes(work.types);
     if (ok && work.v === 1) work.items.forEach(function (it) { if (it && it.k === 'rug') { var wide = (+it.w || 0) >= (+it.d || 0); it.w = wide ? 2.85 : 1.95; it.d = wide ? 1.95 : 2.85; } });   // one-off: the rug became 285 x 195
     if (ok && work.v < 3) work.items.forEach(function (it) { if (it && it.k === 'rugRound') it.w = it.d = 2.45; });   // one-off: the round rug became 245 across
-    var balc = ok && FLAT === 'n1102' && work.v < 5 && withBalcony(work.items, work.v) !== work.items;
+    var balc = ok && FLAT === 'n1102' && work.v < 6 && withBalcony(work.items, work.v) !== work.items;
     if (balc) work.items = withBalcony(work.items, work.v);
     setItems(ok ? work.items : START);
     if (balc) commit();
