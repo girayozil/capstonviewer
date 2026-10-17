@@ -670,6 +670,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     var t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(0.9, 0.9); t.encoding = THREE.sRGBEncoding; return t;
   }
   var mTeak = M(0x5c3d2c, 0.4);   // the teak dining chair: brown stained, varnished
+  var mWalnut = M(0x8a5c3c, 0.45), mAlu = M(0x9a9c9f, 0.35), mDaliCone = M(0x6c3a2c, 0.8); mAlu.metalness = 0.35;   // the DALI speakers
   var mNock = M(0x544e4b, 0.97), mNockCush = M(0x625b58, 0.97), mNockBack = M(0x6b6461, 0.97);   // the Nockeby sofa: charcoal brown woven fabric
   var mChestGreen = M(0x2c6a3f, 0.75), mChestPine = M(0xb7773f, 0.55), mChestShadow = M(0x0f2416, 0.9);   // the green chest of drawers: painted pine, honey pine top and legs
   var mBlush = M(0xd6bcbf, 0.97), mBlushSeam = M(0xdcc4c6, 0.97), mBlackMetal = M(0x1f1e1d, 0.45);   // the pink wing chair: soft fabric, a lighter inner back
@@ -1305,6 +1306,27 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       var bc = new THREE.Mesh(new THREE.BoxGeometry(w - 2 * arm - 0.02, h - seatTop, 0.229 * kz), mLinenCush);
       bc.position.set(0, seatTop + (h - seatTop) / 2 - 0.01, -d / 2 + back + 0.229 * kz / 2 + 0.03 * kz); bc.rotation.x = -0.14; bc.castShadow = true; bc.receiveShadow = true; g.add(bc);
     },
+    daliSpeaker: function (g, w, d, h) {
+      // DALI floorstanding speaker, 20 x 38 x 99 cm, natural walnut: the cabinet with vertical grain, an aluminium plate at the top of the
+      // front holding the ribbon and dome tweeters, two woofers with red-brown wood-fibre cones in black baskets with a silver trim, a small badge low down.
+      var u = new THREE.Group(); u.scale.set(w / 0.20, h / 0.99, d / 0.38); g.add(u);
+      if (!mWalnut.map) { var t = grainTex('wood').clone(); t.needsUpdate = true; t.center.set(0.5, 0.5); t.rotation = Math.PI / 2; mWalnut.map = t; }
+      var zf = 0.172;   // the cabinet front, so the drivers end at the stated depth
+      part(u, -0.1, -0.19, 0.1, zf - 0.002, 0, 0.99, mWalnut);
+      part(u, -0.05, zf - 0.002, 0.05, zf + 0.001, 0.78, 0.975, mAlu);              // tweeter plate
+      part(u, -0.012, zf + 0.001, 0.012, zf + 0.004, 0.895, 0.962, mHob);           // ribbon tweeter
+      for (var i = 0; i < 6; i++) part(u, -0.009, zf + 0.004, 0.009, zf + 0.005, 0.902 + i * 0.01, 0.906 + i * 0.01, mAlu, true);
+      function disc(r, y, z0, z1, mat) { var m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, z1 - z0, 40), mat); m.rotation.x = Math.PI / 2; m.position.set(0, y, (z0 + z1) / 2); m.castShadow = m.receiveShadow = true; u.add(m); return m; }
+      disc(0.03, 0.83, zf + 0.001, zf + 0.006, mHob); var dome = new THREE.Mesh(new THREE.SphereGeometry(0.013, 16, 10), mAlu); dome.scale.z = 0.5; dome.position.set(0, 0.83, zf + 0.006); u.add(dome);   // dome tweeter
+      [0.705, 0.515].forEach(function (y) {   // woofers
+        disc(0.088, y, zf - 0.002, zf + 0.008, mHob);
+        var ring = new THREE.Mesh(new THREE.TorusGeometry(0.086, 0.0035, 8, 48), mAlu); ring.position.set(0, y, zf + 0.008); u.add(ring);
+        disc(0.068, y, zf + 0.004, zf + 0.009, mDaliCone);
+        var cap = new THREE.Mesh(new THREE.SphereGeometry(0.022, 16, 10), mDaliCone); cap.scale.z = 0.4; cap.position.set(0, y, zf + 0.009); u.add(cap);
+        for (var k = 0; k < 4; k++) { var a = (k + 0.5) * Math.PI / 2, b = new THREE.Mesh(new THREE.SphereGeometry(0.004, 8, 6), mAlu); b.position.set(Math.cos(a) * 0.078, y + Math.sin(a) * 0.078, zf + 0.009); u.add(b); }   // basket screws
+      });
+      part(u, -0.012, zf - 0.002, 0.012, zf + 0.002, 0.1, 0.115, mAlu, true);         // badge
+    },
     teakChair: function (g, w, d, h) {
       // Burnish dining chair, 50 x 54 x 76 cm, seat at 47 cm: solid teak stained brown and varnished. A shaped seat, wider at the front,
       // on four tapered round legs that splay out; the back legs rise behind the seat into posts that lean back and carry a curved top rail.
@@ -1798,6 +1820,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     { k: 'wardrobe', b: 'storage', n: ['Wardrobe', 'Gardırop'], w: 1.0, d: 0.6, h: 2.2 },
     { k: 'screen', b: 'screen', n: ['Glazed partition', 'Camlı bölme'], w: 3.2, d: 0.07, h: 2.6 },
     { k: 'rug', b: 'rug', n: ['Rug', 'Halı'], w: 2.85, d: 1.95, h: 0.015 },
+    { k: 'daliSpeaker', b: 'daliSpeaker', n: ['Floor speaker, walnut (DALI)', 'Kule hoparlör, ceviz (DALI)'], w: 0.20, d: 0.38, h: 0.99 },
     { k: 'speaker', b: 'speaker', n: ['Bookshelf speaker', 'Raf hoparlörü'], w: 0.23, d: 0.28, h: 0.4, y: 0.43, top: true },
     { k: 'rugMoroccan', b: 'rugMoroccan', n: ['Moroccan rug', 'Fas kilimi'], w: 2.15, d: 1.5, h: 0.012 },
     { k: 'dogBed', b: 'dogBed', n: ['Nemo’s bed', 'Nemo’nun yatağı'], w: 0.8, d: 0.65, h: 0.2 },
@@ -2454,7 +2477,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   // ================= furniture bank: tap to add at the centre of the view, or drag a card into the flat
   var CATS = [['seat', ['nockeby', 'sofa3', 'sofa2', 'sofaCurve', 'armchair', 'neva', 'hudson', 'wingChair', 'teakChair', 'dchair', 'ochair']], ['bed', ['bedKing', 'bedSuper', 'bedDouble', 'bedSingle']],
     ['table', ['coffee', 'nestBig', 'nestSmall', 'sideTable', 'dining', 'diningOak', 'sageTable']], ['office', ['desk', 'standDesk', 'deskCorner', 'monitor', 'synth', 'bbgKeyboard', 'rig']],
-    ['store', ['shelving', 'shelving100', 'mediaUnit', 'mediaUnit150', 'mediaUnit350', 'cabinet', 'sideboard', 'caneSideboard', 'greenChest', 'bookcase', 'slatBookcase', 'wardrobe']], ['art', ['paintT1', 'artSun', 'artLeaf', 'artDunes', 'artGrid', 'artShapes', 'artLine', 'artSea', 'artField']], ['books', ['booksRow', 'booksArt', 'booksNeutral', 'booksLean', 'booksStack', 'booksPaper']], ['other', ['tv65', 'speaker', 'dogBed', 'rug', 'rugMoroccan', 'rugLayered', 'rugRound', 'screen', 'plant', 'pothos', 'snakePlant', 'lamp', 'box']]];
+    ['store', ['shelving', 'shelving100', 'mediaUnit', 'mediaUnit150', 'mediaUnit350', 'cabinet', 'sideboard', 'caneSideboard', 'greenChest', 'bookcase', 'slatBookcase', 'wardrobe']], ['art', ['paintT1', 'artSun', 'artLeaf', 'artDunes', 'artGrid', 'artShapes', 'artLine', 'artSea', 'artField']], ['books', ['booksRow', 'booksArt', 'booksNeutral', 'booksLean', 'booksStack', 'booksPaper']], ['other', ['tv65', 'speaker', 'daliSpeaker', 'dogBed', 'rug', 'rugMoroccan', 'rugLayered', 'rugRound', 'screen', 'plant', 'pothos', 'snakePlant', 'lamp', 'box']]];
   BANK.forEach(function (b) { if (!b.spec) b.c = 'other'; }); CATS.forEach(function (c) { c[1].forEach(function (k) { if (BK[k]) BK[k].c = c[0]; }); });
   var bankFilter = 'all';
   function bankCard(b, el) {
