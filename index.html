@@ -931,10 +931,10 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     curFix = 'kitchen';   // the run along the bedroom 2 wall: worktop with the sink and dishwasher between the fridge freezer and the oven
     box(low, 474, 524, 621, 555, 0.86, mOak); box(low, 474, 524, 621, 556.5, 0.04, mMarble, 0.86);
     box(low, 474, 524, 621, 525.5, 0.5, mMarble, 0.9); box(low, 531, 529, 559, 552, 0.012, mSteel, 0.9);
-    curFix = 'island';   // with the hob, and a slim marble bar along its east side resting on a marble leg
+    curFix = 'island';   // with the hob, and a slim marble bar along its east side, carried by the dining bench below it
     rbx(low, 490, 615, 578, 658, 0.86, mOak, 0, 0.12); rbx(low, 489, 614, 579, 659, 0.04, mMarble, 0.86, 0.14); box(low, 512, 619, 545, 645, 0.012, mHob, 0.9);
-    rbx(low, 576, 614, 649, 628, 0.04, mMarble, 0.86, 0.06); box(low, 641, 615, 648, 627, 0.86, mMarble);
-    curFix = 'bench'; diningBench(578.5, 614, 1.25);   // the built-in dining bench in the island's inlet, its back under the marble bar
+    rbx(low, 576, 614, 649, 628, 0.04, mMarble, 0.86, 0.06);
+    curFix = 'bench'; diningBench(578.5, 614, (648.5 - 578.5) * S);   // the built-in dining bench filling the island's inlet to the end of the marble bar, which rests on its back
     curFix = 'wc'; box(low, 264, 492, 280, 535, 1.0, mWall); box(low, 280, 500, 304, 522, 0.4, mWhite);   // bathroom 1: boxed-in cistern and toilet
     curFix = 'vanity'; box(low, 264, 535, 288, 575, 0.8, mOak); box(low, 264, 534, 289, 576, 0.04, mMarble, 0.8);
     curFix = 'bath'; box(low, 282, 577, 362, 613, 0.56, mWhite); box(low, 286, 581, 358, 609, 0.02, mSteel, 0.56);
