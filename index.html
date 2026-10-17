@@ -611,6 +611,30 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   var mPothos = M(0x4c8a3c, 0.7), mPothosPale = M(0x86b45c, 0.7), mSnake = M(0x3b5a37, 0.6), mSnakeEdge = M(0xc9c06a, 0.6), mTerracotta = M(0xb8704f, 0.85), mSoil = M(0x3b2b20, 1);
   var mRugPink = M(0xe9c3c6, 0.98);
   var mWhiteMarble = new THREE.MeshStandardMaterial({ map: whiteMarbleTex(), roughness: 0.25 }), mDarkOak = M(0x5b4129, 0.55);
+  // the Layered rug, 300 x 400: rose wool in six columns split by thin tan stripes, crossed by pale bands with comb teeth above and below
+  var mLayeredTop = new THREE.MeshStandardMaterial({ roughness: 1 }), mLayeredEdge = M(0xb85c56, 1);
+  function layeredTex() {
+    var W = 900, Hc = 1200, c = document.createElement('canvas'); c.width = W; c.height = Hc; var g = c.getContext('2d'), r = rng(300400), i, j, x, y;
+    g.fillStyle = '#bb605b'; g.fillRect(0, 0, W, Hc);
+    for (i = 0; i < 26000; i++) {   // wool: short tufts of lighter and darker rose
+      x = r() * W; y = r() * Hc; var v = r(); g.fillStyle = v < 0.5 ? 'rgba(150,62,58,' + (0.18 + r() * 0.25) + ')' : 'rgba(226,138,128,' + (0.15 + r() * 0.25) + ')'; g.fillRect(x, y, 2 + r() * 3, 1.5 + r() * 1.5);
+    }
+    var bd = 9, cols = 6, sw = 10, cw = (W - 2 * bd - (cols - 1) * sw) / cols, pale = '#f1cbbb';
+    function comb(cx0, cx1, yc, up, down) {   // a pale bar with teeth, as on the rug
+      if (up && down) { g.fillStyle = pale; g.fillRect(cx0, yc - 6, cx1 - cx0, 12); }
+      var n = 9, step = (cx1 - cx0 - 12) / n;
+      for (var k = 0; k < n; k++) { var tx = cx0 + 10 + k * step; g.fillStyle = pale; if (up) g.fillRect(tx, yc - 26, 8, 22); if (down) g.fillRect(tx, yc + 4, 8, 22); }
+    }
+    for (j = 0; j < cols; j++) {
+      var x0 = bd + j * (cw + sw), x1 = x0 + cw;
+      comb(x0, x1, 2, false, true); comb(x0, x1, Hc - 2, true, false);
+      for (i = 1; i < 9; i++) comb(x0, x1, i * Hc / 9, true, true);
+    }
+    g.fillStyle = '#c99872'; for (j = 1; j < cols; j++) g.fillRect(bd + j * (cw + sw) - sw, 0, sw, Hc);   // tan stripes between the columns
+    g.strokeStyle = '#d4a383'; g.lineWidth = bd * 2; g.strokeRect(0, 0, W, Hc);   // edge binding
+    for (i = 0; i < 9000; i++) { g.fillStyle = 'rgba(0,0,0,' + (r() * 0.06) + ')'; g.fillRect(r() * W, r() * Hc, 2, 2); }   // texture over the pattern too
+    var t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; return t;
+  }
   var mBlush = M(0xd6bcbf, 0.97), mBlushSeam = M(0xdcc4c6, 0.97), mBlackMetal = M(0x1f1e1d, 0.45);   // the pink wing chair: soft fabric, a lighter inner back
   // crinkled linen for the Neva chair: the owner's fabric swatch, greyscale, tinted by the material colour
   (function () {
@@ -1505,6 +1529,11 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       part(g, -w / 2 + t, -d / 2 + t, w / 2 - t, d / 2 - t, 0, hc, mBoucle);
       part(g, w / 2 - t - 0.09, d / 2, w / 2 - t - 0.03, d / 2 + 0.002, h * 0.25, h * 0.25 + 0.03, mWhite, true);   // small label on the front
     },
+    rugLayered: function (g, w, d, h) {
+      if (!mLayeredTop.map) mLayeredTop.map = layeredTex();
+      part(g, -w / 2, -d / 2, w / 2, d / 2, 0, h, mLayeredEdge, true);
+      var geo = new THREE.PlaneGeometry(w, d); geo.rotateX(-Math.PI / 2); var top = new THREE.Mesh(geo, mLayeredTop); top.position.y = h + 0.002; top.receiveShadow = true; g.add(top);
+    },
     rug: function (g, w, d, h) {
       part(g, -w / 2, -d / 2, w / 2, d / 2, 0, h, mRugEdge, true);
       var geo = new THREE.PlaneGeometry(w, d); geo.rotateX(-Math.PI / 2); var top = new THREE.Mesh(geo, mRugTop); top.position.y = h + 0.002; top.receiveShadow = true; g.add(top);
@@ -1581,6 +1610,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     { k: 'speaker', b: 'speaker', n: ['Bookshelf speaker', 'Raf hoparlörü'], w: 0.23, d: 0.28, h: 0.4, y: 0.43, top: true },
     { k: 'rugMoroccan', b: 'rugMoroccan', n: ['Moroccan rug', 'Fas kilimi'], w: 2.15, d: 1.5, h: 0.012 },
     { k: 'dogBed', b: 'dogBed', n: ['Nemo’s bed', 'Nemo’nun yatağı'], w: 0.8, d: 0.65, h: 0.2 },
+    { k: 'rugLayered', b: 'rugLayered', n: ['Layered rug, rose wool 300 × 400', 'Layered halı, gül rengi yün 300 × 400'], w: 3.0, d: 4.0, h: 0.015 },
     { k: 'rugRound', b: 'rugRound', n: ['Round rug', 'Yuvarlak halı'], w: 2.45, d: 2.45, h: 0.015 },
     { k: 'rig', b: 'rig', n: ['Racing sim rig', 'Yarış simülatörü'], w: 0.7, d: 1.6, h: 1.3 },
     { k: 'plant', b: 'plant', n: ['Plant', 'Bitki'], w: 0.5, d: 0.5, h: 1.5 },
@@ -2230,7 +2260,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   // ================= furniture bank: tap to add at the centre of the view, or drag a card into the flat
   var CATS = [['seat', ['sofa3', 'sofa2', 'sofaCurve', 'armchair', 'neva', 'hudson', 'wingChair', 'dchair', 'ochair']], ['bed', ['bedKing', 'bedSuper', 'bedDouble', 'bedSingle']],
     ['table', ['coffee', 'nestBig', 'nestSmall', 'sideTable', 'dining', 'diningOak']], ['office', ['desk', 'standDesk', 'deskCorner', 'monitor', 'synth', 'bbgKeyboard', 'rig']],
-    ['store', ['shelving', 'shelving100', 'mediaUnit', 'mediaUnit150', 'mediaUnit350', 'cabinet', 'sideboard', 'bookcase', 'slatBookcase', 'wardrobe']], ['art', ['artSun', 'artLeaf', 'artDunes', 'artGrid', 'artShapes', 'artLine', 'artSea', 'artField']], ['books', ['booksRow', 'booksArt', 'booksNeutral', 'booksLean', 'booksStack', 'booksPaper']], ['other', ['tv65', 'speaker', 'dogBed', 'rug', 'rugMoroccan', 'rugRound', 'screen', 'plant', 'pothos', 'snakePlant', 'lamp', 'box']]];
+    ['store', ['shelving', 'shelving100', 'mediaUnit', 'mediaUnit150', 'mediaUnit350', 'cabinet', 'sideboard', 'bookcase', 'slatBookcase', 'wardrobe']], ['art', ['artSun', 'artLeaf', 'artDunes', 'artGrid', 'artShapes', 'artLine', 'artSea', 'artField']], ['books', ['booksRow', 'booksArt', 'booksNeutral', 'booksLean', 'booksStack', 'booksPaper']], ['other', ['tv65', 'speaker', 'dogBed', 'rug', 'rugMoroccan', 'rugLayered', 'rugRound', 'screen', 'plant', 'pothos', 'snakePlant', 'lamp', 'box']]];
   BANK.forEach(function (b) { if (!b.spec) b.c = 'other'; }); CATS.forEach(function (c) { c[1].forEach(function (k) { if (BK[k]) BK[k].c = c[0]; }); });
   var bankFilter = 'all';
   function bankCard(b, el) {
