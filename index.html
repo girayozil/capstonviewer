@@ -109,7 +109,7 @@ body.walking #measbtn, body.walking #meashint { display: none; }
 #walkhud { position: absolute; left: 16px; top: 8px; max-width: calc(100% - 150px); width: fit-content; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center;
   font-size: 0.75rem; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 6px 10px; z-index: 2; }
 /* walk mode: the dock is a drawer behind the Menu button; furniture editing and the wall height choice are not offered */
-body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #undo, body.walking #views, body.walking #tab-bank, body.walking #walls-row { display: none; }
+body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #undo, body.walking #views, body.walking #tab-bank, body.walking #tab-ai, body.walking #walls-row { display: none; }
 #drawerbtn { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--panel); z-index: 2; }
 #stick { position: absolute; left: 20px; bottom: 20px; width: 112px; height: 112px; border-radius: 50%; background: var(--panel); opacity: 0.85; border: 1px solid var(--line); touch-action: none; z-index: 2; }
 #knob { position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; background: var(--accent); pointer-events: none; }
@@ -158,6 +158,37 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
 .srow small { color: var(--muted); }
 #lname { flex: 1 1 8rem; min-width: 0; font: 500 0.85rem var(--body); color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; }
 #status { font-size: 0.75rem; color: var(--muted); min-height: 1em; margin: 0; }
+#tab-ai { display: inline-flex; align-items: center; gap: 5px; }
+#tab-ai svg { width: 12px; height: 12px; }
+#tab-ai[hidden] { display: none; }
+#p-ai { flex-direction: column; align-items: stretch; gap: 6px; }
+#side #p-ai { flex: 1 1 auto; min-height: 0; }
+#ai-setup, #ai-chat { display: flex; flex-direction: column; gap: 6px; min-height: 0; }
+#side #ai-chat { flex: 1 1 auto; }
+#ai-setup[hidden], #ai-chat[hidden] { display: none; }
+.ai-note { font-size: 0.78rem; color: var(--muted); margin: 0; }
+#ai-key { flex: 1 1 10rem; min-width: 0; font: 500 0.85rem var(--body); color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; }
+#ai-log { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; max-height: 30vh; min-height: 3rem; font-size: 0.84rem; touch-action: pan-y; }
+#side #ai-log { flex: 1 1 auto; max-height: none; }
+.msg { margin: 0; padding: 6px 10px; border-radius: 12px; white-space: pre-wrap; overflow-wrap: anywhere; max-width: 92%; }
+.msg.u { align-self: flex-end; background: var(--accent); color: var(--accent-fg); }
+.msg.a { align-self: flex-start; background: var(--bg); border: 1px solid var(--line); }
+.msg.act, .msg.note { align-self: flex-start; padding: 0 4px; font-size: 0.74rem; color: var(--muted); }
+.msg.err { align-self: flex-start; color: var(--fix); font-size: 0.78rem; padding: 0 4px; }
+.msg img { display: block; max-width: 140px; max-height: 100px; border-radius: 8px; margin-bottom: 4px; }
+.msg.busy::after { content: '…'; display: inline-block; animation: aidots 1.2s steps(4) infinite; width: 1.2em; overflow: hidden; vertical-align: bottom; }
+@keyframes aidots { 0% { width: 0; } 100% { width: 1.2em; } }
+#ai-att { display: flex; gap: 6px; flex-wrap: wrap; }
+#ai-att:empty { display: none; }
+#ai-att span { position: relative; }
+#ai-att img { width: 52px; height: 52px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); display: block; }
+#ai-att button { position: absolute; top: -6px; right: -6px; padding: 0 6px; font-size: 0.7rem; background: var(--panel); }
+.ai-input { display: flex; gap: 6px; align-items: flex-end; }
+#ai-text { flex: 1 1 auto; min-width: 0; resize: none; font: 0.88rem var(--body); color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 6px 10px; }
+#ai-photo { padding: 6px 8px; display: inline-flex; }
+#ai-photo svg { width: 18px; height: 18px; }
+#ai-send { font-weight: 600; background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+#ai-model { font: 500 0.74rem var(--body); color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 3px 8px; }
 #copybox { width: 100%; height: 4.5rem; font: 0.7rem ui-monospace, monospace; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; }
 </style>
 </head>
@@ -249,6 +280,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   <div class="tabs" role="group" aria-label="Panels">
     <button id="tab-bank" data-tab="bank" aria-pressed="false" aria-controls="p-bank" data-i18n="tbank">Furniture</button>
     <button id="tab-layouts" data-tab="layouts" aria-pressed="false" aria-controls="p-layouts" data-i18n="tlay">Layouts</button>
+    <button id="tab-ai" data-tab="ai" aria-pressed="false" aria-controls="p-ai" hidden><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0.8l1.6 4.6 4.6 1.6-4.6 1.6L8 13.2 6.4 8.6 1.8 7l4.6-1.6z"/></svg> Claude</button>
   </div>
   <div class="panel" id="p-bank" hidden>
     <span class="cap" data-i18n="bankhint">Tap to add, or drag into the flat</span>
@@ -267,6 +299,25 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     <button id="l-copy" class="linkbtn" data-i18n="copy">Copy layout as text</button>
     <textarea id="copybox" readonly hidden></textarea>
     <p id="status"></p>
+  </div>
+  <div class="panel" id="p-ai" hidden>
+    <div id="ai-setup" hidden>
+      <p class="ai-note" data-i18n="aikeynote"></p>
+      <div class="row"><input id="ai-key" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-…" aria-label="Anthropic API key"><button id="ai-keysave" data-i18n="aikeysave">Save key</button></div>
+      <p id="ai-keymsg" class="ai-note"></p>
+    </div>
+    <div id="ai-chat" hidden>
+      <div id="ai-log" aria-live="polite"></div>
+      <div id="ai-att"></div>
+      <div class="ai-input">
+        <button id="ai-photo" data-i18n-aria="aiphoto" aria-label="Add a photo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
+        <textarea id="ai-text" rows="2" data-i18n-ph="aiph"></textarea>
+        <button id="ai-send" data-i18n="aisend">Send</button>
+      </div>
+      <div class="row small"><select id="ai-model" aria-label="Model"><option value="claude-opus-5-5">Opus 5.5</option><option value="claude-sonnet-5-5">Sonnet 5.5</option></select>
+        <button id="ai-new" data-i18n="ainew">New chat</button><button id="ai-export" data-i18n="aiexport">Copy my furniture</button><button id="ai-forget" data-i18n="aiforget">Forget key</button></div>
+      <input id="ai-file" type="file" accept="image/*" multiple hidden>
+    </div>
   </div>
 </div>
 
@@ -328,7 +379,15 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       builtin: 'Built-in', locked: 'Locked', fixedmsg: 'Built-in feature. It cannot be moved or resized.', size: 'Size',
       nosaved: 'No saved layouts yet.', shared: 'shared', device: 'this device', savedShared: 'Saved. Everyone who can open this page while signed in will see it.',
       savedLocal: 'Saved on this device only.', copied: 'Layout copied. Paste it into the chat.', copyfail: 'Select the text below and copy it.', needname: 'Type a name first.',
-      aria: '3D model of apartment {flat}', bed1: 'Studio', bed2: 'Master bedroom', hall: 'Hallway', liv1: 'N11.01 living', liv2: 'N11.02 living', dopen: 'Open door', dclose: 'Close door' },
+      aria: '3D model of apartment {flat}', bed1: 'Studio', bed2: 'Master bedroom', hall: 'Hallway', liv1: 'N11.01 living', liv2: 'N11.02 living', dopen: 'Open door', dclose: 'Close door',
+      aikeynote: 'Claude can make new furniture and arrange the flat for you. To turn it on, paste an Anthropic API key. It is kept only in this browser, never in the page or the repository. A key with a monthly spending limit is safest.',
+      aikeysave: 'Save key', aikeybad: 'That does not look like an Anthropic API key. It starts with sk-ant-.', aiph: 'Describe a piece of furniture, or ask to place, move or remove something',
+      aisend: 'Send', aistop: 'Stop', aiphoto: 'Add a photo', ainew: 'New chat', aiexport: 'Copy my furniture', aiforget: 'Forget key', aiforgetq: 'Remove the API key from this browser?',
+      aiwelcome: 'Describe a piece of furniture to add it (a photo and its measurements help), or ask me to place, move or remove things. Undo reverses my changes.',
+      aiwork: 'Working', aistopped: 'Stopped.', aierrkey: 'The API key was not accepted. Check it, or forget it and paste it again.', aierrnet: 'Could not reach Claude. Check the connection and try again.',
+      aierr: 'Claude returned an error:', airefuse: 'Claude declined this request.', aicut: 'The answer was cut short. Ask again in smaller steps.',
+      aicopied: 'Copied. Paste it into Claude Code to add these pieces to the built-in furniture for everyone.', ainone: 'No furniture made with Claude on this device yet.',
+      aadd: 'Added', aupd: 'Changed', arem: 'Removed', adef: 'New furniture', aredef: 'Furniture updated', atdel: 'Furniture type deleted' },
     tr: { hint: 'Seçmek için bir nesneye dokunun · görünümü çevirmek için boş alanı sürükleyin · yakınlaştırmak için iki parmağınızı açın', fail: 'Bu cihazda 3B görünüm açılamadı.',
       undo: 'Geri al', magnet: 'Mıknatıs', screens: 'Bölmeler', display: 'Görünüm', dims: 'Ölçüler', measure: 'Ölç', meas1: 'Ölçmeye başlamak için bir noktaya dokunun', meas2: 'İkinci noktaya dokunun', meas3: 'Başka bir şey ölçmek için tekrar dokunun', more: 'Daha fazla', resetq: 'Mevcut yerleşim başlangıç yerleşimiyle değiştirilsin mi?', walk: 'İçeride gezin', exitwalk: 'Yürüyüşten çık', menu: 'Menü', walkhint: 'Yürümek için W A S D veya çubuk · bakmak için sürükleyin · Boşluk Nemo’yu çağırır · B yatağına yollar · çıkmak için Esc', done: 'Tamam', move: 'Taşı', rotate: 'Döndür', scale: 'Boyut', dup: 'Çoğalt', sits: 'Mobilya üstünde durur', lock: 'Kilitle', unlock: 'Kilidi aç', del: 'Sil',
       fw: 'Genişlik cm', fd: 'Derinlik cm', fh: 'Yükseklik cm', fy: 'Yerden', fr: 'Açı °',
@@ -338,7 +397,15 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       builtin: 'Sabit', locked: 'Kilitli', fixedmsg: 'Sabit öğe. Taşınamaz ve boyutu değiştirilemez.', size: 'Ölçü',
       nosaved: 'Henüz kayıtlı yerleşim yok.', shared: 'ortak', device: 'bu cihaz', savedShared: 'Kaydedildi. Oturum açıp bu sayfayı açabilen herkes görür.',
       savedLocal: 'Yalnızca bu cihaza kaydedildi.', copied: 'Yerleşim kopyalandı. Sohbete yapıştırın.', copyfail: 'Aşağıdaki metni seçip kopyalayın.', needname: 'Önce bir ad yazın.',
-      aria: '{flat} dairesinin 3B modeli', bed1: 'Stüdyo', bed2: 'Ana yatak odası', hall: 'Koridor', liv1: 'N11.01 salon', liv2: 'N11.02 salon', dopen: 'Kapıyı aç', dclose: 'Kapıyı kapat' }
+      aria: '{flat} dairesinin 3B modeli', bed1: 'Stüdyo', bed2: 'Ana yatak odası', hall: 'Koridor', liv1: 'N11.01 salon', liv2: 'N11.02 salon', dopen: 'Kapıyı aç', dclose: 'Kapıyı kapat',
+      aikeynote: 'Claude sizin için yeni mobilyalar yapabilir ve daireyi düzenleyebilir. Açmak için bir Anthropic API anahtarı yapıştırın. Anahtar yalnızca bu tarayıcıda saklanır, sayfaya veya depoya asla eklenmez. Aylık harcama sınırı olan bir anahtar en güvenlisidir.',
+      aikeysave: 'Anahtarı kaydet', aikeybad: 'Bu bir Anthropic API anahtarına benzemiyor. Anahtar sk-ant- ile başlar.', aiph: 'Bir mobilya tarif edin ya da bir şeyi yerleştirmemi, taşımamı veya kaldırmamı isteyin',
+      aisend: 'Gönder', aistop: 'Durdur', aiphoto: 'Fotoğraf ekle', ainew: 'Yeni sohbet', aiexport: 'Mobilyalarımı kopyala', aiforget: 'Anahtarı unut', aiforgetq: 'API anahtarı bu tarayıcıdan silinsin mi?',
+      aiwelcome: 'Eklemek için bir mobilyayı tarif edin (fotoğraf ve ölçüler yardımcı olur) ya da bir şeyleri yerleştirmemi, taşımamı veya kaldırmamı isteyin. Geri al değişikliklerimi geri alır.',
+      aiwork: 'Çalışıyor', aistopped: 'Durduruldu.', aierrkey: 'API anahtarı kabul edilmedi. Kontrol edin ya da unutup yeniden yapıştırın.', aierrnet: 'Claude’a ulaşılamadı. Bağlantıyı kontrol edip tekrar deneyin.',
+      aierr: 'Claude bir hata döndürdü:', airefuse: 'Claude bu isteği reddetti.', aicut: 'Yanıt yarıda kesildi. Daha küçük adımlarla tekrar isteyin.',
+      aicopied: 'Kopyalandı. Bu parçaları herkes için yerleşik mobilyalara eklemek üzere Claude Code’a yapıştırın.', ainone: 'Bu cihazda henüz Claude ile yapılmış mobilya yok.',
+      aadd: 'Eklendi', aupd: 'Değiştirildi', arem: 'Kaldırıldı', adef: 'Yeni mobilya', aredef: 'Mobilya güncellendi', atdel: 'Mobilya türü silindi' }
   };
   var FIXNAME = {
     wall: ['Wall or column', 'Duvar veya kolon'], glazing: ['Window', 'Pencere'], wardrobe: ['Built-in wardrobe', 'Gömme dolap'],
@@ -355,6 +422,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     lang = TXT[l] ? l : 'en'; document.documentElement.lang = lang;
     each('[data-i18n]', function (el) { el.textContent = tr(el.dataset.i18n); });
     each('[data-i18n-ph]', function (el) { el.placeholder = tr(el.dataset.i18nPh); });
+    each('[data-i18n-aria]', function (el) { el.setAttribute('aria-label', tr(el.dataset.i18nAria)); });
     $('view').setAttribute('aria-label', tr('aria').replace('{flat}', FL.name));
     each('[data-lang]', function (b) { b.classList.toggle('on', b.dataset.lang === lang); });
     if (save) { try { localStorage.setItem('capston-lang', lang); } catch (e) {} }
@@ -553,7 +621,11 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   scene.add(walls, tall, low, itemsG);
 
   // ================= the fixed shell: walls, glazing, built-in joinery and fittings
-  var curFix = 'wall', FIX = {}, FIXSUF = '', ceiling = null, floorMesh = null, POLYS = [];
+  var curFix = 'wall', FIX = {}, FIXSUF = '', ceiling = null, floorMesh = null, POLYS = [], ROOMS = [], SHELL = null;
+  function room(en, trn, pts) {   // a named room outline in plan pixels, for the Claude assistant
+    var pre = FIXSUF === '@1' ? 'N11.01 ' : FIXSUF === '@2' ? 'N11.02 ' : '';
+    ROOMS.push({ n: [pre + en, pre + trn], p: pts.map(function (p) { return [r2(X(p[0])), r2(Z(p[1]))]; }) });
+  }
   function reg(m) { var k = curFix ? curFix + FIXSUF : curFix; m.userData.fix = k; if (k) (FIX[k] = FIX[k] || []).push(m); return m; }
   function fixBase(k) { return String(k).split('@')[0]; }
   // Merge the meshes under root that share a material, fixture and shadow settings into one mesh each, placed in root's own space.
@@ -579,6 +651,9 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     });
   }
   function mergeShell() {   // after the shell is built: merge it, then list the fixtures again from the merged meshes
+    SHELL = { walls: [], windows: [] };   // walls and windows as boxes in metres, for the Claude assistant; headers over doorways are left out
+    Object.keys(FIX).forEach(function (k) { var b = fixBase(k); if (b !== 'wall' && b !== 'glazing') return; FIX[k].forEach(function (m) {
+      var bb = new THREE.Box3().setFromObject(m); if (bb.min.y > 1.5) return; (b === 'wall' ? SHELL.walls : SHELL.windows).push([r2(bb.min.x), r2(bb.min.z), r2(bb.max.x), r2(bb.max.z)]); }); });
     [walls, tall, low].forEach(mergeUnder);
     FIX = {}; [walls, tall, low].forEach(function (g) { g.traverse(function (m) { var k = m.userData.fix; if (m.isMesh && k) (FIX[k] = FIX[k] || []).push(m); }); });
   }
@@ -721,6 +796,13 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     curFix = 'wc2'; box(low, 322, 1548, 346, 1581, 0.4, mWhite);
     curFix = 'basin2'; box(low, 306, 1497, 324, 1530, 0.8, mOak); box(low, 305.5, 1496, 325, 1531, 0.04, mMarble, 0.8);
     curFix = null;
+    room('Guest bedroom', 'Misafir odası', [[447, 993], [gx(993), 993], [gx(1184), 1184], [447, 1184]]);
+    room('En-suite bathroom', 'Banyo (odaya bağlı)', [[304, 980], [440, 980], [440, 1206], [304, 1206]]);
+    room('Play corner (west end of the living room)', 'Oyun köşesi (salonun batı ucu)', [[304, 1214], [500, 1214], [500, 1469], [304, 1469]]);
+    room('Kitchen (south-east part of the living room)', 'Mutfak (salonun güneydoğusu)', [[582, 1420], [gx(1420), 1420], [gx(1596), 1596], [582, 1596]]);
+    room('Living room, open plan with the kitchen', 'Salon, mutfakla açık plan', [[304, 1214], [447, 1214], [447, 1191], [gx(1191), 1191], [gx(1596), 1596], [582, 1596], [582, 1583], [380, 1583], [380, 1469], [304, 1469]]);
+    room('Bathroom', 'Banyo', [[304, 1475], [373, 1475], [373, 1583], [304, 1583]]);
+    room('Entrance hall', 'Antre', [[439, 1583], [560, 1583], [560, 1672], [439, 1672]]);
     return [{ p: [gx(1287.5) + 7, 1287.5], n: [1, -0.342] }];   // where the painted view sits: beyond the slanted glazing
   }
   // ---- N11.02, traced from the brochure plan (the 1024 x 1448 image) at 20.4 mm per pixel. Checked against the stated room sizes, each
@@ -784,6 +866,13 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     curFix = 'basin2'; box(low, 269, 670, 310, 710, 0.8, mOak); box(low, 269, 669, 311, 711, 0.04, mMarble, 0.8);
     curFix = 'shower'; box(low, 285, 718, 362, 758, 0.06, mWhite); box(walls, 323, 717, 362, 718.6, 2.0, mGlass).castShadow = false;
     curFix = null;
+    room('Master bedroom', 'Ana yatak odası', [[430, 349], [gx(349), 349], [gx(491), 491], [430, 491]]);
+    room('Studio (Teodora’s)', 'Stüdyo (Teodora’nın)', [[367, 654], [440, 654], [440, 941], [349, 941], [349, 922], [269, 922], [269, 771], [367, 771]]);
+    room('Living room, open plan with the kitchen', 'Salon, mutfakla açık plan', [[445, 524], [gx(524), 524], [gx(700), 700], [701, 700], [701, 923], [445, 923]]);
+    room('Balcony', 'Balkon', [[707, 742], [gd(742), 742], [gd(944), 944], [728, 944], [728, 897], [707, 897]]);
+    room('Entrance hall and corridor', 'Antre ve koridor', [[300, 407], [425, 407], [425, 654], [367, 654], [367, 492], [300, 492]]);
+    room('Bathroom 1', 'Banyo 1', [[264, 492], [362, 492], [362, 613], [264, 613]]);
+    room('Bathroom 2', 'Banyo 2', [[269, 626], [362, 626], [362, 758], [269, 758]]);
     return { pano: [520, 700] };   // a panorama all round, after the owner's photos from the balcony the slanted glazing and the south windows
   }
   // ---- N11.02's view (walk mode only): a painted panorama at dusk after the owner's photos from the balcony, on a curved band 90 m out,
@@ -939,7 +1028,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     curFix = 'core'; wall(286, 1602, 429, 1685, M(0xdcd5c9));   // the lift and stair core west of N11.01's hall
     curFix = 'wall'; wall(304, 1685, 316, 1787); wall(304, 1774, 466, 1787);   // the end of this stretch of corridor, and the neighbour's flat
     curFix = 'ndoor'; box(tall, 362, 1772.5, 420, 1775.5, 2.1, mOakDark);
-    curFix = null;
+    curFix = null; room('Shared hallway (outside both flats)', 'Ortak koridor (dairelerin dışında)', [[316, 1685], [514, 1685], [514, 1774], [316, 1774]]);
   }
   // Front doors hinged so they swing into each flat; in walk mode one opens with E or the button that appears on it when close
   var DOORS = [];
@@ -998,11 +1087,11 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     });
     return grp;
   })();
-  var FIXDIM = {};
+  var FIXDIM = {}, FIXBOX = {};
   Object.keys(FIX).forEach(function (k) {
     if (fixBase(k) === 'wall' || fixBase(k) === 'glazing') return;
     var b = new THREE.Box3(); FIX[k].forEach(function (m) { b.expandByObject(m); }); var s = b.getSize(new THREE.Vector3());
-    FIXDIM[k] = [s.x, s.z, b.max.y];
+    FIXDIM[k] = [s.x, s.z, b.max.y]; FIXBOX[k] = [r2(b.min.x), r2(b.min.z), r2(b.max.x), r2(b.max.z), r2(b.max.y)];
   });
 
   // ================= furniture bank: every type is built to exact real-world width x depth x height (metres)
@@ -1462,6 +1551,95 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     { k: 'box', b: 'box', n: ['Custom box', 'Kutu'], w: 1.0, d: 1.0, h: 1.0 }
   ];
   var BK = {}; BANK.forEach(function (b) { BK[b.k] = b; });
+
+  // ================= custom furniture: pieces described as parts (boxes, cylinders, spheres) in their own frame at their default size.
+  // They are made in the app with Claude and kept on this device (capston-custom), and travel inside saved layouts. A piece copied from
+  // the app ("Copy my furniture") is made permanent by adding it to SPECS with the same key; the higher revision wins, so layouts that
+  // carry an older copy use the built-in one.
+  var SPECS = [];
+  var CUSTOM_CATS = ['seat', 'bed', 'table', 'office', 'store', 'art', 'books', 'other'];
+  var specTex = {};
+  function grainTex(kind) {   // near-white detail maps that the part's colour tints: wood grain, or a soft weave
+    if (specTex[kind]) return specTex[kind];
+    var c = document.createElement('canvas'); c.width = c.height = 256; var g = c.getContext('2d'), r = rng(kind === 'wood' ? 61 : 62), i;
+    g.fillStyle = '#ffffff'; g.fillRect(0, 0, 256, 256);
+    if (kind === 'wood') {
+      for (i = 0; i < 70; i++) { var y = r() * 256, a = 0.04 + r() * 0.1; g.strokeStyle = 'rgba(70,45,25,' + a + ')'; g.lineWidth = 0.6 + r() * 2.2; g.beginPath(); g.moveTo(0, y);
+        for (var x = 0; x <= 256; x += 16) g.lineTo(x, y + Math.sin(x / 40 + i) * 2.5 * r()); g.stroke(); }
+    } else {
+      for (i = 0; i < 256; i += 2) { g.fillStyle = 'rgba(0,0,0,' + (0.03 + r() * 0.04) + ')'; g.fillRect(0, i, 256, 1); g.fillStyle = 'rgba(0,0,0,' + (0.02 + r() * 0.04) + ')'; g.fillRect(i, 0, 1, 256); }
+      for (i = 0; i < 900; i++) { g.fillStyle = 'rgba(' + (r() > 0.5 ? '255,255,255,' : '0,0,0,') + (0.03 + r() * 0.05) + ')'; g.fillRect(r() * 256, r() * 256, 2, 1); }
+    }
+    var t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.encoding = THREE.sRGBEncoding; t.anisotropy = 4;
+    return (specTex[kind] = t);
+  }
+  var specMats = {};
+  function specMat(p) {   // one shared material per colour, finish and texture
+    if (p.texture === 'marble_viola') return mMarble;
+    if (p.texture === 'marble_white') return mWhiteMarble;
+    var key = p.color + '|' + p.finish + '|' + p.texture; if (specMats[key]) return specMats[key];
+    var f = { matte: [0.9, 0], satin: [0.55, 0], gloss: [0.18, 0], metal: [0.3, 0.3], glass: [0.08, 0] }[p.finish] || [0.8, 0];
+    var m = M(p.color, f[0]); m.metalness = f[1];
+    if (p.finish === 'glass') { m.transparent = true; m.opacity = 0.3; m.depthWrite = false; }
+    if (p.texture === 'wood' || p.texture === 'fabric') m.map = grainTex(p.texture);
+    return (specMats[key] = m);
+  }
+  function realUV(geo, sx, sy, sz) {   // box faces mapped at real scale (one tile per 0.5 m), with the grain along each face's longer side
+    var pos = geo.attributes.position, nor = geo.attributes.normal, uv = geo.attributes.uv, T = 0.5;
+    for (var i = 0; i < pos.count; i++) {
+      var x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i), ax = Math.abs(nor.getX(i)), ay = Math.abs(nor.getY(i)), a, b, la, lb;
+      if (ay >= ax && ay >= Math.abs(nor.getZ(i))) { a = x; b = z; la = sx; lb = sz; } else if (ax >= Math.abs(nor.getZ(i))) { a = z; b = y; la = sz; lb = sy; } else { a = x; b = y; la = sx; lb = sy; }
+      if (la >= lb) uv.setXY(i, a / T, b / T * 4); else uv.setXY(i, b / T, a / T * 4);
+    }
+    uv.needsUpdate = true;
+  }
+  BUILD.spec = function (g, w, d, h, b) {
+    var s = b.spec, kx = w / s.w, ky = h / s.h, kz = d / s.d, D = Math.PI / 180;
+    s.parts.forEach(function (p) {
+      var sx = Math.max(0.002, (p.x1 - p.x0) * kx), sy = Math.max(0.002, (p.y1 - p.y0) * ky), sz = Math.max(0.002, (p.z1 - p.z0) * kz), geo, m;
+      if (p.shape === 'cylinder') { geo = new THREE.CylinderGeometry(0.5, 0.5, 1, 24); if (p.axis === 'x') geo.rotateZ(Math.PI / 2); else if (p.axis === 'z') geo.rotateX(Math.PI / 2); }
+      else if (p.shape === 'sphere') geo = new THREE.SphereGeometry(0.5, 20, 14);
+      else { geo = new THREE.BoxGeometry(sx, sy, sz); realUV(geo, sx, sy, sz); }
+      m = new THREE.Mesh(geo, specMat(p)); if (p.shape === 'cylinder' || p.shape === 'sphere') m.scale.set(sx, sy, sz);
+      m.position.set((p.x0 + p.x1) / 2 * kx, (p.y0 + p.y1) / 2 * ky, (p.z0 + p.z1) / 2 * kz); m.rotation.set((p.tilt_x || 0) * D, (p.rot_y || 0) * D, 0);
+      m.castShadow = p.finish !== 'glass'; m.receiveShadow = true; g.add(m);
+    });
+  };
+  function num(v, a, b, dflt) { v = +v; return isFinite(v) ? Math.max(a, Math.min(b, v)) : dflt; }
+  function cleanSpec(s) {   // a spec from Claude, a layout or storage, checked and clipped to sane values; null if unusable
+    if (!s || typeof s !== 'object' || !/^c-[a-z0-9-]{1,60}$/.test(String(s.k || '')) || !Array.isArray(s.parts) || !s.parts.length) return null;
+    var w = num(s.w, 0.01, 15, 1), d = num(s.d, 0.01, 15, 1), h = num(s.h, 0.005, 4, 1), n = Array.isArray(s.n) ? s.n : [];
+    var hex = function (c) { return /^#[0-9a-f]{6}$/i.test(String(c)) ? String(c).toLowerCase() : '#999999'; };
+    var pick = function (v, list) { return list.indexOf(v) >= 0 ? v : list[0]; };
+    var parts = s.parts.slice(0, 400).map(function (p) {
+      p = p || {}; var q = { shape: pick(p.shape, ['box', 'cylinder', 'sphere']), axis: pick(p.axis, ['y', 'x', 'z']), color: hex(p.color),
+        finish: pick(p.finish, ['matte', 'satin', 'gloss', 'metal', 'glass']), texture: pick(p.texture, ['none', 'wood', 'fabric', 'marble_white', 'marble_viola']),
+        tilt_x: num(p.tilt_x, -90, 90, 0), rot_y: num(p.rot_y, -180, 180, 0) };
+      [['x0', 'x1', w / 2, -w / 2], ['z0', 'z1', d / 2, -d / 2]].forEach(function (a) { var lo = num(p[a[0]], a[3] - 0.01, a[2] + 0.01, a[3]), hi = num(p[a[1]], a[3] - 0.01, a[2] + 0.01, a[2]); q[a[0]] = Math.min(lo, hi); q[a[1]] = Math.max(lo, hi); });
+      var y0 = num(p.y0, 0, h + 0.01, 0), y1 = num(p.y1, 0, h + 0.01, h); q.y0 = Math.min(y0, y1); q.y1 = Math.max(y0, y1);
+      return q;
+    });
+    return { k: s.k, rev: Math.max(1, Math.round(num(s.rev, 1, 1e6, 1))), n: [String(n[0] || 'Custom piece').slice(0, 70), String(n[1] || n[0] || 'Özel parça').slice(0, 70)],
+      c: pick(s.c, CUSTOM_CATS), w: w, d: d, h: h, y: num(s.y, 0, 3, 0), top: !!s.top, parts: parts };
+  }
+  var customStore = {};
+  try { customStore = JSON.parse(localStorage.getItem('capston-custom') || '{}') || {}; } catch (e) { customStore = {}; }
+  function saveCustom() { try { localStorage.setItem('capston-custom', JSON.stringify(customStore)); } catch (e) {} }
+  // Register a piece unless a copy at the same or a newer revision is already known. Pieces not built in are kept on this device.
+  function registerType(raw, builtin) {
+    var s = cleanSpec(raw); if (!s) return null;
+    var old = BK[s.k]; if (old && (!old.spec || old.rev >= s.rev)) return null;
+    var b = { k: s.k, b: 'spec', n: s.n, w: s.w, d: s.d, h: s.h, y: s.y || undefined, top: s.top || undefined, c: s.c, spec: s, rev: s.rev, custom: !builtin };
+    if (old) BANK[BANK.indexOf(old)] = b; else BANK.push(b); BK[s.k] = b;
+    if (!builtin) { customStore[s.k] = s; saveCustom(); }
+    if (typeof items !== 'undefined' && items) items.forEach(function (it) { if (it.k === s.k && it.g) rebuild(it); });
+    return b;
+  }
+  function typesFor(list) { var t = {}, n = 0; list.forEach(function (it) { var b = BK[it.k]; if (b && b.spec && !t[it.k]) { t[it.k] = b.spec; n++; } }); return n ? t : undefined; }
+  function addTypes(t) { if (t && typeof t === 'object') Object.keys(t).forEach(function (k) { registerType(t[k]); }); }
+  SPECS.forEach(function (s) { registerType(s, true); });
+  Object.keys(customStore).forEach(function (k) { if (!registerType(customStore[k]) && !(BK[k] && BK[k].custom)) delete customStore[k]; });   // copies now built in are dropped
+  saveCustom();
   // N11.02 starts with the dark oak dining table in Teodora's studio
   var START02 = [{ k: 'diningOak', x: 1.67, z: 9.0, r: 90, w: 2.0, d: 0.95, h: 0.76, y: 0, top: false }];
   function shift02(list) { return list.map(function (it) { var c = {}; for (var f in it) c[f] = it[f]; c.x = (+c.x || 0) + DX2; c.z = (+c.z || 0) + DZ2; return c; }); }
@@ -1481,7 +1659,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   function rebuild(it) {
     if (!it.g) { it.g = new THREE.Group(); it.g.userData.item = it; itemsG.add(it.g); }
     while (it.g.children.length) { var c = it.g.children[0]; it.g.remove(c); c.traverse(function (o) { if (o.geometry) o.geometry.dispose(); }); }
-    var body = new THREE.Group(); BUILD[BK[it.k].b](body, it.w, it.d, it.h); it.g.add(body); mergeUnder(body); shadowDirty = true;
+    var body = new THREE.Group(); BUILD[BK[it.k].b](body, it.w, it.d, it.h, BK[it.k]); it.g.add(body); mergeUnder(body); shadowDirty = true;
     var ol = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(it.w + 0.03, it.h + 0.03, it.d + 0.03)), new THREE.LineBasicMaterial({ color: 0x1f6fd9 }));
     ol.position.y = it.h / 2; ol.visible = sel === it; ol.userData.outline = true; it.g.add(ol); it.ol = ol;
     pose(it); showScreen(it);
@@ -1512,8 +1690,8 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   function commit() { settleAll(); shadowDirty = true; dirty = true; try {
     if (FLAT === 'both') {   // each piece is saved with the flat it stands in, so both flats show what was arranged here
       var a = [], b = []; items.forEach(function (it) { var q = plain(it); if (inN1102(it.x, it.z)) { q.x = r2(q.x - DX2); q.z = r2(q.z - DZ2); b.push(q); } else a.push(q); });
-      localStorage.setItem('capston-n1101-work', JSON.stringify({ v: 4, items: a })); localStorage.setItem('capston-n1102-work', JSON.stringify({ v: 4, items: b }));
-    } else localStorage.setItem(KEY + '-work', JSON.stringify({ v: 4, items: items.map(plain) }));
+      localStorage.setItem('capston-n1101-work', JSON.stringify({ v: 4, items: a, types: typesFor(a) })); localStorage.setItem('capston-n1102-work', JSON.stringify({ v: 4, items: b, types: typesFor(b) }));
+    } else localStorage.setItem(KEY + '-work', JSON.stringify({ v: 4, items: items.map(plain), types: typesFor(items) }));
   } catch (e) {} }
   $('undo').addEventListener('click', function () {
     var s = undoStack.pop(); if (!s) return; setItems(JSON.parse(s)); commit(); $('undo').hidden = !undoStack.length;
@@ -1678,7 +1856,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   }
   function select(s) {
     if (sel && sel.item && sel.item.ol) sel.item.ol.visible = false;
-    sel = s; fixHelper.visible = false;
+    sel = s; fixHelper.visible = false; if (s && s.item && typeof AI === 'object' && AI) AI.lastSel = s.item;
     if (s && s.item) { s.item.ol.visible = true; s.item.ol.material.color.set(s.item.lock ? 0x8b8f97 : 0x1f6fd9); }
     if (s && s.fix) { var b = new THREE.Box3(); FIX[s.fix].forEach(function (m) { b.expandByObject(m); }); fixHelper.box.copy(b.expandByScalar(0.02)); fixHelper.visible = true; }
     refreshGizmo(); refreshInspector(); dirty = true;
@@ -1858,7 +2036,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   function enterWalk() {
     setRuler(false);
     walk.prevWalls = document.querySelector('[data-walls][aria-pressed="true"]').dataset.walls; select(null); goal = null;
-    walk.prevTab = $('tab-bank').getAttribute('aria-pressed') === 'true' ? 'bank' : $('tab-layouts').getAttribute('aria-pressed') === 'true' ? 'layouts' : null; openTab('layouts'); document.body.classList.remove('drawer');
+    walk.prevTab = (document.querySelector('[data-tab][aria-pressed="true"]') || { dataset: {} }).dataset.tab || null; openTab('layouts'); document.body.classList.remove('drawer');
     hideHint(); walk.on = true; walk.pitch = 0; walkKeys = {}; walk.sx = walk.sy = 0; setWalls('full'); ceiling.visible = true; backdrop.visible = true; nemo.enter(); updateWalkUI(); resize();
   }
   function exitWalk() {
@@ -1992,7 +2170,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   function press(sel_, on) { each(sel_, function (b) { b.setAttribute('aria-pressed', String(on(b))); }); }
   function openTab(n) {
     each('[data-tab]', function (x) { x.setAttribute('aria-pressed', String(x.dataset.tab === n)); });
-    ['bank', 'layouts'].forEach(function (k) { $('p-' + k).hidden = k !== n; }); resizeSoon();
+    ['bank', 'layouts', 'ai'].forEach(function (k) { $('p-' + k).hidden = k !== n; }); resizeSoon();
   }
   each('[data-tab]', function (b) { b.addEventListener('click', function () { openTab(b.getAttribute('aria-pressed') === 'true' && !wideMode && !walk.on ? null : b.dataset.tab); }); });
   each('[data-view]', function (b) { b.addEventListener('click', function () { setView(b.dataset.view); press('[data-view]', function (x) { return x === b; }); }); });
@@ -2014,11 +2192,11 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   var CATS = [['seat', ['sofa3', 'sofa2', 'sofaCurve', 'armchair', 'neva', 'hudson', 'dchair', 'ochair']], ['bed', ['bedKing', 'bedSuper', 'bedDouble', 'bedSingle']],
     ['table', ['coffee', 'nestBig', 'nestSmall', 'sideTable', 'dining', 'diningOak']], ['office', ['desk', 'standDesk', 'deskCorner', 'monitor', 'synth', 'bbgKeyboard', 'rig']],
     ['store', ['shelving', 'shelving100', 'mediaUnit', 'mediaUnit150', 'mediaUnit350', 'cabinet', 'sideboard', 'bookcase', 'slatBookcase', 'wardrobe']], ['art', ['artSun', 'artLeaf', 'artDunes', 'artGrid', 'artShapes', 'artLine', 'artSea', 'artField']], ['books', ['booksRow', 'booksArt', 'booksNeutral', 'booksLean', 'booksStack', 'booksPaper']], ['other', ['tv65', 'speaker', 'dogBed', 'rug', 'rugMoroccan', 'rugRound', 'screen', 'plant', 'pothos', 'snakePlant', 'lamp', 'box']]];
-  BANK.forEach(function (b) { b.c = 'other'; }); CATS.forEach(function (c) { c[1].forEach(function (k) { if (BK[k]) BK[k].c = c[0]; }); });
+  BANK.forEach(function (b) { if (!b.spec) b.c = 'other'; }); CATS.forEach(function (c) { c[1].forEach(function (k) { if (BK[k]) BK[k].c = c[0]; }); });
   var bankFilter = 'all';
   function bankCard(b, el) {
     var c = document.createElement('button'); c.className = 'card'; c.id = 'bank-' + b.k;
-    var n = document.createElement('b'); n.textContent = nm(b.n); var s = document.createElement('span'); s.textContent = cm(b.w) + ' × ' + cm(b.d) + ' × ' + cm(b.h) + ' cm';
+    var n = document.createElement('b'); n.textContent = nm(b.n) + (b.custom ? ' ✦' : ''); var s = document.createElement('span'); s.textContent = cm(b.w) + ' × ' + cm(b.d) + ' × ' + cm(b.h) + ' cm';
     c.appendChild(n); c.appendChild(s); el.appendChild(c);
     var st = null;
     function overCanvas(e) { var r = canvas.getBoundingClientRect(); return e.clientX > r.left && e.clientX < r.right && e.clientY > r.top && e.clientY < r.bottom; }
@@ -2055,7 +2233,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   var wideMq = window.matchMedia ? window.matchMedia('(min-width: 900px)') : null, wideMode = false;
   function placeBank() {
     wideMode = !!(wideMq && wideMq.matches); var side = $('side'), dock = $('dock');
-    if (wideMode) { side.appendChild(dock); side.hidden = false; if ($('tab-layouts').getAttribute('aria-pressed') !== 'true') openTab('bank'); }
+    if (wideMode) { side.appendChild(dock); side.hidden = false; if (!document.querySelector('[data-tab][aria-pressed="true"]')) openTab('bank'); }
     else { $('inspector').after(dock); side.hidden = true; }
     resizeSoon();
   }
@@ -2075,7 +2253,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       var d = document.createElement('div'); d.className = 'srow small';
       var n = document.createElement('span'); n.textContent = row.s.name + ' '; var w = document.createElement('small'); w.textContent = '· ' + tr(row.where); n.appendChild(w);
       var o = document.createElement('button'); o.textContent = tr('load'); var x = document.createElement('button'); x.textContent = tr('del');
-      o.addEventListener('click', function () { pushUndo(); setItems(row.s.items || []); commit(); });
+      o.addEventListener('click', function () { pushUndo(); addTypes(row.s.types); setItems(row.s.items || []); commit(); });
       x.addEventListener('click', function () {
         if (row.where === 'device') { local = local.filter(function (l) { return l !== row.s; }); storeLocal(); renderSaved(); }
         else if (db) db.collection(COLL).doc(row.s.id).delete().catch(function () {});
@@ -2085,13 +2263,14 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   }
   $('l-save').addEventListener('click', function () {
     var name = $('lname').value.trim(); if (!name) return say('needname');
-    var body = { name: name, items: items.map(plain), at: Date.now() };
+    var body = { name: name, items: items.map(plain), at: Date.now() }, ty = typesFor(items); if (ty) body.types = ty;
     function toLocal() { local = local.filter(function (l) { return l.name !== name; }); local.push(body); storeLocal(); renderSaved(); say('savedLocal'); }
     if (!db) return toLocal();
     db.collection(COLL).doc(slug(name)).set(JSON.parse(JSON.stringify(body))).then(function () { say('savedShared'); }, toLocal);
   });
   $('l-copy').addEventListener('click', function () {
-    var text = FL.name + ' layout (k = type; x, z = centre in m; r = angle; w, d, h = size in m; y = height off floor):\n' + JSON.stringify(items.map(plain));
+    var text = FL.name + ' layout (k = type; x, z = centre in m; r = angle; w, d, h = size in m; y = height off floor):\n' + JSON.stringify(items.map(plain)), ty = typesFor(items);
+    if (ty) text += '\nCustom furniture in this layout:\n' + JSON.stringify(ty);
     var box = $('copybox');
     function fallback() { box.hidden = false; box.value = text; box.focus(); box.select(); say('copyfail'); resizeSoon(); }
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { say('copied'); }, fallback); else fallback();
@@ -2101,11 +2280,310 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     window.claude.use('db').then(function (d) {
       if (!d) return; db = d;
       d.collection(COLL).onSnapshot(function (snap) {
-        shared = snap.docs.map(function (doc) { var b = doc.data() || {}; return { id: doc.id, name: String(b.name || doc.id), items: Array.isArray(b.items) ? b.items : [] }; });
+        shared = snap.docs.map(function (doc) { var b = doc.data() || {}; return { id: doc.id, name: String(b.name || doc.id), items: Array.isArray(b.items) ? b.items : [], types: b.types }; });
         renderSaved();
       }, function () {});
     }, function () {});
   }
+
+  // ================= Claude assistant: makes furniture types and arranges items from a chat, calling the Claude API from this browser.
+  // The API key is the viewer's own and stays in this browser (capston-claude-key); it is never part of the page. The tab shows once a
+  // key is saved, or with #claude in the address to set one up.
+  var AI = { key: '', model: 'claude-opus-5-5', msgs: [], busy: null, att: [], lastSel: null, undoTaken: false, noFallback: false, noStrict: false };
+  try { AI.key = localStorage.getItem('capston-claude-key') || ''; AI.model = localStorage.getItem('capston-claude-model') || AI.model; } catch (e) {}
+  var AI_SYS = [
+    'You are the assistant inside a 3D layout planner for flats N11.01 and N11.02 at The Capston (Embassy Gardens, London), which the owners are buying. They use it to try furniture before moving in. With the tools you create new furniture types and place, move, resize or remove furniture. The flat\'s fixed geometry is below; each user message starts with the current layout in <state>.',
+    '',
+    'How to work',
+    '- Act directly. Make sensible assumptions for anything not given and mention them briefly, rather than asking, unless the request is genuinely ambiguous.',
+    '- Reply in the language the user writes in (English or Turkish). Keep replies to one to three short sentences about what you did. Plain text only, no Markdown. Never use em dashes.',
+    '- After each tool call, read the result: check the reported gaps and overlaps, and fix the placement when something collides or is clearly wrong.',
+    '- Use item ids from the latest <state> or tool results. Ids can change after the user presses Undo.',
+    '- Never move, resize or remove a locked item. Leave alone items the request does not concern.',
+    '- Undo reverses everything you changed in one request.',
+    '',
+    'Coordinates',
+    '- Metres. x runs east, z runs south: north is the top of the plan, so a smaller z is further north. y is up; the floor is at y = 0 and ceilings are about 2.6 m.',
+    '- An item is set by its centre (x, z) on the plan, its angle, its size (width x depth x height) and y, the height of its underside off the floor.',
+    '- The angle in degrees is where the piece\'s front faces: 0 = south (+z), 90 = west (-x), 180 = north (-z), 270 = east (+x); angles between turn smoothly (45 faces south-west).',
+    '- In a piece\'s own frame, width runs along local x, depth along local z, and the front is local +z. Standing in front of a piece and facing it, its local +x side is on your right.',
+    '- Back against a wall: pick the angle that faces away from the wall and put the centre half the depth (plus 1 cm) out from the wall face, then set snap_to_wall, which pulls a side flush when it is within 12 cm of a wall or built-in.',
+    '- The window wall on the east is slanted, at 71.1 degrees in both flats. Angle 71.1 puts a piece with its back to it, facing into the room; 251.1 faces the windows.',
+    '- Wall and fixture boxes below are axis-aligned, so near the slanted facade they are larger than the real piers.',
+    '',
+    'Placing furniture',
+    '- Leave 80 to 90 cm for walkways, 60 to 75 cm in front of wardrobes, drawers and the kitchen run, about 45 cm between a sofa and its coffee table, and 75 to 90 cm behind dining chairs. Keep doorways and the kitchen clear.',
+    '- Built-in fixtures, walls and windows cannot be moved.',
+    '- Pieces that sit on furniture (books, plants, monitors, speakers) settle by themselves on whatever is under their centre up to 1.45 m high; pass y as null for them.',
+    '- Wall-hung pieces (art, wall shelving, TVs) take y as the height of their bottom edge; art is usually centred near 1.45 m.',
+    '- Rugs (under 6 cm tall) may lie under other furniture.',
+    '',
+    'Creating furniture (define_furniture)',
+    '- Build it to the real dimensions the user gives. With a photo, follow its proportions, colours and main parts; estimate anything not stated from typical sizes.',
+    '- Parts are boxes, cylinders and spheres in the piece\'s own frame at its default size, in metres: x from -width/2 to width/2 (left to right seen from the front), y from 0 (floor) to height, z from -depth/2 (back) to depth/2 (front). Give each part its min and max on every axis. Parts must stay inside that box and together reach each of its faces, so the piece measures exactly width x depth x height.',
+    '- A cylinder fills its box along its axis: "y" for legs and posts, "x" or "z" for rails, rods and bolsters. A round leg 4 cm across spans 0.04 on its two other axes. A sphere fills its box as an ellipsoid.',
+    '- tilt_x leans a part around the side-to-side axis through its centre: negative leans its top backwards (a reclining backrest), positive forwards. rot_y turns a part around the vertical; positive turns its front towards +x. Give the box as the part\'s unturned size; use 0 when not needed.',
+    '- Use about 6 to 40 parts: what makes the piece recognisable (legs, frame, doors with 3 mm gaps, handles, cushions, drawer fronts), not tiny details.',
+    '- color is an sRGB hex such as "#8b5a3c". finish: matte, satin, gloss, metal or glass. texture: wood (grain along the part\'s longer side, tinted by color), fabric (a soft weave tinted by color), marble_white, marble_viola (purple-veined Calacatta Viola, as in the owners\' kitchen), or none.',
+    '- Names in English and Turkish, short and in the style of the existing ones (for example "Sideboard, walnut 180" / "Konsol, ceviz 180"). Choose the category. Wall-hung pieces need a default y; small things that stand on tables or shelves set sits_on_furniture.',
+    '- To change a custom piece, call get_furniture_parts, then define_furniture with the same key: every placed copy updates and keeps its own size. Built-in pieces (not marked custom) are drawn by code and cannot be edited; make a new custom piece instead and swap placed copies only if the user wants that.',
+    '- define_furniture does not place anything. Call place_item afterwards when the user wants the piece in the flat; by default put it somewhere sensible in the room they name, or else in the living room.'
+  ].join('\n');
+  function f2(v) { return Math.round(v * 100) / 100; }
+  function aiGeometry() {   // the fixed geometry of the flat shown, written once per conversation
+    var L = ['', 'Flat shown: ' + FL.name + (FLAT === 'both' ? ' (both flats together with the shared hallway; N11.02 lies south of N11.01)' : ''), '', 'Rooms (outline corners as x, z):'];
+    ROOMS.forEach(function (r) { L.push('- ' + r.n[0] + ': ' + r.p.map(function (p) { return '(' + p[0] + ', ' + p[1] + ')'; }).join(' ')); });
+    L.push('', 'Built-in fixtures (x from..to, z from..to, top height):');
+    Object.keys(FIXBOX).forEach(function (k) { var b = FIXBOX[k], f = FIXNAME[fixBase(k)], suf = k.indexOf('@1') > 0 ? ' (N11.01)' : k.indexOf('@2') > 0 ? ' (N11.02)' : '';
+      L.push('- ' + (f ? f[0] : fixBase(k)) + suf + ': x ' + b[0] + '..' + b[2] + ', z ' + b[1] + '..' + b[3] + ', top ' + b[4]); });
+    L.push('', 'Walls and columns, full height (x0, z0, x1, z1): ' + SHELL.walls.map(function (w) { return '(' + w.join(', ') + ')'; }).join(' '));
+    L.push('', 'Windows (x0, z0, x1, z1): ' + SHELL.windows.map(function (w) { return '(' + w.join(', ') + ')'; }).join(' '));
+    return L.join('\n');
+  }
+  function roomAt(x, z) { for (var i = 0; i < ROOMS.length; i++) if (inPoly(x, z, ROOMS[i].p)) return ROOMS[i].n[0]; return null; }
+  function aiState() {
+    var L = ['<state>', 'Placed items (id | type | name | centre x, z | angle | width x depth x height | off floor | notes):'];
+    if (!items.length) L.push('(none)');
+    items.forEach(function (it) {
+      var n = []; if (it.lock) n.push('locked'); if (it.top) n.push('sits on furniture'); var rm = roomAt(it.x, it.z); if (rm) n.push(rm);
+      L.push([it.id, it.k, BK[it.k].n[0], f2(it.x) + ', ' + f2(it.z), Math.round(it.r * 10) / 10, f2(it.w) + ' x ' + f2(it.d) + ' x ' + f2(it.h), f2(it.y), n.join(', ')].join(' | '));
+    });
+    var ls = AI.lastSel && items.indexOf(AI.lastSel) >= 0 ? AI.lastSel : null;
+    if (ls) L.push('The user last selected item ' + ls.id + ' (' + BK[ls.k].n[0] + '); "this" or "it" probably means that one.');
+    L.push('', 'Furniture types (key | name | default width x depth x height | category | notes):');
+    BANK.forEach(function (b) {
+      if (b.k === 'box') return; var n = []; if (b.custom) n.push('custom rev ' + b.rev); else if (b.spec) n.push('built in, made with Claude, rev ' + b.rev);
+      if (b.y) n.push('default y ' + b.y); if (b.top) n.push('sits on furniture');
+      L.push([b.k, b.n[0], f2(b.w) + ' x ' + f2(b.d) + ' x ' + f2(b.h), b.c, n.join(', ')].join(' | '));
+    });
+    L.push('</state>'); return L.join('\n');
+  }
+  // ---- tools
+  var NUMN = { type: ['number', 'null'] };
+  var PART = { type: 'object', additionalProperties: false, required: ['shape', 'x0', 'x1', 'y0', 'y1', 'z0', 'z1', 'axis', 'tilt_x', 'rot_y', 'color', 'finish', 'texture'],
+    properties: { shape: { type: 'string', enum: ['box', 'cylinder', 'sphere'] }, x0: { type: 'number' }, x1: { type: 'number' }, y0: { type: 'number' }, y1: { type: 'number' }, z0: { type: 'number' }, z1: { type: 'number' },
+      axis: { type: 'string', enum: ['y', 'x', 'z'], description: 'Cylinder axis; "y" for other shapes.' }, tilt_x: { type: 'number' }, rot_y: { type: 'number' },
+      color: { type: 'string', description: 'sRGB hex, e.g. #8b5a3c' }, finish: { type: 'string', enum: ['matte', 'satin', 'gloss', 'metal', 'glass'] },
+      texture: { type: 'string', enum: ['none', 'wood', 'fabric', 'marble_white', 'marble_viola'] } } };
+  var AI_TOOLS = [
+    { name: 'place_item', description: 'Put a new item of an existing furniture type into the flat. Sizes left null use the type\'s defaults. Returns the item with its clear distance to the nearest wall or furniture on each side, and any overlaps.',
+      strict: true, input_schema: { type: 'object', additionalProperties: false, required: ['type_key', 'x', 'z', 'angle', 'width', 'depth', 'height', 'y', 'snap_to_wall'],
+        properties: { type_key: { type: 'string' }, x: { type: 'number' }, z: { type: 'number' }, angle: { type: 'number', description: 'Degrees; where the front faces: 0 south, 90 west, 180 north, 270 east.' },
+          width: NUMN, depth: NUMN, height: NUMN, y: { type: ['number', 'null'], description: 'Height of the underside off the floor; null for the type default.' }, snap_to_wall: { type: 'boolean' } } } },
+    { name: 'update_item', description: 'Move, turn or resize a placed item. Fields left null stay as they are. Things sitting on it move with it. Returns the same report as place_item.',
+      strict: true, input_schema: { type: 'object', additionalProperties: false, required: ['item_id', 'x', 'z', 'angle', 'width', 'depth', 'height', 'y', 'snap_to_wall'],
+        properties: { item_id: { type: 'integer' }, x: NUMN, z: NUMN, angle: NUMN, width: NUMN, depth: NUMN, height: NUMN, y: NUMN, snap_to_wall: { type: 'boolean' } } } },
+    { name: 'remove_items', description: 'Remove placed items by id.', strict: true,
+      input_schema: { type: 'object', additionalProperties: false, required: ['item_ids'], properties: { item_ids: { type: 'array', items: { type: 'integer' } } } } },
+    { name: 'define_furniture', description: 'Create a new furniture type from parts, or revise a custom one by passing its key. The type then appears in the Furniture list; it is not placed.',
+      strict: true, input_schema: { type: 'object', additionalProperties: false, required: ['key', 'name_en', 'name_tr', 'category', 'width', 'depth', 'height', 'y', 'sits_on_furniture', 'parts'],
+        properties: { key: { type: ['string', 'null'], description: 'null for a new type, or the key of a custom type to revise.' }, name_en: { type: 'string' }, name_tr: { type: 'string' },
+          category: { type: 'string', enum: CUSTOM_CATS }, width: { type: 'number' }, depth: { type: 'number' }, height: { type: 'number' },
+          y: { type: 'number', description: 'Default height off the floor; 0 unless wall-hung.' }, sits_on_furniture: { type: 'boolean' }, parts: { type: 'array', items: PART } } } },
+    { name: 'get_furniture_parts', description: 'Read the parts of a custom furniture type, before revising it.', strict: true,
+      input_schema: { type: 'object', additionalProperties: false, required: ['key'], properties: { key: { type: 'string' } } } },
+    { name: 'delete_furniture_type', description: 'Delete a custom furniture type made on this device. It must not be placed anywhere in the current layout.', strict: true,
+      input_schema: { type: 'object', additionalProperties: false, required: ['key'], properties: { key: { type: 'string' } } } }
+  ];
+  function obb(it) { var a = it.r * Math.PI / 180; return { c: [it.x, it.z], u: [Math.cos(a), Math.sin(a)], v: [-Math.sin(a), Math.cos(a)], hw: it.w / 2, hd: it.d / 2 }; }
+  function boxObb(b) { return { c: [(b[0] + b[2]) / 2, (b[1] + b[3]) / 2], u: [1, 0], v: [0, 1], hw: (b[2] - b[0]) / 2, hd: (b[3] - b[1]) / 2 }; }
+  function overlapBy(A, B) {   // how far two rectangles on the plan overlap (separating axis test); negative when apart
+    var m = Infinity, dx = B.c[0] - A.c[0], dz = B.c[1] - A.c[1];
+    [A.u, A.v, B.u, B.v].forEach(function (ax) {
+      var p = function (R) { return R.hw * Math.abs(R.u[0] * ax[0] + R.u[1] * ax[1]) + R.hd * Math.abs(R.v[0] * ax[0] + R.v[1] * ax[1]); };
+      m = Math.min(m, p(A) + p(B) - Math.abs(dx * ax[0] + dz * ax[1]));
+    });
+    return m;
+  }
+  function aiOverlaps(it) {
+    var out = [], A = obb(it); if (it.h < 0.06) return out;
+    items.forEach(function (o) {
+      if (o === it || o.h < 0.06 || o.y >= it.y + it.h - 0.01 || it.y >= o.y + o.h - 0.01) return;
+      var p = overlapBy(A, obb(o)); if (p > 0.01) out.push('item ' + o.id + ' (' + BK[o.k].n[0] + ') by ' + cm(p) + ' cm');
+    });
+    if (it.y < 2.5) SHELL.walls.forEach(function (w) { var p = overlapBy(A, boxObb(w)); if (p > 0.01) out.push('wall (' + w.join(', ') + ') by ' + cm(p) + ' cm'); });
+    Object.keys(FIXBOX).forEach(function (k) {
+      var b = FIXBOX[k], f = fixBase(k); if (f === 'balcony' || it.y >= b[4] - 0.01) return;
+      var p = overlapBy(A, boxObb(b)); if (p > 0.01) out.push((FIXNAME[f] ? FIXNAME[f][0] : f) + ' by ' + cm(p) + ' cm');
+    });
+    return out.slice(0, 12);
+  }
+  function aiReport(it) {
+    computeGaps(it); var g = gaps.map(function (v) { return v == null ? 'over 6 m' : cm(v) + ' cm'; });
+    return { id: it.id, type: it.k, name: BK[it.k].n[0], x: f2(it.x), z: f2(it.z), angle: Math.round(it.r * 10) / 10, width: f2(it.w), depth: f2(it.d), height: f2(it.h), y: f2(it.y),
+      room: roomAt(it.x, it.z) || 'outside the rooms', inside_flat: POLYS.some(function (P) { return inPoly(it.x, it.z, P); }),
+      clear_distance: { right: g[0], left: g[1], front: g[2], back: g[3] }, overlaps: aiOverlaps(it) };
+  }
+  function aiChange() { if (!AI.undoTaken) { pushUndo(); AI.undoTaken = true; } }
+  function aiSnap(it) { var m = magnetOn; magnetOn = true; magnetize(it); magnetOn = m; if (it.ol) it.ol.material.color.set(0x1f6fd9); pose(it); }
+  function aiItem(id) { for (var i = 0; i < items.length; i++) if (items[i].id === id) return items[i]; return null; }
+  function aiNum(v, a, b) { return v == null || !isFinite(+v) ? null : clamp(+v, a, b); }
+  var AI_RUN = {
+    place_item: function (a) {
+      var b = BK[a.type_key]; if (!b || a.type_key === 'box') throw new Error('Unknown type_key ' + a.type_key + '. Use a key from the furniture types list.');
+      aiChange();
+      var it = norm({ k: a.type_key, x: clamp(+a.x || 0, FL.lim[0], FL.lim[1]), z: clamp(+a.z || 0, FL.lim[2], FL.lim[3]), r: (((+a.angle || 0) % 360) + 360) % 360,
+        w: aiNum(a.width, 0.01, 15), d: aiNum(a.depth, 0.01, 15), h: aiNum(a.height, 0.005, 4), y: aiNum(a.y, 0, 3) });
+      if (isScreen(it) && !screensOn) setScreens(true);
+      items.push(it); rebuild(it); if (a.snap_to_wall) aiSnap(it); commit();
+      aiLog('act', '✓ ' + tr('aadd') + ': ' + nm(b.n)); return aiReport(it);
+    },
+    update_item: function (a) {
+      var it = aiItem(a.item_id); if (!it) throw new Error('No item with id ' + a.item_id + '.'); if (it.lock) throw new Error('Item ' + it.id + ' is locked. Ask the user to unlock it first.');
+      aiChange(); var rs = captureRiders(it), shape = false;
+      if (a.x != null) it.x = clamp(+a.x, FL.lim[0], FL.lim[1]); if (a.z != null) it.z = clamp(+a.z, FL.lim[2], FL.lim[3]); if (a.angle != null) it.r = (((+a.angle) % 360) + 360) % 360;
+      [['width', 'w', 0.01, 15], ['depth', 'd', 0.01, 15], ['height', 'h', 0.005, 4]].forEach(function (f) { if (a[f[0]] != null) { it[f[1]] = clamp(+a[f[0]], f[2], f[3]); shape = true; } });
+      if (a.y != null && !it.top) it.y = clamp(+a.y, 0, 3);
+      if (shape) rebuild(it); else pose(it); if (a.snap_to_wall) aiSnap(it); carryRiders(it, rs); commit();
+      aiLog('act', '✓ ' + tr('aupd') + ': ' + nm(BK[it.k].n)); return aiReport(it);
+    },
+    remove_items: function (a) {
+      var done = [], skipped = [];
+      (a.item_ids || []).forEach(function (id) {
+        var it = aiItem(id); if (!it) return skipped.push(id + ' (not found)'); if (it.lock) return skipped.push(id + ' (locked)');
+        aiChange(); itemsG.remove(it.g); items.splice(items.indexOf(it), 1); done.push(id); aiLog('act', '✓ ' + tr('arem') + ': ' + nm(BK[it.k].n));
+      });
+      if (done.length) { if (sel && sel.item && items.indexOf(sel.item) < 0) select(null); commit(); if (nemo) nemo.regrid(); }
+      return { removed: done, skipped: skipped };
+    },
+    define_furniture: function (a) {
+      var old = a.key ? BK[a.key] : null;
+      if (a.key && !old) throw new Error('No furniture type with key ' + a.key + '. Pass null to create a new one.');
+      if (old && !old.spec) throw new Error(a.key + ' is a built-in piece drawn by code and cannot be revised. Create a new custom piece instead.');
+      var key = old ? old.k : 'c-' + (String(a.name_en || 'piece').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'piece') + '-' + Math.random().toString(36).slice(2, 6);
+      var spec = { k: key, rev: old ? old.rev + 1 : 1, n: [a.name_en, a.name_tr], c: a.category, w: a.width, d: a.depth, h: a.height, y: a.y, top: a.sits_on_furniture, parts: a.parts };
+      var b = registerType(spec); if (!b) throw new Error('The furniture could not be built: check the size and parts.');
+      if (old) aiChange();
+      renderBank(); aiLog('act', '✦ ' + tr(old ? 'aredef' : 'adef') + ': ' + nm(b.n));
+      return { key: key, rev: b.rev, name: b.n[0], parts: b.spec.parts.length, placed_copies_updated: items.filter(function (it) { return it.k === key; }).length };
+    },
+    get_furniture_parts: function (a) {
+      var b = BK[a.key]; if (!b) throw new Error('No furniture type with key ' + a.key + '.');
+      if (!b.spec) throw new Error(a.key + ' is a built-in piece drawn by code; it has no parts list.');
+      var s = b.spec; return { key: s.k, rev: s.rev, name_en: s.n[0], name_tr: s.n[1], category: s.c, width: s.w, depth: s.d, height: s.h, y: s.y, sits_on_furniture: s.top, parts: s.parts };
+    },
+    delete_furniture_type: function (a) {
+      var b = BK[a.key]; if (!b || !b.custom) throw new Error(a.key + ' is not a custom piece made on this device.');
+      var n = items.filter(function (it) { return it.k === a.key; }).length; if (n) throw new Error(a.key + ' is placed ' + n + ' times; remove those items first.');
+      BANK.splice(BANK.indexOf(b), 1); delete BK[a.key]; delete customStore[a.key]; saveCustom(); renderBank(); aiLog('act', '✓ ' + tr('atdel') + ': ' + nm(b.n));
+      return { deleted: a.key };
+    }
+  };
+  // ---- chat
+  function aiLog(kind, text, imgs) {
+    var p = document.createElement('div'); p.className = 'msg ' + kind;
+    (imgs || []).forEach(function (src) { var im = document.createElement('img'); im.src = src; im.alt = ''; p.appendChild(im); });
+    if (text) p.appendChild(document.createTextNode(text));
+    var log = $('ai-log'); log.appendChild(p); log.scrollTop = log.scrollHeight; return p;
+  }
+  function aiWelcome() { $('ai-log').textContent = ''; aiLog('note', tr('aiwelcome')); }
+  function aiShow() {
+    var avail = !!AI.key || /claude/i.test(location.hash || '');
+    $('tab-ai').hidden = !avail; $('ai-setup').hidden = !!AI.key; $('ai-chat').hidden = !AI.key; $('ai-model').value = AI.model;
+    if (!avail && $('tab-ai').getAttribute('aria-pressed') === 'true') openTab(wideMode ? 'bank' : null);
+  }
+  $('ai-keysave').addEventListener('click', function () {
+    var k = $('ai-key').value.trim(); if (!/^sk-ant-/.test(k)) { $('ai-keymsg').textContent = tr('aikeybad'); return; }
+    AI.key = k; try { localStorage.setItem('capston-claude-key', k); } catch (e) {} $('ai-key').value = ''; $('ai-keymsg').textContent = ''; aiShow(); aiWelcome(); resizeSoon();
+  });
+  $('ai-forget').addEventListener('click', function () {
+    if (!window.confirm(tr('aiforgetq'))) return; AI.key = ''; AI.msgs = []; try { localStorage.removeItem('capston-claude-key'); } catch (e) {} aiShow(); resizeSoon();
+  });
+  $('ai-model').addEventListener('change', function () { AI.model = this.value; AI.msgs = []; aiWelcome(); try { localStorage.setItem('capston-claude-model', AI.model); } catch (e) {} });
+  $('ai-new').addEventListener('click', function () { if (AI.busy) AI.busy.abort(); AI.msgs = []; AI.att = []; aiAtt(); aiWelcome(); });
+  $('ai-export').addEventListener('click', function () {
+    var list = Object.keys(customStore).map(function (k) { return customStore[k]; });
+    if (!list.length) { aiLog('note', tr('ainone')); return; }
+    var text = 'Capston custom furniture to add to SPECS (' + list.length + '):\n' + JSON.stringify(list);
+    var ok = function () { aiLog('note', tr('aicopied')); }, fail = function () { $('copybox').hidden = false; $('copybox').value = text; openTab('layouts'); $('copybox').select(); say('copyfail'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(ok, fail); else fail();
+  });
+  // photos: scaled down to at most 1568 px on the long side and sent as JPEG
+  $('ai-photo').addEventListener('click', function () { $('ai-file').click(); });
+  $('ai-file').addEventListener('change', function () {
+    Array.prototype.slice.call(this.files || [], 0, 4 - AI.att.length).forEach(function (f) {
+      var url = URL.createObjectURL(f), im = new Image();
+      im.onload = function () {
+        var k = Math.min(1, 1568 / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+        c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+        var src = c.toDataURL('image/jpeg', 0.85); AI.att.push({ src: src, data: src.split(',')[1] }); aiAtt();
+      };
+      im.src = url;
+    });
+    this.value = '';
+  });
+  function aiAtt() {
+    var el = $('ai-att'); el.textContent = '';
+    AI.att.forEach(function (a, i) {
+      var s = document.createElement('span'), im = document.createElement('img'), x = document.createElement('button'); im.src = a.src; im.alt = ''; x.textContent = '×'; x.setAttribute('aria-label', tr('del'));
+      x.addEventListener('click', function () { AI.att.splice(i, 1); aiAtt(); }); s.appendChild(im); s.appendChild(x); el.appendChild(s);
+    });
+    resizeSoon();
+  }
+  $('ai-text').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && !e.shiftKey && !(window.matchMedia && matchMedia('(pointer: coarse)').matches)) { e.preventDefault(); aiSend(); }
+  });
+  $('ai-send').addEventListener('click', function () { if (AI.busy) AI.busy.abort(); else aiSend(); });
+  function aiBusy(on) { $('ai-send').textContent = tr(on ? 'aistop' : 'aisend'); $('ai-text').disabled = !!on; $('ai-photo').disabled = !!on; }
+  function aiPost(msgs, ctl) {
+    var body = { model: AI.model, max_tokens: 24000, thinking: { type: 'adaptive' }, output_config: { effort: 'medium' },
+      system: [{ type: 'text', text: AI_SYS }, { type: 'text', text: aiGeometry(), cache_control: { type: 'ephemeral' } }], tool_choice: { type: 'auto' },
+      tools: AI.noStrict ? AI_TOOLS.map(function (t) { return { name: t.name, description: t.description, input_schema: t.input_schema }; }) : AI_TOOLS };
+    var copy = JSON.parse(JSON.stringify(msgs)), last = copy[copy.length - 1].content; last[last.length - 1].cache_control = { type: 'ephemeral' };   // cache the conversation so far
+    body.messages = copy;
+    var h = { 'content-type': 'application/json', 'x-api-key': AI.key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' };
+    var fb = AI.model.indexOf('opus') >= 0 && !AI.noFallback;
+    if (fb) { h['anthropic-beta'] = 'server-side-fallback-2026-07-01'; body.fallbacks = 'default'; }   // a declined request is retried on another model by the API
+    return fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: h, body: JSON.stringify(body), signal: ctl.signal }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (j) {
+        if (r.ok) return j;
+        var msg = (j.error && j.error.message) || ('HTTP ' + r.status);
+        if (fb && r.status === 400 && /fallback/i.test(msg)) { AI.noFallback = true; return aiPost(msgs, ctl); }
+        if (!AI.noStrict && r.status === 400 && /strict|schema/i.test(msg)) { AI.noStrict = true; return aiPost(msgs, ctl); }   // the tools still work without strict schemas
+        var e = new Error(msg); e.status = r.status; throw e;
+      });
+    });
+  }
+  function aiSend() {
+    var text = $('ai-text').value.trim(); if (AI.busy || (!text && !AI.att.length) || !AI.key) return;
+    var content = [{ type: 'text', text: aiState() }];
+    AI.att.forEach(function (a) { content.push({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: a.data } }); });
+    content.push({ type: 'text', text: text || '(photo)' });
+    aiLog('u', text, AI.att.map(function (a) { return a.src; })); $('ai-text').value = ''; AI.att = []; aiAtt();
+    var start = AI.msgs.length; AI.msgs.push({ role: 'user', content: content });
+    var ctl = new AbortController(), wait = aiLog('note busy', tr('aiwork')), rounds = 0; AI.busy = ctl; AI.undoTaken = false; aiBusy(true);
+    function finish(err, note) {
+      wait.remove(); AI.busy = null; aiBusy(false);
+      if (err) { AI.msgs.length = start; aiLog('err', err); }   // drop the unfinished turn, so the conversation stays valid
+      if (note) aiLog('note', note);
+    }
+    function round() {
+      aiPost(AI.msgs, ctl).then(function (res) {
+        if (res.stop_reason === 'refusal') return finish(tr('airefuse'));
+        AI.msgs.push({ role: 'assistant', content: res.content });
+        res.content.forEach(function (b) { if (b.type === 'text' && b.text.trim()) aiLog('a', b.text.replace(/\*\*/g, '').trim()); });
+        var calls = res.content.filter(function (b) { return b.type === 'tool_use'; });
+        if (!calls.length) return finish(null, res.stop_reason === 'max_tokens' ? tr('aicut') : null);
+        var results = calls.map(function (c) {
+          var out, isErr = false;
+          try { out = AI_RUN[c.name] ? AI_RUN[c.name](c.input || {}) : (function () { throw new Error('Unknown tool ' + c.name); })(); }
+          catch (e) { out = { error: String(e.message || e) }; isErr = true; }
+          return { type: 'tool_result', tool_use_id: c.id, content: JSON.stringify(out), is_error: isErr || undefined };
+        });
+        AI.msgs.push({ role: 'user', content: results });
+        if (++rounds >= 16) return finish(null, tr('aicut'));
+        round();
+      }).catch(function (e) {
+        if (e && e.name === 'AbortError') { AI.msgs.length = start; return finish(null, tr('aistopped')); }
+        if (e && e.status === 401) return finish(tr('aierrkey'));
+        if (e && e.status) return finish(tr('aierr') + ' ' + e.message);
+        finish(tr('aierrnet'));
+      });
+    }
+    round();
+  }
+  onLang.push(function () { if (!AI.busy) aiBusy(false); if (!AI.msgs.length && $('ai-log').children.length <= 1) aiWelcome(); });
+  aiShow(); aiWelcome();
 
   // ================= light, frame loop, tags
   scene.add(new THREE.HemisphereLight(0xfff6e6, 0x8a7a66, 0.62));
@@ -2328,17 +2806,18 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   // ================= start
   (function () {
     var l = null, h = (location.hash || '').replace('#', '').toLowerCase();
-    if (h === 'tr' || h === 'en') l = h;
+    var hm = h.match(/(^|[^a-z])(tr|en)([^a-z]|$)/); if (hm) l = hm[2];   // also #tr-claude
     if (!l) { try { l = localStorage.getItem('capston-lang'); } catch (e) {} }
     if (!l) l = /^tr/i.test(navigator.language || '') ? 'tr' : 'en';
     loadLocal();
     var work = null; try { work = JSON.parse(localStorage.getItem(KEY + '-work') || 'null'); } catch (e) {}
     if (FLAT === 'both') {   // the two flats' own layouts, N11.02's moved into place
-      var rd = function (k) { try { var w = JSON.parse(localStorage.getItem(k) || 'null'); return w && Array.isArray(w.items) ? w.items : null; } catch (e) { return null; } };
+      var rd = function (k) { try { var w = JSON.parse(localStorage.getItem(k) || 'null'); if (w) addTypes(w.types); return w && Array.isArray(w.items) ? w.items : null; } catch (e) { return null; } };
       var B = shift02(rd('capston-n1102-work') || START02);
       work = { v: 4, items: (rd('capston-n1101-work') || START).concat(B) };
     }
     var ok = work && (work.v >= 1 && work.v <= 4) && Array.isArray(work.items);
+    if (ok) addTypes(work.types);
     if (ok && work.v === 1) work.items.forEach(function (it) { if (it && it.k === 'rug') { var wide = (+it.w || 0) >= (+it.d || 0); it.w = wide ? 2.85 : 1.95; it.d = wide ? 1.95 : 2.85; } });   // one-off: the rug became 285 x 195
     if (ok && work.v < 3) work.items.forEach(function (it) { if (it && it.k === 'rugRound') it.w = it.d = 2.45; });   // one-off: the round rug became 245 across
     setItems(ok ? work.items : START);

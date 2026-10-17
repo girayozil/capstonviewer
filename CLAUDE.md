@@ -12,7 +12,7 @@ A single-page 3D layout planner for flats N11.01 and N11.02 at The Capston (Emba
 
 ## The repository
 
-- `index.html` is the whole app: markup, CSS and one inline script, about 1,650 lines. No build step.
+- `index.html` is the whole app: markup, CSS and one inline script, about 2,800 lines. No build step.
 - three.js r128 is loaded from cdnjs (`three.min.js`, global `THREE`). Fonts are Marcellus and Figtree from Google Fonts.
 - Photos the owner supplied (two rugs, the TV picture, the Neva chair linen) are embedded as base64 data URIs on single very long lines. Do not print those lines. Search with `grep -n ... | cut -c1-300`, and edit with small scripted replacements that assert the anchor text occurs exactly once.
 - Deploy: GitHub Pages, "Deploy from a branch", `main`, root. There is a `noindex` robots meta tag. The repo and site are public on a free plan, so do not add personal details beyond what is already in the file.
@@ -84,8 +84,20 @@ Browser localStorage, all per device:
 - `capston-lang`, `capston-magnet`, `capston-screens` (glazed partitions, hidden unless `on`), `capston-nemo`.
 - `capston-walked`: set after the first use of the Walk button, which pulses until then.
 - `capston-hint`: set once the first-visit hint has been dismissed.
+- `capston-custom`: furniture made with Claude on this device, `{key: spec}`. Working layouts and saved layouts also carry a `types` map with the spec of every custom piece they use.
+- `capston-claude-key`, `capston-claude-model`: the viewer's own Anthropic API key and chosen model. The key must never be put into the page or the repository.
 
 The layouts section first looks for `window.claude.use('db')`, which only exists when the page is hosted as a Claude artifact. On GitHub Pages that is absent and named layouts fall back to localStorage, so they are not shared between visitors. Everyone still opens on `START`.
+
+## Claude assistant and custom furniture
+
+A Claude tab in the dock (`#tab-ai`, `#p-ai`) lets Giray make furniture and arrange the flat from a chat, with photos. It calls the Messages API straight from the browser (`anthropic-dangerous-direct-browser-access`) with his own key, which is kept only in that browser. The tab is hidden until a key is saved; opening the page with `#claude` in the address (or `#tr-claude`) shows it so a key can be entered. Visitors without a key never see it.
+
+- Request: `claude-opus-5-5` by default (Sonnet 5.5 selectable), adaptive thinking, effort medium, `fallbacks: "default"` with the `server-side-fallback-2026-07-01` beta on Opus (dropped automatically if the API rejects it), strict tool schemas (dropped automatically on a schema error), `tool_choice` auto. The system prompt (`AI_SYS`) and the flat's geometry (`aiGeometry`: `ROOMS`, `FIXBOX`, `SHELL.walls`, `SHELL.windows`) are cached; each user turn starts with `aiState()` (placed items and all furniture types).
+- Tools (`AI_TOOLS`, run by `AI_RUN`): `place_item`, `update_item`, `remove_items`, `define_furniture`, `get_furniture_parts`, `delete_furniture_type`. Placement results report clear distances on each side (`computeGaps`) and overlaps with items, walls and fixtures (`aiOverlaps`, a separating axis test on the plan), so Claude can correct itself. All changes from one request share one Undo step.
+- Room outlines: `room(en, tr, pts)` calls at the end of each shell function, in plan pixels. Sub-areas (Play corner, Kitchen) come before the open-plan room so `roomAt` names them first.
+- Custom furniture is a spec: `{k, rev, n: [en, tr], c, w, d, h, y, top, parts}`, each part a box, cylinder or sphere given by its min and max on each axis in the piece's own frame at its default size, with `axis`, `tilt_x`, `rot_y`, `color`, `finish` and `texture`. `BUILD.spec` scales the parts to the item's size. Keys start with `c-`. `cleanSpec` clips anything unsafe; `registerType` adds or replaces a type unless a copy at the same or a newer revision is already known.
+- Making a piece permanent: Giray presses "Copy my furniture" and pastes the JSON here. Add each spec to `SPECS` unchanged (same key and revision). Built-in specs register first; a local or layout copy with a lower or equal revision is then ignored and dropped from `capston-custom`, so every layout that uses the piece shows the built-in version. A later local edit has a higher revision and wins on that device until it is exported again.
 
 ## Walk mode and Nemo
 
@@ -110,6 +122,7 @@ There is no test suite. The method that worked: load the page in headless Chromi
 - To reach internals, inject a line just before the `// ================= start` comment that exposes what you need on `window` (for example a camera setter, `nemo`, or `items`). Keep those hooks out of the committed file.
 - Dragging by guessed pixel positions is unreliable. Drive state through injected hooks instead.
 - Keyboard shortcuts are ignored while an input has focus.
+- For the Claude tab, intercept `https://api.anthropic.com/v1/messages` with `page.route` and answer with scripted `tool_use` responses; the requests show exactly what would be sent.
 - For Nemo, step the simulation directly with fake timestamps (`nemo.step(ts)` in a loop) and count states, then look at a still frame. Check phone width (390 px) as well as desktop.
 
 ## Known limits
@@ -121,6 +134,8 @@ There is no test suite. The method that worked: load the page in headless Chromi
 - Resizing a textured rug or framed picture stretches the image.
 - The window view is an invented painting, not the real outlook from the flat.
 - Nemo occasionally fails to reach the player when called while he is up on furniture in a tight spot. Calling again works.
+- The assistant only sees numbers, not the picture. Room outlines are approximate and wall boxes near the slanted facade are larger than the real piers.
+- Custom furniture is boxes, cylinders and spheres, so it is as schematic as the rest.
 
 ## Ideas discussed but not built
 
