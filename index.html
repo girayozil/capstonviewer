@@ -840,15 +840,16 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     for (i = 0; i < 160; i++) { var fb = VP[0] + 2 + r() * (274 - VP[0]), fe = -0.95 - r() * 1.4 * (fb - VP[0]) / 80; g.fillStyle = WARM[(r() * 4) | 0]; g.fillRect(bz(fb), ey(fe), 2, 1.5); }
     // the river, bright with the sky, widening towards us on the right
     var rv = g.createLinearGradient(0, ey(-1), 0, ey(-15)); rv.addColorStop(0, '#c9e3f4'); rv.addColorStop(0.4, '#7fb2e2'); rv.addColorStop(1, '#3466a8'); g.fillStyle = rv;
-    var NEAR = [[VP[0] + 1.2, -1.0], [186, -1.6], [194, -3.4], [204, -7], [216, -13], [232, -24], [245, -32], [276, -32]];   // the near bank of the river
+    var NEAR = [[VP[0] + 1.2, -1.0], [186, -1.6], [193, -3.4], [202, -7], [213, -13], [225, -24], [234, -32], [276, -32]];   // the near bank of the river
     function nearE(b) { for (var k = 1; k < NEAR.length; k++) if (b <= NEAR[k][0]) return NEAR[k - 1][1] + (b - NEAR[k - 1][0]) * (NEAR[k][1] - NEAR[k - 1][1]) / (NEAR[k][0] - NEAR[k - 1][0]); return NEAR[NEAR.length - 1][1]; }
     g.beginPath(); [[VP[0] + 0.8, -0.85], [276, -2.4]].concat(NEAR.slice().reverse()).forEach(function (p, k) { if (k) g.lineTo(bz(p[0]), ey(p[1])); else g.moveTo(bz(p[0]), ey(p[1])); }); g.closePath(); g.fill();
     for (i = 0; i < 260; i++) { var rb = 182 + r() * 94, lim = nearE(rb) + 0.3; g.fillStyle = 'rgba(255,' + (200 + (r() * 50 | 0)) + ',160,' + (0.3 + r() * 0.4) + ')'; g.fillRect(bz(rb), ey(-1.2 + (lim + 1.2) * r()), 1.5, 3 + r() * 9); }
     rz(184, 196, -1.12, -0.98, '#2a2836'); for (q = 184; q < 196; q += 1.5) rz(q, q + 0.12, -1.3, -1.0, '#2a2836');   // the bridge
     // the near bank: trees down to the water on the right
-    poly([[174, -32], [VP[0] + 0.3, VP[1]], [VP[0] + 1.2, -1.0]].concat(NEAR.slice(1)).concat([[276, -32]]), '#1d271f');   // the bank between road and river
-    for (i = 0; i < 220; i++) { var tb2 = 180 + r() * 66, te2 = nearE(tb2) - 0.6 - r() * (31.4 + nearE(tb2)), tr2 = 9 + r() * 14, v2 = 34 + (r() * 30 | 0);
-      g.fillStyle = 'rgb(' + (v2 - 8) + ',' + (v2 + 18) + ',' + (v2 - 14) + ')'; g.beginPath(); g.ellipse(bz(tb2), ey(te2), tr2, tr2 * 0.8, 0, 0, 7); g.fill(); }
+    poly([[197, -32], [VP[0] + 0.3, VP[1]], [VP[0] + 1.2, -1.0]].concat(NEAR.slice(1)).concat([[276, -32]]), '#1d271f');   // the bank between road and river
+    function rightOfRoad(b, e) { var t = (ey(e) - ey(-32)) / (ey(VP[1]) - ey(-32)); return bz(b) > bz(198) + (bz(VP[0] + 0.5) - bz(198)) * t; }
+    for (i = 0; i < 220; i++) { var tb2 = 180 + r() * 56, te2 = nearE(tb2) - 0.6 - r() * (31.4 + nearE(tb2)), tr2 = 9 + r() * 14, v2 = 34 + (r() * 30 | 0);
+      if (!rightOfRoad(tb2, te2)) continue; g.fillStyle = 'rgb(' + (v2 - 8) + ',' + (v2 + 18) + ',' + (v2 - 14) + ')'; g.beginPath(); g.ellipse(bz(tb2), ey(te2), tr2, tr2 * 0.8, 0, 0, 7); g.fill(); }
     // red brick blocks along the river, between road and water, smaller as they go
     [[180.5, 185, 1.6, -1.3], [185, 191, 2.8, -2.4], [191, 198, 4.4, -4.2]].forEach(function (t2) {
       poly([[t2[0], t2[3]], [t2[1], t2[3] - 0.4], [t2[1], t2[2] - 0.3], [t2[0], t2[2]]], '#7c3b2c');
@@ -862,15 +863,15 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     function windowsZ(b0, b1, e0, e1) { var nx3 = Math.max(2, Math.round((b1 - b0) * 1.3)), ny3 = Math.max(2, Math.round((e1 - e0) * 2));
       for (var a3 = 0; a3 < nx3; a3++) for (var k3 = 0; k3 < ny3; k3++) { var wb3 = b0 + a3 * (b1 - b0) / nx3, we3 = e0 + k3 * (e1 - e0) / ny3; rz(wb3 + 0.1, wb3 + (b1 - b0) / nx3 * 0.6, we3 + 0.1, we3 + (e1 - e0) / ny3 * 0.55, r() < 0.5 ? WARM[(r() * 4) | 0] : '#1e2028'); } }
     // trees lining the near side of the road
-    for (i = 0; i < 40; i++) { var tb3 = 148 + r() * 6, te3 = -12 - r() * 20, tr3 = 8 + r() * 12; g.fillStyle = 'rgb(46,' + (70 + (r() * 30 | 0)) + ',36)'; g.beginPath(); g.ellipse(bz(tb3), ey(te3), tr3, tr3 * 0.8, 0, 0, 7); g.fill(); }
-    poly([[174, -32], [178.5, -32], [VP[0] + 0.45, VP[1]], [VP[0] + 0.3, VP[1]]], '#6a5236');   // a lit pavement on the river side
+    for (i = 0; i < 90; i++) { var tb3 = 148 + r() * 22, te3 = -12 - r() * 20, tr3 = 8 + r() * 12; g.fillStyle = 'rgb(46,' + (70 + (r() * 30 | 0)) + ',36)'; g.beginPath(); g.ellipse(bz(tb3), ey(te3), tr3, tr3 * 0.8, 0, 0, 7); g.fill(); }
+    poly([[194, -32], [198.5, -32], [VP[0] + 0.45, VP[1]], [VP[0] + 0.3, VP[1]]], '#6a5236');   // a lit pavement on the river side
     // Nine Elms Lane, straight towards the power station, with streams of head and tail lights
-    poly([[151, -32], [174, -32], [VP[0] + 0.25, VP[1]], [VP[0] - 0.25, VP[1]]], '#3b302b');
-    for (i = 0; i < 26; i++) { var f2 = i / 25, x0b = 152 + f2 * 21; g.strokeStyle = f2 < 0.5 ? 'rgba(255,' + (150 + (r() * 60 | 0)) + ',80,0.7)' : 'rgba(255,240,215,0.7)'; g.lineWidth = 1 + r() * 2;
+    poly([[168, -32], [194, -32], [VP[0] + 0.25, VP[1]], [VP[0] - 0.25, VP[1]]], '#3b302b');
+    for (i = 0; i < 26; i++) { var f2 = i / 25, x0b = 169 + f2 * 24; g.strokeStyle = f2 < 0.5 ? 'rgba(255,' + (150 + (r() * 60 | 0)) + ',80,0.7)' : 'rgba(255,240,215,0.7)'; g.lineWidth = 1 + r() * 2;
       g.beginPath(); g.moveTo(bz(x0b), ey(-32)); g.lineTo(bz(VP[0] - 0.2 + f2 * 0.4), ey(VP[1])); g.stroke(); }
     g.strokeStyle = 'rgba(255,220,160,0.9)'; g.lineWidth = 2;   // kerbs
-    [[151, VP[0] - 0.3], [174, VP[0] + 0.3]].forEach(function (k4) { g.beginPath(); g.moveTo(bz(k4[0]), ey(-32)); g.lineTo(bz(k4[1]), ey(VP[1])); g.stroke(); });
-    for (i = 1; i < 14; i++) { var u4 = Math.pow(i / 14, 2.2), lb = 174 + (VP[0] + 0.3 - 174) * (1 - u4), le = -32 + (VP[1] + 32) * (1 - u4);   // street lamps on the river side
+    [[168, VP[0] - 0.3], [194, VP[0] + 0.3]].forEach(function (k4) { g.beginPath(); g.moveTo(bz(k4[0]), ey(-32)); g.lineTo(bz(k4[1]), ey(VP[1])); g.stroke(); });
+    for (i = 1; i < 14; i++) { var u4 = Math.pow(i / 14, 2.2), lb = 194 + (VP[0] + 0.3 - 194) * (1 - u4), le = -32 + (VP[1] + 32) * (1 - u4);   // street lamps on the river side
       g.fillStyle = 'rgba(255,236,190,0.95)'; g.beginPath(); g.arc(bz(lb + 0.6 * u4 + 0.3), ey(le + 0.4 + 2.5 * u4), 2 + 4 * u4, 0, 7); g.fill(); }
     var t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; t.wrapS = THREE.RepeatWrapping; t.repeat.x = -1; t.offset.x = 1;   // bearings grow to the right
     var R = 90, rad = Math.PI / 180, geo = new THREE.CylinderGeometry(R, R, 2 * R * VT, 180, 1, true, Math.PI - B1 * rad, (B1 - B0) * rad);
