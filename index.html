@@ -635,6 +635,19 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     for (i = 0; i < 9000; i++) { g.fillStyle = 'rgba(0,0,0,' + (r() * 0.06) + ')'; g.fillRect(r() * W, r() * Hc, 2, 2); }   // texture over the pattern too
     var t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; return t;
   }
+  // the cane sideboard: charcoal oak, natural cane woven in an open octagonal mesh, small brass knobs
+  var mCaneDark = M(0x3d3a37, 0.6), mCane = new THREE.MeshStandardMaterial({ roughness: 0.85 }), mBrass = M(0xb08d57, 0.35); mBrass.metalness = 0.4;
+  function caneTex() {   // one tile per 12 cm: straw strands running both ways and on both diagonals, with small dark openings between
+    var S2 = 256, c = document.createElement('canvas'); c.width = c.height = S2; var g = c.getContext('2d'), r = rng(1361), n = 20, p = S2 / n, i, j;
+    g.fillStyle = '#8a6a44'; g.fillRect(0, 0, S2, S2);
+    for (i = 0; i < n; i++) {
+      g.fillStyle = 'hsl(' + (36 + r() * 6) + ',' + (42 + r() * 10) + '%,' + (70 + r() * 8) + '%)'; g.fillRect(0, i * p, S2, p * 0.42); g.fillRect(i * p, 0, p * 0.42, S2);
+    }
+    g.strokeStyle = 'rgba(226,196,146,0.9)'; g.lineWidth = p * 0.22;
+    for (i = -n; i < 2 * n; i++) { g.beginPath(); g.moveTo(i * p, 0); g.lineTo(i * p + S2, S2); g.stroke(); g.beginPath(); g.moveTo(i * p, S2); g.lineTo(i * p + S2, 0); g.stroke(); }
+    for (i = 0; i < 1600; i++) { g.fillStyle = 'rgba(' + (r() > 0.5 ? '255,240,210,' : '90,60,30,') + (0.05 + r() * 0.08) + ')'; g.fillRect(r() * S2, r() * S2, 3, 1); }
+    var t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; return t;
+  }
   var mChestGreen = M(0x2c6a3f, 0.75), mChestPine = M(0xb7773f, 0.55), mChestShadow = M(0x0f2416, 0.9);   // the green chest of drawers: painted pine, honey pine top and legs
   var mBlush = M(0xd6bcbf, 0.97), mBlushSeam = M(0xdcc4c6, 0.97), mBlackMetal = M(0x1f1e1d, 0.45);   // the pink wing chair: soft fabric, a lighter inner back
   // crinkled linen for the Neva chair: the owner's fabric swatch, greyscale, tinted by the material colour
@@ -1243,6 +1256,32 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       var bc = new THREE.Mesh(new THREE.BoxGeometry(w - 2 * arm - 0.02, h - seatTop, 0.229 * kz), mLinenCush);
       bc.position.set(0, seatTop + (h - seatTop) / 2 - 0.01, -d / 2 + back + 0.229 * kz / 2 + 0.03 * kz); bc.rotation.x = -0.14; bc.castShadow = true; bc.receiveShadow = true; g.add(bc);
     },
+    caneSideboard: function (g, w, d, h) {
+      // MADE sideboard, 136 x 41 x 70 cm: a charcoal oak case on round legs joined by a rail, three doors with natural cane panels in thin
+      // charcoal frames, and a small brass knob near the top of each door (the left door's on its right, the others' on their left).
+      var u = new THREE.Group(); u.scale.set(w / 1.36, h / 0.70, d / 0.41); g.add(u);
+      if (!mCaneDark.map) { mCaneDark.map = grainTex('wood'); mCane.map = caneTex(); }
+      var W = 1.36, D = 0.41, yb = 0.2, zf = D / 2 - 0.014, e = 0.012, gap = 0.004, dw = (W - 2 * e - 2 * gap) / 3, fr = 0.022;
+      part(u, -W / 2, -D / 2, W / 2, zf - 0.016, yb, 0.70, mCaneDark);                                    // case
+      part(u, -W / 2, zf, W / 2, D / 2, 0.70 - 0.004, 0.70, mCaneDark, true);                             // top, flush over the doors
+      part(u, -W / 2, zf - 0.016, W / 2, zf - 0.012, yb, 0.70, mChestShadow, true);                       // dark behind the door gaps
+      part(u, -W / 2, zf - 0.016, W / 2, zf, 0.70 - e, 0.70, mCaneDark); part(u, -W / 2, zf - 0.016, W / 2, zf, yb, yb + e, mCaneDark);   // case edges round the doors
+      part(u, -W / 2, zf - 0.016, -W / 2 + e, zf, yb, 0.70, mCaneDark); part(u, W / 2 - e, zf - 0.016, W / 2, zf, yb, 0.70, mCaneDark);
+      var y0 = yb + e + gap, y1 = 0.70 - e - gap;
+      for (var i = 0; i < 3; i++) {
+        var x0 = -W / 2 + e + i * (dw + gap), x1 = x0 + dw;
+        part(u, x0, zf - 0.016, x0 + fr, zf, y0, y1, mCaneDark); part(u, x1 - fr, zf - 0.016, x1, zf, y0, y1, mCaneDark);
+        part(u, x0, zf - 0.016, x1, zf, y1 - fr, y1, mCaneDark); part(u, x0, zf - 0.016, x1, zf, y0, y0 + fr, mCaneDark);
+        var pw = dw - 2 * fr, ph = y1 - y0 - 2 * fr, geo = new THREE.PlaneGeometry(pw, ph), uv = geo.attributes.uv;
+        for (var k = 0; k < uv.count; k++) uv.setXY(k, uv.getX(k) * pw / 0.12, uv.getY(k) * ph / 0.12);   // the weave at real scale
+        var pane = new THREE.Mesh(geo, mCane); pane.position.set((x0 + x1) / 2, (y0 + y1) / 2, zf - 0.008); pane.receiveShadow = true; u.add(pane);
+        var kx = i === 0 ? x1 - 0.012 : x0 + 0.012, kn = new THREE.Mesh(new THREE.CylinderGeometry(0.0065, 0.0065, 0.014, 14), mBrass);
+        kn.rotation.x = Math.PI / 2; kn.position.set(kx, 0.70 - 0.074, zf + 0.007); kn.castShadow = true; u.add(kn);
+      }
+      [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(function (c) { tube(u, c[0] * (W / 2 - 0.1), c[1] * (D / 2 - 0.045), 0.018, 0.018, 0, yb, mCaneDark); });
+      part(u, -W / 2 + 0.1, D / 2 - 0.055, W / 2 - 0.1, D / 2 - 0.035, yb - 0.03, yb, mCaneDark); part(u, -W / 2 + 0.1, -D / 2 + 0.035, W / 2 - 0.1, -D / 2 + 0.055, yb - 0.03, yb, mCaneDark);   // rails
+      [-1, 1].forEach(function (sd) { var x = sd * (W / 2 - 0.1); part(u, x - 0.01, -D / 2 + 0.045, x + 0.01, D / 2 - 0.045, yb - 0.03, yb, mCaneDark); });
+    },
     greenChest: function (g, w, d, h) {
       // Chest of drawers, 76 x 40 x 127 cm (a painted pine chest in the Tarva style): five drawers in forest green with the grain showing
       // through, a shallow one on top, two black knobs each; a honey pine top that overhangs a little, and pine legs joined by a rail.
@@ -1616,6 +1655,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     { k: 'booksStack', b: 'booksStack', n: ['Books, flat stack', 'Kitaplar, yatay yığın'], w: 0.28, d: 0.22, h: 0.12, top: true },
     { k: 'booksPaper', b: 'booksPaper', n: ['Books, paperbacks', 'Kitaplar, cep boy'], w: 0.22, d: 0.13, h: 0.19, top: true },
     { k: 'tv65', b: 'tv', n: ['65" TV', '65" TV'], w: 1.44, d: 0.05, h: 0.81, y: 0.6 },
+    { k: 'caneSideboard', b: 'caneSideboard', n: ['Sideboard, cane and charcoal oak 136 (MADE)', 'Konsol, hasır ve antrasit meşe 136 (MADE)'], w: 1.36, d: 0.41, h: 0.70 },
     { k: 'greenChest', b: 'greenChest', n: ['Chest of drawers, green 76', 'Çekmeceli dolap, yeşil 76'], w: 0.76, d: 0.40, h: 1.27 },
     { k: 'cabinet', b: 'storage', n: ['Low cabinet', 'Alçak dolap'], w: 1.8, d: 0.6, h: 1.0 },
     { k: 'sideboard', b: 'storage', n: ['Sideboard unit', 'Konsol'], w: 0.65, d: 0.27, h: 0.72 },
@@ -2282,7 +2322,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   // ================= furniture bank: tap to add at the centre of the view, or drag a card into the flat
   var CATS = [['seat', ['sofa3', 'sofa2', 'sofaCurve', 'armchair', 'neva', 'hudson', 'wingChair', 'dchair', 'ochair']], ['bed', ['bedKing', 'bedSuper', 'bedDouble', 'bedSingle']],
     ['table', ['coffee', 'nestBig', 'nestSmall', 'sideTable', 'dining', 'diningOak']], ['office', ['desk', 'standDesk', 'deskCorner', 'monitor', 'synth', 'bbgKeyboard', 'rig']],
-    ['store', ['shelving', 'shelving100', 'mediaUnit', 'mediaUnit150', 'mediaUnit350', 'cabinet', 'sideboard', 'greenChest', 'bookcase', 'slatBookcase', 'wardrobe']], ['art', ['artSun', 'artLeaf', 'artDunes', 'artGrid', 'artShapes', 'artLine', 'artSea', 'artField']], ['books', ['booksRow', 'booksArt', 'booksNeutral', 'booksLean', 'booksStack', 'booksPaper']], ['other', ['tv65', 'speaker', 'dogBed', 'rug', 'rugMoroccan', 'rugLayered', 'rugRound', 'screen', 'plant', 'pothos', 'snakePlant', 'lamp', 'box']]];
+    ['store', ['shelving', 'shelving100', 'mediaUnit', 'mediaUnit150', 'mediaUnit350', 'cabinet', 'sideboard', 'caneSideboard', 'greenChest', 'bookcase', 'slatBookcase', 'wardrobe']], ['art', ['artSun', 'artLeaf', 'artDunes', 'artGrid', 'artShapes', 'artLine', 'artSea', 'artField']], ['books', ['booksRow', 'booksArt', 'booksNeutral', 'booksLean', 'booksStack', 'booksPaper']], ['other', ['tv65', 'speaker', 'dogBed', 'rug', 'rugMoroccan', 'rugLayered', 'rugRound', 'screen', 'plant', 'pothos', 'snakePlant', 'lamp', 'box']]];
   BANK.forEach(function (b) { if (!b.spec) b.c = 'other'; }); CATS.forEach(function (c) { c[1].forEach(function (k) { if (BK[k]) BK[k].c = c[0]; }); });
   var bankFilter = 'all';
   function bankCard(b, el) {
