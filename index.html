@@ -674,7 +674,8 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     var t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(0.9, 0.9); t.encoding = THREE.sRGBEncoding; return t;
   }
   var mTeak = M(0x5c3d2c, 0.4);
-  var mBeech = M(0xc98c57, 0.55);   // the easel: oiled beech   // the teak dining chair: brown stained, varnished
+  var mBeech = M(0xc98c57, 0.55);
+  var mTaupe = M(0xc8beb2, 0.9), mSoil = M(0x3a2e24, 1), mStalk = M(0x55693f, 0.7), mLeafBird = M(0x4e8a48, 0.6), mLeafBird2 = M(0x67a05a, 0.6), mBeak = M(0x2f5d6e, 0.5), mOrangeFlower = M(0xf08a1c, 0.5);   // the bird of paradise   // the easel: oiled beech   // the teak dining chair: brown stained, varnished
   var mWalnut = M(0x8a5c3c, 0.45), mAlu = M(0x9a9c9f, 0.35), mDaliCone = M(0x6c3a2c, 0.8); mAlu.metalness = 0.35;   // the DALI speakers
   var mNock = M(0x544e4b, 0.97), mNockCush = M(0x625b58, 0.97), mNockBack = M(0x6b6461, 0.97);   // the Nockeby sofa: charcoal brown woven fabric
   var mChestGreen = M(0x2c6a3f, 0.75), mChestPine = M(0xb7773f, 0.55), mChestShadow = M(0x0f2416, 0.9);   // the green chest of drawers: painted pine, honey pine top and legs
@@ -1342,6 +1343,31 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       part(u, -0.17, zy - 0.01, 0.17, zy + 0.06, 0.82, 0.885, mBeech);                                                          // box under the tray
       var kn = new THREE.Mesh(new THREE.SphereGeometry(0.012, 10, 8), mBrass); kn.position.set(0, 0.85, zy + 0.065); u.add(kn);
     },
+    birdPlant: function (g, w, d, h) {
+      // Bird of paradise in an elho Pure Soft pot: the pot is 43 cm across and 58 cm high, three soft stacked rings in matt taupe; the
+      // plant adds about 150 cm, with long paddle leaves on upright stalks leaning out, and one orange and blue flower.
+      var u = new THREE.Group(); u.scale.set(w / 1.0, h / 2.08, d / 1.0); g.add(u);
+      var R = 0.215, ph = 0.58, tr = ph / 6, r = rng(434);
+      for (var i = 0; i < 3; i++) { var t = new THREE.Mesh(new THREE.TorusGeometry(R - tr, tr, 16, 40), mTaupe); t.rotation.x = Math.PI / 2; t.position.y = tr + i * 2 * tr; t.castShadow = t.receiveShadow = true; u.add(t); }
+      tube(u, 0, 0, R - tr, R - tr, 0, ph - 0.01, mTaupe); tube(u, 0, 0, R - tr - 0.01, R - tr - 0.01, ph - 0.03, ph - 0.012, mSoil);
+      var up = new THREE.Vector3(0, 1, 0);
+      function rod(A, B, rad, mat) { var v = B.clone().sub(A), m = new THREE.Mesh(new THREE.CylinderGeometry(rad * 0.7, rad, v.length(), 8), mat); m.position.copy(A).add(B).multiplyScalar(0.5); m.quaternion.setFromUnitVectors(up, v.normalize()); m.castShadow = true; u.add(m); }
+      var n = 13;
+      for (var k = 0; k < n; k++) {
+        var a = k * 2.4 + r() * 0.4, lean = 0.08 + r() * 0.2, len = 0.35 + (k / n) * 0.75 + r() * 0.15, base = new THREE.Vector3(Math.cos(a) * 0.04, ph - 0.02, Math.sin(a) * 0.04);
+        var dir = new THREE.Vector3(Math.cos(a) * Math.sin(lean), Math.cos(lean), Math.sin(a) * Math.sin(lean)), tip = base.clone().addScaledVector(dir, len);
+        rod(base, tip, 0.012, mStalk);
+        // the leaf: a long thin blade carrying on from the stalk, leaning out further, turned so it does not face the same way as the others
+        var sp = lean + 0.22 + r() * 0.15, ll = Math.min(0.5 + r() * 0.25, (2.06 - tip.y) / Math.cos(sp)), lw = 0.22 + r() * 0.08, ldir = new THREE.Vector3(Math.cos(a) * Math.sin(sp), Math.cos(sp), Math.sin(a) * Math.sin(sp));
+        var leaf = new THREE.Mesh(new THREE.SphereGeometry(0.5, 14, 10), k % 3 ? mLeafBird : mLeafBird2); leaf.scale.set(lw, ll, 0.012);
+        leaf.quaternion.setFromUnitVectors(up, ldir.clone().normalize()); leaf.rotateY(a + r() * 0.8);
+        leaf.position.copy(tip).addScaledVector(ldir.normalize(), ll * 0.48); leaf.castShadow = leaf.receiveShadow = true; u.add(leaf);
+      }
+      // the flower on its own stalk: an orange crest above a blue-green beak
+      var fb = new THREE.Vector3(0.05, ph, 0.03), ft = new THREE.Vector3(0.24, 1.42, 0.12); rod(fb, ft, 0.009, mStalk);
+      var beak = new THREE.Mesh(new THREE.ConeGeometry(0.025, 0.2, 8), mBeak); beak.position.copy(ft).add(new THREE.Vector3(0.08, 0.03, 0.03)); beak.rotation.z = -1.2; u.add(beak);
+      for (var f = 0; f < 3; f++) { var c = new THREE.Mesh(new THREE.ConeGeometry(0.012, 0.14, 6), mOrangeFlower); c.position.copy(ft).add(new THREE.Vector3(0.03 + f * 0.025, 0.09, 0.02)); c.rotation.z = 0.3 - f * 0.25; u.add(c); }
+    },
     easelT3: function (g, w, d, h) {   // the easel with Teodora's painting no. 3 (40 x 50 on paper, on a board) standing on its tray
       BUILD.easel(g, w, d, h);
       var u = new THREE.Group(); u.scale.set(w / 0.54, h / 1.60, d / 0.61); g.add(u);
@@ -1874,6 +1900,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     { k: 'rugLayered', b: 'rugLayered', n: ['Layered rug, rose wool 300 × 400', 'Layered halı, gül rengi yün 300 × 400'], w: 3.0, d: 4.0, h: 0.015 },
     { k: 'rugRound', b: 'rugRound', n: ['Round rug', 'Yuvarlak halı'], w: 2.45, d: 2.45, h: 0.015 },
     { k: 'rig', b: 'rig', n: ['Racing sim rig', 'Yarış simülatörü'], w: 0.7, d: 1.6, h: 1.3 },
+    { k: 'birdPlant', b: 'birdPlant', n: ['Bird of paradise in a taupe pot (elho)', 'Cennet kuşu çiçeği, vizon saksıda (elho)'], w: 1.0, d: 1.0, h: 2.08 },
     { k: 'plant', b: 'plant', n: ['Plant', 'Bitki'], w: 0.5, d: 0.5, h: 1.5 },
     { k: 'pothos', b: 'pothos', n: ['Trailing plant (pothos)', 'Sarkan bitki (pothos)'], w: 0.3, d: 0.25, h: 0.32, top: true },
     { k: 'snakePlant', b: 'snakePlant', n: ['Small snake plant', 'Küçük paşa kılıcı'], w: 0.18, d: 0.18, h: 0.32, top: true },
@@ -2569,7 +2596,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   // ================= furniture bank: tap to add at the centre of the view, or drag a card into the flat
   var CATS = [['seat', ['nockeby', 'sofa3', 'sofa2', 'sofaCurve', 'armchair', 'neva', 'hudson', 'wingChair', 'teakChair', 'dchair', 'ochair']], ['bed', ['bedKing', 'bedSuper', 'bedDouble', 'bedSingle']],
     ['table', ['coffee', 'nestBig', 'nestSmall', 'sideTable', 'dining', 'diningOak', 'sageTable']], ['office', ['desk', 'standDesk', 'deskCorner', 'monitor', 'synth', 'bbgKeyboard', 'rig']],
-    ['store', ['shelving', 'shelving100', 'mediaUnit', 'mediaUnit150', 'mediaUnit350', 'cabinet', 'sideboard', 'caneSideboard', 'greenChest', 'bookcase', 'slatBookcase', 'wardrobe']], ['art', ['paintT1', 'paintT2', 'artSun', 'artLeaf', 'artDunes', 'artGrid', 'artShapes', 'artLine', 'artSea', 'artField']], ['books', ['booksRow', 'booksArt', 'booksNeutral', 'booksLean', 'booksStack', 'booksPaper']], ['other', ['tv65', 'speaker', 'daliSpeaker', 'easel', 'easelT3', 'dogBed', 'rug', 'rugMoroccan', 'rugLayered', 'rugRound', 'screen', 'plant', 'pothos', 'snakePlant', 'lamp', 'box']]];
+    ['store', ['shelving', 'shelving100', 'mediaUnit', 'mediaUnit150', 'mediaUnit350', 'cabinet', 'sideboard', 'caneSideboard', 'greenChest', 'bookcase', 'slatBookcase', 'wardrobe']], ['art', ['paintT1', 'paintT2', 'artSun', 'artLeaf', 'artDunes', 'artGrid', 'artShapes', 'artLine', 'artSea', 'artField']], ['books', ['booksRow', 'booksArt', 'booksNeutral', 'booksLean', 'booksStack', 'booksPaper']], ['other', ['tv65', 'speaker', 'daliSpeaker', 'easel', 'easelT3', 'dogBed', 'rug', 'rugMoroccan', 'rugLayered', 'rugRound', 'screen', 'plant', 'birdPlant', 'pothos', 'snakePlant', 'lamp', 'box']]];
   BANK.forEach(function (b) { if (!b.spec) b.c = 'other'; }); CATS.forEach(function (c) { c[1].forEach(function (k) { if (BK[k]) BK[k].c = c[0]; }); });
   var bankFilter = 'all';
   function bankCard(b, el) {
