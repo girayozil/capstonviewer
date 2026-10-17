@@ -675,6 +675,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   }
   var mTeak = M(0x5c3d2c, 0.4);
   var mBeech = M(0xc98c57, 0.55);
+  var mConcrete = M(0x4a4847, 0.92), mFigBark = M(0x6e5946, 0.9), mFigLeaf = M(0x3d6b2c, 0.38), mFigLeaf2 = M(0x4f7f36, 0.38);   // the fiddle-leaf fig
   var mTaupe = M(0xc8beb2, 0.9), mSoil = M(0x3a2e24, 1), mStalk = M(0x55693f, 0.7), mLeafBird = M(0x4e8a48, 0.6), mLeafBird2 = M(0x67a05a, 0.6), mBeak = M(0x2f5d6e, 0.5), mOrangeFlower = M(0xf08a1c, 0.5);   // the bird of paradise   // the easel: oiled beech   // the teak dining chair: brown stained, varnished
   var mWalnut = M(0x8a5c3c, 0.45), mAlu = M(0x9a9c9f, 0.35), mDaliCone = M(0x6c3a2c, 0.8); mAlu.metalness = 0.35;   // the DALI speakers
   var mNock = M(0x544e4b, 0.97), mNockCush = M(0x625b58, 0.97), mNockBack = M(0x6b6461, 0.97);   // the Nockeby sofa: charcoal brown woven fabric
@@ -1343,6 +1344,30 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       part(u, -0.17, zy - 0.01, 0.17, zy + 0.06, 0.82, 0.885, mBeech);                                                          // box under the tray
       var kn = new THREE.Mesh(new THREE.SphereGeometry(0.012, 10, 8), mBrass); kn.position.set(0, 0.85, zy + 0.065); u.add(kn);
     },
+    figPlant: function (g, w, d, h) {
+      // Fiddle-leaf fig, 160 cm tall in all, in a round charcoal concrete pot 35 cm across and 45 cm high that tapers a little to a recessed
+      // foot: three woody stems rising from the pot, carrying large glossy violin-shaped leaves from about 75 cm up to the top.
+      var u = new THREE.Group(); u.scale.set(w / 0.7, h / 1.6, d / 0.7); g.add(u);
+      var r = rng(160), up = new THREE.Vector3(0, 1, 0), ph = 0.45;
+      var pot = new THREE.Mesh(new THREE.CylinderGeometry(0.175, 0.158, ph - 0.035, 36), mConcrete); pot.position.y = 0.035 + (ph - 0.035) / 2; pot.castShadow = pot.receiveShadow = true; u.add(pot);
+      tube(u, 0, 0, 0.145, 0.145, 0, 0.036, mConcrete); tube(u, 0, 0, 0.16, 0.16, ph - 0.03, ph - 0.012, mSoil);
+      function rod(A, B, r0, r1) { var v = B.clone().sub(A), m = new THREE.Mesh(new THREE.CylinderGeometry(r1, r0, v.length(), 10), mFigBark); m.position.copy(A).add(B).multiplyScalar(0.5); m.quaternion.setFromUnitVectors(up, v.normalize()); m.castShadow = true; u.add(m); }
+      var V = function (x, y, z) { return new THREE.Vector3(x, y, z); };
+      var stems = [[V(0, ph - 0.02, 0), V(-0.05, 0.85, 0.01), V(-0.08, 1.3, 0.03)], [V(0.01, ph - 0.02, 0), V(0.05, 0.9, -0.02), V(0.07, 1.42, -0.04)], [V(0, ph - 0.02, 0.01), V(0.02, 0.8, 0.05), V(0.03, 1.12, 0.07)]];
+      stems.forEach(function (st) { rod(st[0], st[1], 0.026, 0.02); rod(st[1], st[2], 0.02, 0.011); });
+      // leaves: along the upper part of each stem, each on a short stalk, pointing out and a little up, the top ones more upright
+      for (var i = 0; i < 46; i++) {
+        var st = stems[i % 3], t = 0.25 + r() * 0.8, P;
+        if (t < 0.5) P = st[0].clone().lerp(st[1], 0.55 + t * 0.9); else P = st[1].clone().lerp(st[2], Math.min(1, (t - 0.5) * 2));
+        if (P.y < 0.72) P.y = 0.72 + r() * 0.1;
+        var a = r() * Math.PI * 2, rise = 0.25 + r() * 0.5 + (P.y > 1.25 ? 0.4 : 0), len = 0.2 + r() * 0.1, wid = len * (0.62 + r() * 0.12);
+        var dir = V(Math.cos(a) * Math.cos(rise), Math.sin(rise), Math.sin(a) * Math.cos(rise));
+        var leaf = new THREE.Mesh(new THREE.SphereGeometry(0.5, 14, 10), i % 4 ? mFigLeaf : mFigLeaf2); leaf.scale.set(wid, len, 0.01);
+        leaf.quaternion.setFromUnitVectors(up, dir); leaf.rotateY(r() * 0.8 - 0.4);
+        leaf.position.copy(P).addScaledVector(dir, 0.03 + len * 0.5); if (leaf.position.y + len * 0.5 > 1.59) leaf.position.y = 1.59 - len * 0.5;
+        leaf.castShadow = leaf.receiveShadow = true; u.add(leaf);
+      }
+    },
     birdPlant: function (g, w, d, h) {
       // Bird of paradise in an elho Pure Soft pot: the pot is 43 cm across and 58 cm high, three soft stacked rings in matt taupe; the
       // plant adds about 150 cm, with long paddle leaves on upright stalks leaning out, and one orange and blue flower.
@@ -1900,6 +1925,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     { k: 'rugLayered', b: 'rugLayered', n: ['Layered rug, rose wool 300 × 400', 'Layered halı, gül rengi yün 300 × 400'], w: 3.0, d: 4.0, h: 0.015 },
     { k: 'rugRound', b: 'rugRound', n: ['Round rug', 'Yuvarlak halı'], w: 2.45, d: 2.45, h: 0.015 },
     { k: 'rig', b: 'rig', n: ['Racing sim rig', 'Yarış simülatörü'], w: 0.7, d: 1.6, h: 1.3 },
+    { k: 'figPlant', b: 'figPlant', n: ['Fiddle-leaf fig in a charcoal pot', 'Keman yapraklı incir, antrasit saksıda'], w: 0.7, d: 0.7, h: 1.6 },
     { k: 'birdPlant', b: 'birdPlant', n: ['Bird of paradise in a taupe pot (elho)', 'Cennet kuşu çiçeği, vizon saksıda (elho)'], w: 1.0, d: 1.0, h: 2.08 },
     { k: 'plant', b: 'plant', n: ['Plant', 'Bitki'], w: 0.5, d: 0.5, h: 1.5 },
     { k: 'pothos', b: 'pothos', n: ['Trailing plant (pothos)', 'Sarkan bitki (pothos)'], w: 0.3, d: 0.25, h: 0.32, top: true },
@@ -2596,7 +2622,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   // ================= furniture bank: tap to add at the centre of the view, or drag a card into the flat
   var CATS = [['seat', ['nockeby', 'sofa3', 'sofa2', 'sofaCurve', 'armchair', 'neva', 'hudson', 'wingChair', 'teakChair', 'dchair', 'ochair']], ['bed', ['bedKing', 'bedSuper', 'bedDouble', 'bedSingle']],
     ['table', ['coffee', 'nestBig', 'nestSmall', 'sideTable', 'dining', 'diningOak', 'sageTable']], ['office', ['desk', 'standDesk', 'deskCorner', 'monitor', 'synth', 'bbgKeyboard', 'rig']],
-    ['store', ['shelving', 'shelving100', 'mediaUnit', 'mediaUnit150', 'mediaUnit350', 'cabinet', 'sideboard', 'caneSideboard', 'greenChest', 'bookcase', 'slatBookcase', 'wardrobe']], ['art', ['paintT1', 'paintT2', 'artSun', 'artLeaf', 'artDunes', 'artGrid', 'artShapes', 'artLine', 'artSea', 'artField']], ['books', ['booksRow', 'booksArt', 'booksNeutral', 'booksLean', 'booksStack', 'booksPaper']], ['other', ['tv65', 'speaker', 'daliSpeaker', 'easel', 'easelT3', 'dogBed', 'rug', 'rugMoroccan', 'rugLayered', 'rugRound', 'screen', 'plant', 'birdPlant', 'pothos', 'snakePlant', 'lamp', 'box']]];
+    ['store', ['shelving', 'shelving100', 'mediaUnit', 'mediaUnit150', 'mediaUnit350', 'cabinet', 'sideboard', 'caneSideboard', 'greenChest', 'bookcase', 'slatBookcase', 'wardrobe']], ['art', ['paintT1', 'paintT2', 'artSun', 'artLeaf', 'artDunes', 'artGrid', 'artShapes', 'artLine', 'artSea', 'artField']], ['books', ['booksRow', 'booksArt', 'booksNeutral', 'booksLean', 'booksStack', 'booksPaper']], ['other', ['tv65', 'speaker', 'daliSpeaker', 'easel', 'easelT3', 'dogBed', 'rug', 'rugMoroccan', 'rugLayered', 'rugRound', 'screen', 'plant', 'birdPlant', 'figPlant', 'pothos', 'snakePlant', 'lamp', 'box']]];
   BANK.forEach(function (b) { if (!b.spec) b.c = 'other'; }); CATS.forEach(function (c) { c[1].forEach(function (k) { if (BK[k]) BK[k].c = c[0]; }); });
   var bankFilter = 'all';
   function bankCard(b, el) {
