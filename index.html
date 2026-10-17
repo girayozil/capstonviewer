@@ -735,13 +735,108 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     curFix = 'basin2'; box(low, 269, 670, 310, 710, 0.8, mOak); box(low, 269, 669, 311, 711, 0.04, mMarble, 0.8);
     curFix = 'shower'; box(low, 285, 718, 362, 758, 0.06, mWhite); box(walls, 323, 717, 362, 718.6, 2.0, mGlass).castShadow = false;
     curFix = null;
-    return [{ p: [gx(650) + 3.5, 650], n: [1, -0.342] }, { p: [500, 941], n: [0, 1] }];   // the painted view beyond the slanted glazing and the south windows
+    return { pano: [520, 700] };   // a panorama all round, after the owner's photos from the balcony the slanted glazing and the south windows
+  }
+  // ---- N11.02's view (walk mode only): a painted panorama at dusk after the owner's photos from the balcony, on a curved band 90 m out,
+  // so each window sees its own part. Bearings run clockwise from plan north: the kitchen window faces 71 degrees, the south windows 180.
+  // Left to right: Embassy Gardens blocks, the red brick tower close by, a pale glass office, a dark tower and the lit park, the embassy
+  // cube with its pond, the road with light trails, and the Thames running off towards Battersea Power Station under a pink sky.
+  function panoN1102(at) {
+    var W = 4096, Hc = 1024, c = document.createElement('canvas'); c.width = W; c.height = Hc; var g = c.getContext('2d'), r = rng(1102), i, j, b;
+    var B0 = -30, B1 = 270, VT = Math.tan(32 * Math.PI / 180);
+    var KN = [[-30, -30], [10, 8], [71, 50], [97, 72], [142, 110], [192, 148], [205, 162], [232, 182], [270, 270]];   // painted bearing -> bearing on the band
+    function bmap(b) { for (var k = 1; k < KN.length; k++) if (b <= KN[k][0] || k === KN.length - 1) { var a0 = KN[k - 1], a1 = KN[k]; return a0[1] + (b - a0[0]) * (a1[1] - a0[1]) / (a1[0] - a0[0]); } }
+    function bx(b) { return (bmap(b) - B0) / (B1 - B0) * W; }
+    function ey(e) { return Hc / 2 - Math.tan(e * Math.PI / 180) / VT * Hc / 2; }
+    function rect(b0, b1, e0, e1, col) { g.fillStyle = col; g.fillRect(bx(b0), ey(e1), bx(b1) - bx(b0), ey(e0) - ey(e1)); }
+    function windows(b0, b1, e0, e1, nx, ny, p, lit, dark, fw, fh) {   // a grid of windows, some lit
+      var x0 = bx(b0), x1 = bx(b1), y0 = ey(e1), y1 = ey(e0), cw = (x1 - x0) / nx, ch = (y1 - y0) / ny;
+      for (var a = 0; a < nx; a++) for (var k = 0; k < ny; k++) { g.fillStyle = r() < p ? lit[(r() * lit.length) | 0] : dark; g.fillRect(x0 + a * cw + cw * (1 - fw) / 2, y0 + k * ch + ch * (1 - fh) / 2, cw * fw, ch * fh); }
+    }
+    var WARM = ['#ffe3a8', '#ffd38a', '#fff0c8', '#f6c27a'], COOL = ['#e8f2ff', '#cfe4fb', '#fff6e0'];
+    // sky: deep blue overhead, paler to the horizon, a pink and peach glow low on the right
+    var sk = g.createLinearGradient(0, 0, 0, ey(0)); sk.addColorStop(0, '#0d2a86'); sk.addColorStop(0.45, '#1f56c2'); sk.addColorStop(0.8, '#4f97e2'); sk.addColorStop(1, '#a5d2ef');
+    g.fillStyle = sk; g.fillRect(0, 0, W, Hc);
+    var gl = g.createRadialGradient(bx(250), ey(0), 10, bx(250), ey(0), 1100); gl.addColorStop(0, 'rgba(250,176,168,0.75)'); gl.addColorStop(0.35, 'rgba(240,170,190,0.35)'); gl.addColorStop(1, 'rgba(240,170,190,0)');
+    g.fillStyle = gl; g.fillRect(bx(150), 0, W - bx(150), ey(-2));
+    for (i = 0; i < 7; i++) { var cx = bx(150 + r() * 115), cy = ey(6 + r() * 14); g.fillStyle = 'rgba(255,255,255,' + (0.06 + r() * 0.08) + ')'; g.beginPath(); g.ellipse(cx, cy, 120 + r() * 220, 5 + r() * 9, 0, 0, 7); g.fill(); }
+    // far skyline along the horizon, with scattered lights
+    for (b = B0; b < B1; b += 0.6 + r() * 1.6) { var hh = 0.4 + r() * r() * 3.2; rect(b, b + 0.5 + r() * 1.8, -1, hh, b > 200 ? '#4a4f78' : '#24304e'); }
+    for (i = 0; i < 900; i++) { var xb = B0 + r() * (B1 - B0); g.fillStyle = WARM[(r() * 4) | 0]; g.fillRect(bx(xb), ey(-1 + r() * 2.2), 2, 1.5); }
+    // ground far below: dark with city lights, the park in the middle
+    rect(B0, B1, -32, -1, '#141a1b');
+    for (i = 0; i < 2600; i++) { var gb = B0 + r() * (B1 - B0), ge = -1 - r() * r() * 30; g.fillStyle = 'rgba(255,214,150,' + (0.25 + r() * 0.5) + ')'; g.fillRect(bx(gb), ey(ge), 2 + r() * 2, 1.5); }
+    function trees(b0, b1, e0, e1, n) {
+      for (var k = 0; k < n; k++) { var tb = b0 + r() * (b1 - b0), te = e0 + r() * (e1 - e0), tr = (6 + r() * 10) * (1 + (-te) / 12);
+        var v = 40 + (r() * 40 | 0); g.fillStyle = 'rgb(' + (v - 14) + ',' + (v + 26) + ',' + (v - 20) + ')'; g.beginPath(); g.ellipse(bx(tb), ey(te), tr, tr * 0.85, 0, 0, 7); g.fill();
+        g.fillStyle = 'rgba(255,226,150,0.22)'; g.beginPath(); g.ellipse(bx(tb) - tr * 0.2, ey(te) + tr * 0.3, tr * 0.6, tr * 0.4, 0, 0, 7); g.fill(); }
+    }
+    // the park below the towers: lawns, a curving lit path, trees
+    g.fillStyle = '#3d5a2c'; g.beginPath(); g.moveTo(bx(110), ey(-32)); g.quadraticCurveTo(bx(125), ey(-12), bx(148), ey(-9)); g.lineTo(bx(150), ey(-32)); g.fill();
+    g.fillStyle = '#5f7a3a'; g.beginPath(); g.moveTo(bx(128), ey(-32)); g.quadraticCurveTo(bx(136), ey(-18), bx(152), ey(-15)); g.lineTo(bx(152), ey(-32)); g.fill();
+    g.strokeStyle = 'rgba(255,224,160,0.85)'; g.lineWidth = 9; g.beginPath(); g.moveTo(bx(98), ey(-32)); g.quadraticCurveTo(bx(103), ey(-12), bx(112), ey(-5)); g.stroke();
+    g.lineWidth = 5; g.beginPath(); g.moveTo(bx(118), ey(-32)); g.quadraticCurveTo(bx(130), ey(-14), bx(150), ey(-11)); g.stroke();
+    trees(96, 150, -24, -3, 140); trees(150, 200, -30, -14, 40);
+    // left: Embassy Gardens blocks in brick and dark grey, mid distance
+    [[-30, -18, 9, '#5a2a24'], [-17, -6, 13, '#2b2f36'], [-5, 6, 8, '#6a3326'], [5, 13, 11, '#33363d']].forEach(function (t) {
+      rect(t[0], t[1], -9, t[2], t[3]); windows(t[0] + 0.6, t[1] - 0.6, -8, t[2] - 0.6, Math.round((t[1] - t[0]) / 1.4), Math.round(t[2] * 2.2 + 18), 0.45, WARM, '#1a1c22', 0.6, 0.55); });
+    trees(-30, 14, -26, -9, 60);
+    // distant towers behind the park
+    rect(104, 116, -4, 14, '#2a2526'); windows(104.5, 115.5, -3, 13.4, 7, 34, 0.7, WARM, '#1b1718', 0.65, 0.6);   // dark tower with lit windows
+    rect(117, 121, -2, 9, '#d6dbe2'); windows(117.3, 120.7, -1.5, 8.6, 3, 20, 0.6, COOL, '#8a96a6', 0.6, 0.5);   // white tower
+    rect(123, 131, -2, 7, '#c9ccd0'); rect(123.5, 130.5, 6.2, 7.6, '#e9eef4'); windows(123.5, 130.5, -1.5, 6, 8, 14, 0.5, COOL, '#7c8792', 0.7, 0.5);   // pale round-topped block
+    rect(131, 138, -3, 10, '#5a2c24'); windows(131.4, 137.6, -2.5, 9.5, 5, 26, 0.65, WARM, '#2a1714', 0.6, 0.55);   // red-brown tower
+    rect(96, 142, -7, 3.6, '#1e2a24'); windows(96.5, 141.5, -6.5, 3.2, 52, 12, 0.5, WARM, '#121a16', 0.65, 0.5);   // long low blocks with many lit windows
+    // the pale glass office, nearer
+    rect(72, 97, -32, 12, '#c3c8cf'); rect(73, 96, 10.6, 12.6, '#e6ebf0');
+    windows(72.6, 96.4, -32, 10.4, 9, 24, 0.55, COOL, '#4d6c8e', 0.82, 0.7);
+    for (i = 0; i <= 9; i++) rect(72 + i * 25 / 9 - 0.12, 72 + i * 25 / 9 + 0.12, -32, 10.6, '#e9ecef');
+    // the red brick tower close by: brick piers, dark recessed bays with warm windows, stacked balconies on its return face
+    rect(10, 59, -32, 32, '#2a2120');
+    for (var px = 0; px < 8; px++) { var b0 = 10 + px * 6.2; rect(b0, b0 + 2.2, -32, 32, '#a3302a');
+      for (j = 0; j < Hc; j += 3) { g.fillStyle = 'rgba(' + (r() > 0.5 ? '50,8,8,' : '230,120,100,') + (0.05 + r() * 0.14) + ')'; g.fillRect(bx(b0), j, bx(b0 + 2.2) - bx(b0), 2); } }
+    for (px = 0; px < 7; px++) { var w0 = 12.6 + px * 6.2; for (j = -30; j < 32; j += 3.1) { var lit = r() > 0.45;
+      rect(w0, w0 + 3.2, j + 1.1, j + 2.7, lit ? WARM[(r() * 4) | 0] : '#3a4452'); rect(w0 + 1.55, w0 + 1.65, j + 1.1, j + 2.7, '#1a1a1a'); rect(w0, w0 + 3.2, j + 1.8, j + 1.9, '#1a1a1a'); } }
+    rect(59, 71, -32, 32, '#7e2722');   // return face, in shade
+    for (j = -30; j < 32; j += 3.1) { rect(59.5, 70.5, j + 1.2, j + 2.6, r() > 0.5 ? '#e9c98f' : '#2d3440'); rect(58, 70, j, j + 0.7, '#2c2622'); rect(58, 70, j + 0.7, j + 1.15, 'rgba(60,52,48,0.85)'); }   // balconies with lit glazing behind
+    // the embassy cube: a pale lattice of sails on its shaded face, blue glass in bands on the face towards us, a white crown
+    rect(140, 192, -13, 11, '#26354e');
+    var L0 = 140, L1 = 158;
+    rect(L0, L1, -12, 11, '#d8d4c4');
+    for (j = -12; j < 11; j += 1.6) for (var q = L0; q < L1; q += 1.5) { g.fillStyle = 'rgba(120,118,104,0.55)'; g.beginPath(); g.moveTo(bx(q), ey(j)); g.lineTo(bx(q + 0.75), ey(j + 1.6)); g.lineTo(bx(q + 1.5), ey(j)); g.closePath(); g.fill();
+      g.fillStyle = 'rgba(255,250,232,0.55)'; g.beginPath(); g.moveTo(bx(q + 0.75), ey(j + 1.6)); g.lineTo(bx(q + 1.5), ey(j)); g.lineTo(bx(q + 2.25), ey(j + 1.6)); g.closePath(); g.fill(); }
+    var gg = g.createLinearGradient(0, ey(11), 0, ey(-12)); gg.addColorStop(0, '#5aa0e6'); gg.addColorStop(0.45, '#1d4f9c'); gg.addColorStop(1, '#14223c'); g.fillStyle = gg; g.fillRect(bx(L1), ey(9.2), bx(192) - bx(L1), ey(-12) - ey(9.2));
+    rect(L1, 192, 9.2, 11.2, '#eef1ee'); rect(L1, 192, 2.4, 3.6, '#e6ecef'); rect(L1, 192, -4.6, -3.6, '#dfe5e8');
+    rect(161, 171, 3.6, 8.6, '#0d1420'); rect(162, 163, 3.6, 8.6, '#d9dcd6'); rect(167, 168, 3.6, 8.6, '#d9dcd6');   // the open terrace cut into the top
+    for (q = L1; q < 192; q += 1.1) rect(q, q + 0.12, -12, 9.2, 'rgba(200,220,240,0.55)');
+    windows(L1 + 0.3, 191.7, -12, -4.8, 26, 4, 0.55, ['#f2d69a', '#d4553d', '#ffe3b0'], '#1c2a40', 0.85, 0.7);   // lit lower floors
+    rect(L0 - 1, 193, -14, -12, '#e9e6dc');   // white plinth
+    // its pond, curving round in front, and the riverside road with light trails
+    g.fillStyle = '#2c4236'; g.beginPath(); g.moveTo(bx(150), ey(-14.5)); g.lineTo(bx(194), ey(-14.5)); g.lineTo(bx(196), ey(-17)); g.quadraticCurveTo(bx(172), ey(-21), bx(160), ey(-32)); g.lineTo(bx(150), ey(-32)); g.fill();
+    g.strokeStyle = '#d9d4c4'; g.lineWidth = 3; g.beginPath(); g.moveTo(bx(196), ey(-17)); g.quadraticCurveTo(bx(172), ey(-21), bx(160), ey(-32)); g.stroke();
+    for (i = 0; i < 10; i++) { var off = i * 0.22; g.strokeStyle = i % 3 ? 'rgba(255,178,90,0.55)' : 'rgba(255,240,220,0.6)'; g.lineWidth = 1.5 + (i % 2); g.beginPath(); g.moveTo(bx(194 + off), ey(-32)); g.quadraticCurveTo(bx(203 + off), ey(-11), bx(226 + off * 0.4), ey(-3.5)); g.stroke(); }
+    // the river: wide and bright, reflecting the sky, with the far bank lit
+    var rv = g.createLinearGradient(0, ey(-1), 0, ey(-16)); rv.addColorStop(0, '#b9d9f2'); rv.addColorStop(0.5, '#6fa6dd'); rv.addColorStop(1, '#2f5f9c'); g.fillStyle = rv;
+    g.beginPath(); g.moveTo(bx(206), ey(-1.4)); g.lineTo(bx(270), ey(-1.4)); g.lineTo(bx(270), ey(-24)); g.quadraticCurveTo(bx(240), ey(-14), bx(222), ey(-4.5)); g.closePath(); g.fill();
+    for (i = 0; i < 260; i++) { var rb = 210 + r() * 60, re = -1.6 - r() * 10; g.fillStyle = 'rgba(255,' + (200 + (r() * 50 | 0)) + ',160,' + (0.3 + r() * 0.4) + ')'; g.fillRect(bx(rb), ey(re), 1.5, 4 + r() * 10); }   // lights reflected on the water
+    rect(205, 270, -1.5, -0.9, '#2a2c3c');
+    // Battersea Power Station on the horizon: a brick block with four white chimneys
+    rect(205.5, 208.8, -1, 1.1, '#6c4a40'); [205.8, 206.6, 207.6, 208.4].forEach(function (cb) { rect(cb - 0.12, cb + 0.12, 1, 3.6, '#f1eee6'); });
+    // red brick riverside blocks
+    [[211, 218, 4.2], [218, 224, 3.2], [224, 232, 2.4]].forEach(function (t) { rect(t[0], t[1], -6, t[2], '#7a3a2c'); windows(t[0] + 0.3, t[1] - 0.3, -5.5, t[2] - 0.3, Math.round((t[1] - t[0]) * 1.6), 9, 0.5, WARM, '#3a1d18', 0.6, 0.5); });
+    rect(194, 211, -5, 6, '#3c3f4a'); windows(194.4, 210.6, -4.5, 5.6, 14, 12, 0.5, WARM, '#22242c', 0.6, 0.5);   // blocks beyond the embassy
+    trees(214, 236, -30, -12, 40);
+    var t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; t.wrapS = THREE.RepeatWrapping; t.repeat.x = -1; t.offset.x = 1;   // bearings grow to the right
+    var R = 90, rad = Math.PI / 180, geo = new THREE.CylinderGeometry(R, R, 2 * R * VT, 180, 1, true, Math.PI - B1 * rad, (B1 - B0) * rad);
+    var m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: t, side: THREE.BackSide, fog: false, toneMapped: false }));
+    m.position.set(X(at[0]), 1.7, Z(at[1])); m.visible = false; scene.add(m); return m;
   }
   var OUTLOOK = (FLAT === 'n1102' ? shellN1102 : shellN1101)();
   curFix = null;
   // ---- the view from the windows (walk mode only): an original painted backdrop about 30 m beyond the glazing, in the spirit of the
   // neighbourhood: a red brick tower with anthracite window bays and balconies, towers further off, treetops below, open sky
   var backdrop = (function () {
+    if (OUTLOOK.pano) return panoN1102(OUTLOOK.pano);
     var W = 3072, Hc = 1536, c = document.createElement('canvas'); c.width = W; c.height = Hc; var g = c.getContext('2d'), r = rng(4242), hz = Math.round(Hc * 0.41), M2 = 24, i, j;
     var sky = g.createLinearGradient(0, 0, 0, hz + 120); sky.addColorStop(0, '#5b9bd0'); sky.addColorStop(0.7, '#a9cfe6'); sky.addColorStop(1, '#d6e6ee'); g.fillStyle = sky; g.fillRect(0, 0, W, Hc);
     for (i = 0; i < 9; i++) { var cx = r() * W, cy = r() * hz * 0.75, cw = 160 + r() * 260; for (j = 0; j < 6; j++) { g.fillStyle = 'rgba(255,255,255,' + (0.1 + r() * 0.12) + ')'; g.beginPath(); g.ellipse(cx + (r() - 0.5) * cw, cy + (r() - 0.5) * 30, cw * (0.25 + r() * 0.3), 16 + r() * 22, 0, 0, 7); g.fill(); } }
