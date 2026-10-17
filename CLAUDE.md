@@ -1,6 +1,6 @@
 # Capston N11.01 layout planner
 
-A single-page 3D layout planner for flat N11.01 at The Capston (Embassy Gardens, Nine Elms, London). Owner: Giray, with his wife Teodora. They are buying N11.01 and the adjacent N11.02 and use the planner to try furniture arrangements before completion. It was built in a Claude Cowork session and moved here to be hosted on GitHub Pages.
+A single-page 3D layout planner for flats N11.01 and N11.02 at The Capston (Embassy Gardens, Nine Elms, London). Owner: Giray, with his wife Teodora. They are buying both neighbouring flats and use the planner to try furniture arrangements before completion. The title in the header is a picker that switches between them. It was built in a Claude Cowork session and moved here to be hosted on GitHub Pages.
 
 ## Working with Giray
 
@@ -17,18 +17,26 @@ A single-page 3D layout planner for flat N11.01 at The Capston (Embassy Gardens,
 - Photos the owner supplied (two rugs, the TV picture, the Neva chair linen) are embedded as base64 data URIs on single very long lines. Do not print those lines. Search with `grep -n ... | cut -c1-300`, and edit with small scripted replacements that assert the anchor text occurs exactly once.
 - Deploy: GitHub Pages, "Deploy from a branch", `main`, root. There is a `noindex` robots meta tag. The repo and site are public on a free plan, so do not add personal details beyond what is already in the file.
 
+## Two flats
+
+- `FLATS` at the top of the script holds what differs per flat: plan scale `S` and origin (`ox`, `oy`), the facade line `g0`, camera `views`, walk start, drag and add limits, Nemo's roaming box and grid, the sun target, and the labels of the last two view buttons.
+- `FLAT` is chosen by `?flat=n1102` in the address, else the last flat picked on this device (`capston-flat`), else N11.01. The picker reloads the page with `?flat=`; only the chosen flat is built.
+- The shell of each flat is its own function, `shellN1101()` and `shellN1102()`. Each returns where the painted window view should sit (one plane per outlook).
+- Stored layouts are per flat: `capston-<flat>-work` and `capston-<flat>-saved`; the shared artifact store uses `layouts` for N11.01 and `layouts-n1102` for N11.02. `START` (the default layout) applies to N11.01; N11.02 starts empty.
+- N11.02 was traced from the brochure plan at 20.4 mm per pixel; its six stated room sizes match within 1.2% when measured wall to window line. Its internal area of 98.5 sq m, the 5.7 sq m balcony and the facade angle (the same 71.1 degrees as N11.01) come from the brochure.
+
 ## Coordinates and scale
 
 - World units are metres. x runs east, z runs south, y is up. The flat's north wall is at the top of the plan.
-- The shell was traced from a floor plan screenshot. `S = 0.01642` metres per plan pixel, `X(px) = (px - 304) * S`, `Z(py) = (py - 956) * S`. Shell helpers (`box`, `slant`, `wall`, `header`, `rbx`) take plan pixels.
-- The window wall is slanted: glazing line `gx(py) = 702 + 0.342 * (py - 998)`, facade angle 71.1 degrees. The living room corner at the window is 109 degrees.
+- Each shell was traced from a floor plan image. `X(px) = (px - FL.ox) * S`, `Z(py) = (py - FL.oy) * S`: N11.01 uses 16.42 mm per pixel from (304, 956), N11.02 20.4 mm per pixel from (259, 349). Shell helpers (`box`, `slant`, `wall`, `header`, `rbx`, `slantGlass`, `flatGlass`, `floorShape`) take plan pixels.
+- The window wall is slanted: glazing line `gx(py) = g0[0] + 0.342 * (py - g0[1])`, facade angle 71.1 degrees in both flats. The living room corner at the window is 109 degrees.
 - Ceiling height `H = 2.6` is an assumption, as are door heights of 2.1. Wall lengths are estimates from the plan (traced area 87.0 sq m against a stated 88.4), so treat every dimension of the shell as approximate.
 
 ## Code map (section comments in the script)
 
 - `language`: `TXT.en` / `TXT.tr`, `tr(key)`, `data-i18n` attributes, `onLang` callbacks. A URL ending in `#tr` opens in Turkish.
 - `plan coordinates`, `textures`, `materials`: `M(color, roughness)` makes a material from an sRGB hex. Canvas textures use `rng(seed)` for repeatable noise. The marble (`marbleTex`, Calacatta Viola style breccia after the owner's photo) is painted per pixel once at load, seamless, one tile per 2.4 x 1.2 m; `box` and `rbx` call `planarUV` for any material with `userData.planar = [tile w, tile h]` (the marble, and the pippy oak of the guest wardrobe from `pippyTex`) so it maps at real scale instead of stretching per face. The guest wardrobe is built by `pippyWardrobe`. The floor (`parquetTex`) is the brochure's checkerboard parquet: squares of five mid-brown oak strips with grain, one tile per 0.648 m.
-- `the fixed shell`: walls, glazing, kitchen, bathrooms, built-in joinery. Groups: `walls`, `tall`, `low`. Each built-in is registered under `curFix` so it can be selected and measured but not moved. Cut-away mode scales `walls` and `tall` to 0.42 height. The utility cupboard and hall closet use `builtIn(x0, y0, x1, y1, face, n)`: a white body and bulkhead that read as wall, `n` flush oak doors on the `'e'` or `'w'` face with shadow gaps and slim black bar handles.
+- `the fixed shell`: walls, glazing, kitchen, bathrooms, built-in joinery. Groups: `walls`, `tall`, `low`. Each built-in is registered under `curFix` so it can be selected and measured but not moved. Cut-away mode scales `walls` and `tall` to 0.42 height. The utility cupboard and hall closet use `builtIn(x0, y0, x1, y1, face, n)`: a white body and bulkhead that read as wall, `n` flush oak doors with shadow gaps and slim black bar handles. `pippyWardrobe(x0, y0, x1, y1, n, face)` builds the inset pippy oak wardrobes. Both work on any face (`'n'`, `'s'`, `'e'`, `'w'`) through `faceMap`.
 - `furniture bank`: `BUILD[type](g, w, d, h)` builders, the `BANK` array, `BK` lookup, `CATS` category lists, `START` (the default layout).
 - `items`: the movable objects. `norm`, `plain`, `rebuild`, `pose`, `setItems`, `commit`.
 - `selection, gizmo`, `magnetism`, `sits on furniture`, `inspector`, `keyboard shortcuts`.
@@ -61,8 +69,9 @@ Conventions already in use: wall-hung pieces carry a default `y` (wall shelving 
 
 Browser localStorage, all per device:
 
-- `capston-n1101-work`: the working layout, `{v, items}`. `v` is currently 4. Loading an older version runs one-off migrations (rug sizes, first fill of shelving with books). Bump `v` and add a migration when a change must alter layouts people already have.
-- `capston-n1101-saved`: named layouts.
+- `capston-<flat>-work` (`capston-n1101-work`, `capston-n1102-work`): the working layout, `{v, items}`. `v` is currently 4. Loading an older version runs one-off migrations (rug sizes, first fill of shelving with books). Bump `v` and add a migration when a change must alter layouts people already have.
+- `capston-<flat>-saved`: named layouts.
+- `capston-flat`: the flat last picked.
 - `capston-lang`, `capston-magnet`, `capston-screens` (glazed partitions, hidden unless `on`), `capston-nemo`.
 - `capston-walked`: set after the first use of the Walk button, which pulses until then.
 - `capston-hint`: set once the first-visit hint has been dismissed.
@@ -108,4 +117,5 @@ There is no test suite. The method that worked: load the page in headless Chromi
 
 - A scripted walk-through video rendered frame by frame.
 - Opening on a chosen saved layout by default for first-time visitors.
-- The same planner for N11.02, and for the two flats joined.
+- The two flats joined into one.
+- Furniture and a default layout for N11.02.
