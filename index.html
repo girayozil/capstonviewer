@@ -648,6 +648,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     for (i = 0; i < 1600; i++) { g.fillStyle = 'rgba(' + (r() > 0.5 ? '255,240,210,' : '90,60,30,') + (0.05 + r() * 0.08) + ')'; g.fillRect(r() * S2, r() * S2, 3, 1); }
     var t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; return t;
   }
+  var mNock = M(0x544e4b, 0.97), mNockCush = M(0x625b58, 0.97), mNockBack = M(0x6b6461, 0.97);   // the Nockeby sofa: charcoal brown woven fabric
   var mChestGreen = M(0x2c6a3f, 0.75), mChestPine = M(0xb7773f, 0.55), mChestShadow = M(0x0f2416, 0.9);   // the green chest of drawers: painted pine, honey pine top and legs
   var mBlush = M(0xd6bcbf, 0.97), mBlushSeam = M(0xdcc4c6, 0.97), mBlackMetal = M(0x1f1e1d, 0.45);   // the pink wing chair: soft fabric, a lighter inner back
   // crinkled linen for the Neva chair: the owner's fabric swatch, greyscale, tinted by the material colour
@@ -1256,6 +1257,37 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       var bc = new THREE.Mesh(new THREE.BoxGeometry(w - 2 * arm - 0.02, h - seatTop, 0.229 * kz), mLinenCush);
       bc.position.set(0, seatTop + (h - seatTop) / 2 - 0.01, -d / 2 + back + 0.229 * kz / 2 + 0.03 * kz); bc.rotation.x = -0.14; bc.castShadow = true; bc.receiveShadow = true; g.add(bc);
     },
+    nockeby: function (g, w, d, h) {
+      // IKEA Nockeby three-seat sofa with a chaise longue on the right (seen from the front), 277 wide, 92 deep, 171 deep at the chaise,
+      // 66 high: a slim upholstered frame on dark metal legs, a squared arm on the left, the back and right side as one low panel around
+      // the chaise, two seat cushions and one long chaise cushion, and three loose back cushions. Charcoal brown woven fabric.
+      var u = new THREE.Group(); u.scale.set(w / 2.77, h / 0.66, d / 1.71); g.add(u);
+      if (!mNock.map) mNock.map = mNockCush.map = mNockBack.map = grainTex('fabric');
+      var W = 2.77, zb = -0.855, zf = zb + 0.92, zc = 0.855, t = 0.14, xl = -W / 2, xr = W / 2, xs = xr - t - 0.83, yb = 0.12, yr = 0.3, yt = 0.62;
+      function soft(x0, z0, x1, z1, y0, y1, mat, rx) {   // a cushion: a box with rounded front and back edges
+        var gq = new THREE.Group(), r = Math.min(0.05, (y1 - y0) / 2), dz = z1 - z0; gq.position.set((x0 + x1) / 2, y0, (z0 + z1) / 2); gq.rotation.x = rx || 0; u.add(gq);
+        part(gq, -(x1 - x0) / 2, -dz / 2 + r, (x1 - x0) / 2, dz / 2 - r, 0, y1 - y0, mat);
+        [-1, 1].forEach(function (sd) { var m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, x1 - x0 - 0.01, 20), mat); m.rotation.z = Math.PI / 2; m.position.set(0, (y1 - y0) / 2, sd * (dz / 2 - r)); m.scale.set(1, 1, 1); m.scale.y = 1; m.castShadow = m.receiveShadow = true; gq.add(m);
+          if (y1 - y0 > 2 * r + 0.002) { var f = new THREE.Mesh(new THREE.BoxGeometry(x1 - x0 - 0.01, y1 - y0 - 2 * r, 2 * r), mat); f.position.set(0, (y1 - y0) / 2, sd * (dz / 2 - r)); f.castShadow = f.receiveShadow = true; gq.add(f); } });
+        return gq;
+      }
+      // frame: base rail under the seats, the left arm, and the back panel that turns along the chaise's right side
+      part(u, xl, zb, xr, zf, yb, yr, mNock); part(u, xs, zf - 0.01, xr, zc, yb, yr, mNock);
+      part(u, xl, zb, xl + t, zf, yb, yt, mNock);
+      part(u, xl, zb, xr, zb + 0.13, yb, 0.5, mNock); part(u, xr - t, zb, xr, zc, yb, yt, mNock);
+      // seat cushions: two on the sofa, one long one on the chaise
+      var zs = zb + 0.13, cw = (xs - (xl + t)) / 2;
+      soft(xl + t + 0.005, zs, xl + t + cw - 0.005, zf - 0.005, yr, 0.45, mNockCush); soft(xl + t + cw + 0.005, zs, xs - 0.005, zf - 0.005, yr, 0.45, mNockCush);
+      soft(xs + 0.005, zs, xr - t - 0.005, zc - 0.005, yr, 0.45, mNockCush);
+      // back cushions, leaning back against the panel, the third behind the chaise
+      for (var i = 0; i < 3; i++) {
+        var x0 = xl + t + i * 0.83, bc = new THREE.Group(); bc.position.set(x0 + 0.415, 0.43, zs + 0.11); bc.rotation.x = -0.26; u.add(bc);
+        part(bc, -0.405, -0.1, 0.405, 0.1, 0, 0.13, mNockBack);
+        var top = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.81, 24), mNockBack); top.rotation.z = Math.PI / 2; top.position.y = 0.13; top.scale.set(1, 1, 1); top.castShadow = top.receiveShadow = true; bc.add(top);
+      }
+      // dark metal legs
+      [[xl + 0.06, zb + 0.06], [xl + 0.06, zf - 0.06], [xs + 0.06, zf - 0.06], [xr - 0.06, zb + 0.06], [xr - 0.06, zc - 0.06], [xs + 0.06, zc - 0.06]].forEach(function (p) { tube(u, p[0], p[1], 0.016, 0.016, 0, yb, mBlackMetal); });
+    },
     caneSideboard: function (g, w, d, h) {
       // MADE sideboard, 136 x 41 x 70 cm: a charcoal oak case on round legs joined by a rail, three doors with natural cane panels in thin
       // charcoal frames, and a small brass knob near the top of each door (the left door's on its right, the others' on their left).
@@ -1619,6 +1651,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     { k: 'bedSuper', b: 'bed', n: ['Super king bed', 'Çift kişilik yatak 180'], w: 1.8, d: 2.0, h: 1.1 },
     { k: 'bedDouble', b: 'bed', n: ['Double bed', 'Çift kişilik yatak 135'], w: 1.35, d: 1.9, h: 1.1 },
     { k: 'bedSingle', b: 'bed', n: ['Single bed', 'Tek kişilik yatak'], w: 0.9, d: 1.9, h: 1.0 },
+    { k: 'nockeby', b: 'nockeby', n: ['Nockeby sofa with chaise right, grey 277 (IKEA)', 'Nockeby köşe koltuk, sağ şezlong, gri 277 (IKEA)'], w: 2.77, d: 1.71, h: 0.66 },
     { k: 'sofa3', b: 'sofa', n: ['Sofa, 3 seats', 'Üçlü koltuk'], w: 2.2, d: 0.95, h: 0.8 },
     { k: 'sofa2', b: 'sofa', n: ['Sofa, 2 seats', 'İkili koltuk'], w: 1.6, d: 0.9, h: 0.8 },
     { k: 'sofaCurve', b: 'sofaCurve', n: ['Curved sofa', 'Kavisli koltuk'], w: 1.8, d: 1.8, h: 0.8 },
@@ -2320,7 +2353,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   each('[data-walls]', function (b) { b.addEventListener('click', function () { setWalls(b.dataset.walls); }); });
 
   // ================= furniture bank: tap to add at the centre of the view, or drag a card into the flat
-  var CATS = [['seat', ['sofa3', 'sofa2', 'sofaCurve', 'armchair', 'neva', 'hudson', 'wingChair', 'dchair', 'ochair']], ['bed', ['bedKing', 'bedSuper', 'bedDouble', 'bedSingle']],
+  var CATS = [['seat', ['nockeby', 'sofa3', 'sofa2', 'sofaCurve', 'armchair', 'neva', 'hudson', 'wingChair', 'dchair', 'ochair']], ['bed', ['bedKing', 'bedSuper', 'bedDouble', 'bedSingle']],
     ['table', ['coffee', 'nestBig', 'nestSmall', 'sideTable', 'dining', 'diningOak']], ['office', ['desk', 'standDesk', 'deskCorner', 'monitor', 'synth', 'bbgKeyboard', 'rig']],
     ['store', ['shelving', 'shelving100', 'mediaUnit', 'mediaUnit150', 'mediaUnit350', 'cabinet', 'sideboard', 'caneSideboard', 'greenChest', 'bookcase', 'slatBookcase', 'wardrobe']], ['art', ['artSun', 'artLeaf', 'artDunes', 'artGrid', 'artShapes', 'artLine', 'artSea', 'artField']], ['books', ['booksRow', 'booksArt', 'booksNeutral', 'booksLean', 'booksStack', 'booksPaper']], ['other', ['tv65', 'speaker', 'dogBed', 'rug', 'rugMoroccan', 'rugLayered', 'rugRound', 'screen', 'plant', 'pothos', 'snakePlant', 'lamp', 'box']]];
   BANK.forEach(function (b) { if (!b.spec) b.c = 'other'; }); CATS.forEach(function (c) { c[1].forEach(function (k) { if (BK[k]) BK[k].c = c[0]; }); });
