@@ -28,6 +28,11 @@ A single-page 3D layout planner for flats N11.01 and N11.02 at The Capston (Emba
 - Furniture in the combined view comes from both flats' own working layouts (N11.02's moved by `DX2, DZ2`); `commit` saves each piece back to the flat it stands in (`inN1102`). Named layouts in this view are kept under `capston-both-saved`.
 - N11.02 was traced from the brochure plan at 20.4 mm per pixel; its six stated room sizes match within 1.2% when measured wall to window line. Its internal area of 98.5 sq m, the 5.7 sq m balcony and the facade angle (the same 71.1 degrees as N11.01) come from the brochure.
 
+## Performance
+
+- The scene is limited by draw calls, not triangles. `mergeUnder(root)` merges meshes that share a material, fixture key and shadow settings into one mesh: the shell after it is built (`mergeShell`, which then rebuilds `FIX` from the merged meshes) and each furniture item's body in `rebuild`. Builders can still make as many small parts as they like. Before this, N11.01 drew about 1,640 calls a frame; after, about 210.
+- Shadows are not redrawn every frame (`renderer.shadowMap.autoUpdate = false`). Set `shadowDirty = true` whenever something in the scene moves (`pose`, `changed`, `commit`, `rebuild`, `setWalls`, `setScreens` already do); turning the camera does not need it. Walk mode redraws shadows every frame because Nemo and the doors move.
+
 ## Coordinates and scale
 
 - World units are metres. x runs east, z runs south, y is up. The flat's north wall is at the top of the plan.

@@ -365,7 +365,8 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   catch (e) { $('fail').hidden = false; return; }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.outputEncoding = THREE.sRGBEncoding;
-  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.shadowMap.autoUpdate = false;
+  var shadowDirty = true;   // set when furniture, walls, partitions or doors change; walk mode redraws them every frame for Nemo
   var scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(45, 1, 0.1, 120);
 
   // ---- plan coordinates: pixels of the measured plan -> metres
@@ -550,6 +551,32 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   var curFix = 'wall', FIX = {}, FIXSUF = '', ceiling = null, floorMesh = null, POLYS = [];
   function reg(m) { var k = curFix ? curFix + FIXSUF : curFix; m.userData.fix = k; if (k) (FIX[k] = FIX[k] || []).push(m); return m; }
   function fixBase(k) { return String(k).split('@')[0]; }
+  // Merge the meshes under root that share a material, fixture and shadow settings into one mesh each, placed in root's own space.
+  // The scene is drawn as one call per mesh (twice with shadows), so hundreds of small parts cost far more than their triangles.
+  var tmpM = new THREE.Matrix4();
+  function mergeUnder(root) {
+    root.updateMatrixWorld(true); var inv = new THREE.Matrix4().copy(root.matrixWorld).invert(), sets = {}, order = [];
+    root.traverse(function (m) {
+      if (!m.isMesh || m.isSkinnedMesh || Array.isArray(m.material) || !m.geometry.attributes.uv || !m.geometry.attributes.normal || m.geometry.morphAttributes.position) return;
+      var key = m.material.uuid + '|' + (m.userData.fix || '') + '|' + m.castShadow + '|' + m.receiveShadow + '|' + m.renderOrder;
+      if (!sets[key]) { sets[key] = []; order.push(key); } sets[key].push(m);
+    });
+    order.forEach(function (key) {
+      var list = sets[key]; if (list.length < 2) return;
+      var parts = list.map(function (m) { var g = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone(); g.applyMatrix4(tmpM.multiplyMatrices(inv, m.matrixWorld)); return g; });
+      var n = 0; parts.forEach(function (g) { n += g.attributes.position.count; });
+      var pos = new Float32Array(n * 3), nor = new Float32Array(n * 3), uv = new Float32Array(n * 2), o = 0;
+      parts.forEach(function (g) { pos.set(g.attributes.position.array, o * 3); nor.set(g.attributes.normal.array, o * 3); uv.set(g.attributes.uv.array, o * 2); o += g.attributes.position.count; g.dispose(); });
+      var geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+      geo.computeBoundingBox(); geo.computeBoundingSphere();
+      var f = list[0], mm = new THREE.Mesh(geo, f.material); mm.castShadow = f.castShadow; mm.receiveShadow = f.receiveShadow; mm.renderOrder = f.renderOrder; mm.userData.fix = f.userData.fix;
+      list.forEach(function (m) { m.parent.remove(m); }); root.add(mm);
+    });
+  }
+  function mergeShell() {   // after the shell is built: merge it, then list the fixtures again from the merged meshes
+    [walls, tall, low].forEach(mergeUnder);
+    FIX = {}; [walls, tall, low].forEach(function (g) { g.traverse(function (m) { var k = m.userData.fix; if (m.isMesh && k) (FIX[k] = FIX[k] || []).push(m); }); });
+  }
   function box(g, x0, y0, x1, y1, h, mat, base) {
     var m = new THREE.Mesh(new THREE.BoxGeometry(Math.abs(x1 - x0) * S, h, Math.abs(y1 - y0) * S), mat);
     m.position.set(X((x0 + x1) / 2), (base || 0) + h / 2, Z((y0 + y1) / 2)); m.castShadow = true; m.receiveShadow = true; g.add(m); if (mat.userData.planar) planarUV(m); return reg(m);
@@ -924,9 +951,10 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   if (FLAT === 'both') {
     FIXSUF = '@1'; shellN1101(); FIXSUF = ''; hallway();
     FIXSUF = '@2'; setFrame('n1102', DX2, DZ2); shellN1102(); FIXSUF = '';
-    hingeDoor('door@1', true, [0, -1]); hingeDoor('door@2', true, [1, 0]);
     OUTLOOK = { pano: [540, 340] };   // one panorama round both flats
   } else OUTLOOK = (FLAT === 'n1102' ? shellN1102 : shellN1101)();
+  mergeShell();
+  if (FLAT === 'both') { hingeDoor('door@1', true, [0, -1]); hingeDoor('door@2', true, [1, 0]); }
   curFix = null;
   // ---- the view from the windows (walk mode only): an original painted backdrop about 30 m beyond the glazing, in the spirit of the
   // neighbourhood: a red brick tower with anthracite window bays and balconies, towers further off, treetops below, open sky
@@ -1429,7 +1457,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   function rebuild(it) {
     if (!it.g) { it.g = new THREE.Group(); it.g.userData.item = it; itemsG.add(it.g); }
     while (it.g.children.length) { var c = it.g.children[0]; it.g.remove(c); c.traverse(function (o) { if (o.geometry) o.geometry.dispose(); }); }
-    var body = new THREE.Group(); BUILD[BK[it.k].b](body, it.w, it.d, it.h); it.g.add(body);
+    var body = new THREE.Group(); BUILD[BK[it.k].b](body, it.w, it.d, it.h); it.g.add(body); mergeUnder(body); shadowDirty = true;
     var ol = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(it.w + 0.03, it.h + 0.03, it.d + 0.03)), new THREE.LineBasicMaterial({ color: 0x1f6fd9 }));
     ol.position.y = it.h / 2; ol.visible = sel === it; ol.userData.outline = true; it.g.add(ol); it.ol = ol;
     pose(it); showScreen(it);
@@ -1440,12 +1468,13 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   function isScreen(it) { return BK[it.k].b === 'screen'; }
   function showScreen(it) { if (!isScreen(it) || !it.g) return; if (screensOn) { if (!it.g.parent) itemsG.add(it.g); } else if (it.g.parent) itemsG.remove(it.g); }
   function setScreens(on) {
+    shadowDirty = true;
     screensOn = on; try { localStorage.setItem('capston-screens', on ? 'on' : 'off'); } catch (e) {}
     $('screens').setAttribute('aria-pressed', String(on));
     if (!on && sel && sel.item && isScreen(sel.item)) select(null);
     items.forEach(showScreen); if (sel && sel.item) refreshGizmo(); dirty = true; if (nemo) nemo.regrid();
   }
-  function pose(it) { it.g.position.set(it.x, it.y, it.z); it.g.rotation.y = -it.r * Math.PI / 180; }
+  function pose(it) { shadowDirty = true; it.g.position.set(it.x, it.y, it.z); it.g.rotation.y = -it.r * Math.PI / 180; }
   function setItems(list) {
     items.forEach(function (it) { itemsG.remove(it.g); it.g.traverse(function (o) { if (o.geometry) o.geometry.dispose(); }); });
     items = list.filter(function (it) { return it && BK[it.k]; }).map(norm); items.forEach(rebuild); select(null); dirty = true; if (nemo) nemo.regrid();
@@ -1456,7 +1485,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   function pushUndo() { undoStack.push(snapshot()); if (undoStack.length > 60) undoStack.shift(); $('undo').hidden = false; }
   function inPoly(x, z, P) { var c = false; for (var i = 0, j = P.length - 1; i < P.length; j = i++) { if (((P[i][1] > z) !== (P[j][1] > z)) && (x < (P[j][0] - P[i][0]) * (z - P[i][1]) / (P[j][1] - P[i][1]) + P[i][0])) c = !c; } return c; }
   function inN1102(x, z) { return !inPoly(x, z, POLYS[0]) && (inPoly(x, z, POLYS[1]) || z > DZ2); }
-  function commit() { settleAll(); try {
+  function commit() { settleAll(); shadowDirty = true; dirty = true; try {
     if (FLAT === 'both') {   // each piece is saved with the flat it stands in, so both flats show what was arranged here
       var a = [], b = []; items.forEach(function (it) { var q = plain(it); if (inN1102(it.x, it.z)) { q.x = r2(q.x - DX2); q.z = r2(q.z - DZ2); b.push(q); } else a.push(q); });
       localStorage.setItem('capston-n1101-work', JSON.stringify({ v: 4, items: a })); localStorage.setItem('capston-n1102-work', JSON.stringify({ v: 4, items: b }));
@@ -1650,7 +1679,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     resizeSoon();
   }
   onLang.push(function () { refreshInspector(); renderBank(); renderSaved(); });
-  function changed(it, shape) { if (shape) rebuild(it); else pose(it); refreshGizmo(); refreshInspector(); dirty = true; }
+  function changed(it, shape) { if (shape) rebuild(it); else pose(it); refreshGizmo(); refreshInspector(); dirty = true; shadowDirty = true; }
 
   // ---- inspector actions: typed values are exact real-world sizes
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
@@ -1951,6 +1980,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     closeDisplay(); if (e.target === canvas) { e.stopPropagation(); e.preventDefault(); }
   }, true);
   function setWalls(mode) {
+    shadowDirty = true;
     var k = mode === 'cut' ? 0.42 : 1; walls.scale.y = tall.scale.y = k; press('[data-walls]', function (x) { return x.dataset.walls === mode; });
     if (sel) select(sel); dirty = true;
   }
@@ -2267,7 +2297,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       var da = goal.az - cam.az; da = Math.atan2(Math.sin(da), Math.cos(da)); cam.az += da * a;
       if (Math.abs(goal.r - cam.r) < 0.01 && Math.abs(da) < 0.002 && cam.t.distanceTo(goal.t) < 0.01) goal = null; dirty = true;
     }
-    if (dirty) { if (walk.on) placeWalk(); else place(); camera.updateMatrixWorld(); tags(); renderer.render(scene, camera); dirty = false; }
+    if (dirty) { if (walk.on) placeWalk(); else place(); camera.updateMatrixWorld(); tags(); if (shadowDirty || walk.on) { renderer.shadowMap.needsUpdate = true; shadowDirty = false; } renderer.render(scene, camera); dirty = false; }
     requestAnimationFrame(tick);
   }
 
