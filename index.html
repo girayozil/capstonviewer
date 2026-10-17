@@ -77,7 +77,16 @@ button:disabled { opacity: 0.45; cursor: default; }
 #views button { flex: 0 0 auto; background: var(--panel); }
 #views button[aria-pressed="true"] { background: var(--accent); }
 #undo { position: absolute; right: 16px; bottom: 52px; background: var(--panel); z-index: 2; }
-#dispbtn { position: absolute; top: 60px; right: 16px; background: var(--panel); z-index: 2; }
+#tools { position: absolute; top: 60px; right: 16px; display: flex; gap: 6px; z-index: 2; }
+#tools button { background: var(--panel); }
+#measbtn { display: inline-flex; align-items: center; gap: 5px; }
+#measbtn svg { width: 15px; height: 15px; }
+#measbtn[aria-pressed="true"] { background: var(--accent); }
+#meastag { border-color: #c4561f; color: #c4561f; font-size: 0.8rem; }
+#meashint { position: absolute; left: 50%; top: 104px; transform: translateX(-50%); width: max-content; max-width: calc(100% - 32px); text-align: center; font-size: 0.74rem;
+  background: var(--panel); border: 1px solid #c4561f; color: var(--fg); border-radius: 12px; padding: 4px 10px; pointer-events: none; z-index: 2; }
+body.measuring #stage canvas { cursor: crosshair; }
+body.walking #measbtn, body.walking #meashint { display: none; }
 #dispbtn[aria-expanded="true"] { border-color: var(--accent); }
 #dispmenu { position: absolute; top: 98px; right: 16px; max-width: calc(100% - 32px); z-index: 3; display: flex; flex-direction: column; gap: 8px;
   background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; box-shadow: 0 4px 16px rgba(40, 28, 20, 0.18); }
@@ -163,14 +172,19 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   <canvas id="view" aria-label="3D model of apartment N11.01"></canvas>
   <button id="walkbtn" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13" cy="4" r="2"/><path d="M10 21l2-6 2.5 2.5V21"/><path d="M12 15l-.5-5.5L15 11l2.5 2"/><path d="M11.5 9.5L8 12v3"/></svg><span id="walklab">Walk through</span></button>
   <div id="walkhud" hidden><span id="walkhint"></span><span class="row small"><button id="nemo-btn" role="switch" aria-checked="true" data-i18n="nhome">Nemo is at home</button><button id="nemo-call" data-i18n="ncall" title="Space" aria-keyshortcuts="Space">Call Nemo</button><button id="nemo-bed" data-i18n="nbed" title="B" aria-keyshortcuts="B">Send Nemo to bed</button></span></div>
-  <button id="dispbtn" aria-expanded="false" aria-controls="dispmenu"><span data-i18n="display">Display</span> ▾</button>
+  <div id="tools">
+    <button id="measbtn" aria-pressed="false" title="M" aria-keyshortcuts="M"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M1.5 10.5 10.5 1.5l4 4-9 9zM4 8l1.5 1.5M6 6l2 2M8 4l1.5 1.5"/></svg><span data-i18n="measure">Measure</span></button>
+    <button id="dispbtn" aria-expanded="false" aria-controls="dispmenu"><span data-i18n="display">Display</span> ▾</button>
+  </div>
+  <div id="meashint" hidden></div>
+  <div id="meastag" class="tag" hidden></div>
   <div id="dispmenu" hidden>
     <div class="row small" role="group" aria-label="Walls" id="walls-row">
       <span class="cap" data-i18n="walls">Walls</span>
       <button id="w-cut" data-walls="cut" aria-pressed="true" data-i18n="cut">Cut away</button>
       <button id="w-full" data-walls="full" aria-pressed="false" data-i18n="full">Full height</button>
     </div>
-    <div class="row small"><button id="screens" aria-pressed="false" data-i18n="screens">Partitions</button></div>
+    <div class="row small"><button id="screens" aria-pressed="false" data-i18n="screens">Partitions</button><button id="dims" aria-pressed="true" data-i18n="dims">Measurements</button></div>
   </div>
   <div id="views" role="group" aria-label="View" class="small">
     <button id="v-over" data-view="over" aria-pressed="true" data-i18n="over">Overview</button>
@@ -289,7 +303,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   // ================= language: English / Turkish. A link ending in #tr opens in Turkish.
   var TXT = {
     en: { hint: 'Tap an object to select it · drag empty space to turn the view · pinch or scroll to zoom', fail: 'This device could not start the 3D view.',
-      undo: 'Undo', magnet: 'Magnet', screens: 'Partitions', display: 'Display', more: 'More', resetq: 'Replace the current layout with the starting layout?', walk: 'Walk through', exitwalk: 'Exit walk', menu: 'Menu', walkhint: 'W A S D or the stick to walk · drag to look · Space calls Nemo · B sends him to bed · Esc to leave', done: 'Done', move: 'Move', rotate: 'Rotate', scale: 'Resize', dup: 'Duplicate', sits: 'Sits on furniture', lock: 'Lock', unlock: 'Unlock', del: 'Delete',
+      undo: 'Undo', magnet: 'Magnet', screens: 'Partitions', display: 'Display', dims: 'Measurements', measure: 'Measure', meas1: 'Tap a point to start measuring', meas2: 'Tap a second point', meas3: 'Tap again to measure something else', more: 'More', resetq: 'Replace the current layout with the starting layout?', walk: 'Walk through', exitwalk: 'Exit walk', menu: 'Menu', walkhint: 'W A S D or the stick to walk · drag to look · Space calls Nemo · B sends him to bed · Esc to leave', done: 'Done', move: 'Move', rotate: 'Rotate', scale: 'Resize', dup: 'Duplicate', sits: 'Sits on furniture', lock: 'Lock', unlock: 'Unlock', del: 'Delete',
       fw: 'Width cm', fd: 'Depth cm', fh: 'Height cm', fy: 'Off floor', fr: 'Angle °',
       tbank: 'Furniture', tlay: 'Layouts', over: 'Overview', plan: 'Plan', living: 'Living', nook: 'Play corner', office: 'Guest bedroom',
       walls: 'Walls', cut: 'Cut away', full: 'Full height', bankhint: 'Tap to add, or drag into the flat', call: 'All', cseat: 'Seating', cbed: 'Beds', ctable: 'Tables', coffice: 'Office furniture', cstore: 'Storage', cart: 'Wall art', cbooks: 'Books', fill: 'Fill with books', clearsh: 'Clear shelves', nhome: 'Nemo is at home', ncall: 'Call Nemo', nbed: 'Send Nemo to bed', lvup: 'Shelf up', lvdown: 'Shelf down', cother: 'Other',
@@ -299,7 +313,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       savedLocal: 'Saved on this device only.', copied: 'Layout copied. Paste it into the chat.', copyfail: 'Select the text below and copy it.', needname: 'Type a name first.',
       aria: '3D model of apartment {flat}', bed1: 'Bedroom 1', bed2: 'Bedroom 2' },
     tr: { hint: 'Seçmek için bir nesneye dokunun · görünümü çevirmek için boş alanı sürükleyin · yakınlaştırmak için iki parmağınızı açın', fail: 'Bu cihazda 3B görünüm açılamadı.',
-      undo: 'Geri al', magnet: 'Mıknatıs', screens: 'Bölmeler', display: 'Görünüm', more: 'Daha fazla', resetq: 'Mevcut yerleşim başlangıç yerleşimiyle değiştirilsin mi?', walk: 'İçeride gezin', exitwalk: 'Yürüyüşten çık', menu: 'Menü', walkhint: 'Yürümek için W A S D veya çubuk · bakmak için sürükleyin · Boşluk Nemo’yu çağırır · B yatağına yollar · çıkmak için Esc', done: 'Tamam', move: 'Taşı', rotate: 'Döndür', scale: 'Boyut', dup: 'Çoğalt', sits: 'Mobilya üstünde durur', lock: 'Kilitle', unlock: 'Kilidi aç', del: 'Sil',
+      undo: 'Geri al', magnet: 'Mıknatıs', screens: 'Bölmeler', display: 'Görünüm', dims: 'Ölçüler', measure: 'Ölç', meas1: 'Ölçmeye başlamak için bir noktaya dokunun', meas2: 'İkinci noktaya dokunun', meas3: 'Başka bir şey ölçmek için tekrar dokunun', more: 'Daha fazla', resetq: 'Mevcut yerleşim başlangıç yerleşimiyle değiştirilsin mi?', walk: 'İçeride gezin', exitwalk: 'Yürüyüşten çık', menu: 'Menü', walkhint: 'Yürümek için W A S D veya çubuk · bakmak için sürükleyin · Boşluk Nemo’yu çağırır · B yatağına yollar · çıkmak için Esc', done: 'Tamam', move: 'Taşı', rotate: 'Döndür', scale: 'Boyut', dup: 'Çoğalt', sits: 'Mobilya üstünde durur', lock: 'Kilitle', unlock: 'Kilidi aç', del: 'Sil',
       fw: 'Genişlik cm', fd: 'Derinlik cm', fh: 'Yükseklik cm', fy: 'Yerden', fr: 'Açı °',
       tbank: 'Mobilya', tlay: 'Yerleşimler', over: 'Genel', plan: 'Plan', living: 'Salon', nook: 'Oyun köşesi', office: 'Misafir odası',
       walls: 'Duvarlar', cut: 'Alçak', full: 'Tam boy', bankhint: 'Eklemek için dokunun veya daireye sürükleyin', call: 'Tümü', cseat: 'Oturma', cbed: 'Yataklar', ctable: 'Masalar', coffice: 'Ofis mobilyası', cstore: 'Dolaplar', cart: 'Duvar sanatı', cbooks: 'Kitaplar', fill: 'Kitaplarla doldur', clearsh: 'Rafları boşalt', nhome: 'Nemo evde', ncall: 'Nemo’yu çağır', nbed: 'Nemo’yu yatağına yolla', lvup: 'Üst raf', lvdown: 'Alt raf', cother: 'Diğer',
@@ -1212,7 +1226,8 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   var START = FLAT === 'n1102' ? [] : [{"k":"screen","x":2.31,"z":5.84,"r":90,"w":3.2,"d":0.07,"h":2.6,"y":0,"top":false},{"k":"mediaUnit350","x":5.36,"z":4.06,"r":0,"w":3.5,"d":0.4,"h":0.43,"y":0,"top":false},{"k":"standDesk","x":6.7,"z":5.5,"r":270,"w":2,"d":0.8,"h":0.74,"y":0,"top":false},{"k":"ochair","x":7.35,"z":5.75,"r":90,"w":0.68,"d":0.66,"h":1.28,"y":0,"top":false},{"k":"monitor","x":6.65,"z":5.8,"r":90,"w":1.24,"d":0.2,"h":0.56,"y":0.74,"top":true},{"k":"synth","x":6.8,"z":4.85,"r":270,"w":0.58,"d":0.23,"h":0.06,"y":0.74,"top":true},{"k":"tv65","x":4.82,"z":3.88,"r":0,"w":1.44,"d":0.05,"h":0.81,"y":0.6,"top":false},{"k":"bbgKeyboard","x":7,"z":5.8,"r":270,"w":0.45,"d":0.16,"h":0.03,"y":0.74,"top":true},{"k":"shelving100","x":6.59,"z":4.01,"r":0,"w":1,"d":0.3,"h":1.8,"y":0.41,"top":false},{"k":"speaker","x":3.86,"z":4,"r":0,"w":0.23,"d":0.28,"h":0.4,"y":0.41,"top":true},{"k":"speaker","x":5.81,"z":4,"r":0,"w":0.23,"d":0.28,"h":0.4,"y":0.41,"top":true},{"k":"rugRound","x":4.55,"z":6,"r":0,"w":3,"d":3,"h":0.02,"y":0,"top":false},{"k":"neva","x":3.75,"z":6.4,"r":216,"w":1.12,"d":1.04,"h":0.84,"y":0,"top":false},{"k":"hudson","x":5.35,"z":6.4,"r":143,"w":0.66,"d":0.82,"h":0.74,"y":0,"top":false},{"k":"nestBig","x":4.85,"z":5.5,"r":0,"w":0.8,"d":0.8,"h":0.34,"y":0,"top":false},{"k":"nestSmall","x":4.35,"z":5.5,"r":0,"w":0.5,"d":0.5,"h":0.46,"y":0,"top":false},{"k":"rig","x":1.1,"z":5.25,"r":180,"w":0.7,"d":1.6,"h":1.3,"y":0,"top":false},{"k":"artShapes","x":0.02,"z":5.78,"r":270,"w":0.5,"d":0.03,"h":0.7,"y":1.1,"top":false},{"k":"artLine","x":0.02,"z":5.05,"r":270,"w":0.5,"d":0.03,"h":0.7,"y":1.1,"top":false},{"k":"artField","x":1.74,"z":8.42,"r":180,"w":0.7,"d":0.03,"h":1,"y":0.75,"top":false},{"k":"booksStack","x":6.45,"z":3.4,"r":0,"w":0.28,"d":0.22,"h":0.12,"y":0.45,"top":true},{"k":"booksRow","x":6.32,"z":3.99,"r":0,"w":0.36,"d":0.2,"h":0.26,"y":0.45,"top":true},{"k":"booksStack","x":6.9,"z":4,"r":0,"w":0.28,"d":0.22,"h":0.12,"y":0.45,"top":true},{"k":"booksArt","x":6.79,"z":4.01,"r":0,"w":0.3,"d":0.24,"h":0.3,"y":0.8,"top":true},{"k":"booksPaper","x":6.26,"z":3.95,"r":0,"w":0.22,"d":0.13,"h":0.19,"y":1.15,"top":true},{"k":"booksRow","x":6.86,"z":3.99,"r":0,"w":0.36,"d":0.2,"h":0.26,"y":1.15,"top":true},{"k":"booksNeutral","x":6.36,"z":3.98,"r":0,"w":0.36,"d":0.18,"h":0.22,"y":1.5,"top":true},{"k":"booksStack","x":6.78,"z":4,"r":0,"w":0.28,"d":0.22,"h":0.12,"y":1.5,"top":true},{"k":"booksLean","x":6.29,"z":3.99,"r":0,"w":0.3,"d":0.2,"h":0.25,"y":1.86,"top":true},{"k":"rugMoroccan","x":1.07,"z":5.31,"r":270,"w":2.15,"d":1.5,"h":0.01,"y":0,"top":false},{"k":"bedKing","x":5.15,"z":2.74,"r":180,"w":1.5,"d":2,"h":1.1,"y":0,"top":false},{"k":"rug","x":5.15,"z":2.35,"r":0,"w":2.85,"d":1.95,"h":0.02,"y":0,"top":false},{"k":"sideTable","x":3.95,"z":3.4,"r":0,"w":0.48,"d":0.48,"h":0.45,"y":0,"top":false},{"k":"sideTable","x":6.35,"z":3.35,"r":0,"w":0.48,"d":0.48,"h":0.45,"y":0,"top":false},{"k":"dogBed","x":1.76,"z":8.11,"r":0,"w":0.8,"d":0.65,"h":0.2,"y":0,"top":false},{"k":"slatBookcase","x":0.18,"z":7.32,"r":270,"w":1.2,"d":0.35,"h":1.7,"y":0,"top":false},{"k":"booksStack","x":0.15,"z":7.57,"r":270,"w":0.28,"d":0.22,"h":0.12,"y":0.15,"top":true},{"k":"snakePlant","x":0.13,"z":7.02,"r":270,"w":0.18,"d":0.18,"h":0.32,"y":0.15,"top":true},{"k":"booksStack","x":0.15,"z":7.62,"r":270,"w":0.28,"d":0.22,"h":0.12,"y":0.52,"top":true},{"k":"booksRow","x":0.14,"z":7.2,"r":270,"w":0.36,"d":0.2,"h":0.26,"y":0.52,"top":true},{"k":"booksArt","x":0.16,"z":7.62,"r":270,"w":0.3,"d":0.24,"h":0.3,"y":0.88,"top":true},{"k":"booksStack","x":0.15,"z":7.32,"r":270,"w":0.28,"d":0.22,"h":0.12,"y":0.88,"top":true},{"k":"pothos","x":0.17,"z":7.01,"r":270,"w":0.3,"d":0.25,"h":0.32,"y":0.88,"top":true},{"k":"booksRow","x":0.14,"z":7.57,"r":270,"w":0.36,"d":0.2,"h":0.26,"y":1.28,"top":true},{"k":"booksPaper","x":0.11,"z":7.26,"r":270,"w":0.22,"d":0.13,"h":0.19,"y":1.28,"top":true},{"k":"snakePlant","x":0.13,"z":6.96,"r":270,"w":0.18,"d":0.18,"h":0.32,"y":1.28,"top":true},{"k":"pothos","x":0.17,"z":6.92,"r":270,"w":0.3,"d":0.25,"h":0.32,"y":1.7,"top":true},{"k":"plant","x":9.07,"z":8.83,"r":0,"w":0.5,"d":0.5,"h":1.5,"y":0,"top":false},{"k":"artSea","x":8.48,"z":7.24,"r":75,"w":0.7,"d":0.03,"h":0.5,"y":1.2,"top":false}];
 
   // ================= items (movable objects)
-  var items = [], seq = 1, sel = null, tool = 'move', measuring = false;
+  var items = [], seq = 1, sel = null, tool = 'move', measuring = false, dimsOn = true;
+  try { dimsOn = localStorage.getItem('capston-dims') !== 'off'; } catch (e) {}
   function r2(v) { return Math.round(v * 100) / 100; }
   function norm(it) {
     var b = BK[it.k] || BK.box;
@@ -1400,7 +1415,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
 
   function cm(v) { return Math.round(v * 100); }
   function refreshGizmo() {
-    var it = sel && sel.item; gizmo.visible = !!it && !it.lock; gapLines.visible = !!it && measuring;
+    var it = sel && sel.item; gizmo.visible = !!it && !it.lock; gapLines.visible = !!it && measuring && dimsOn;
     if (ring) { gizmo.remove(ring); ring.geometry.dispose(); ring = null; }
     if (!it) return;
     gizmo.position.set(it.x, 0, it.z); gizmo.rotation.y = -it.r * Math.PI / 180;
@@ -1465,6 +1480,8 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     if (mod && k === 'd') { e.preventDefault(); if (it) $('a-dup').click(); return; }
     if (e.altKey && k === 'j') { e.preventDefault(); $($('v-top').getAttribute('aria-pressed') === 'true' ? 'v-over' : 'v-top').click(); return; }
     if (mod || e.altKey) return;
+    if (k === 'm') { setRuler(!ruler.on); return; }
+    if (k === 'escape' && ruler.on) { setRuler(false); return; }
     if (k === 'w') setTool('move'); else if (k === 'e') setTool('rotate'); else if (k === 'r') setTool('scale');
     else if (k === ' ') { e.preventDefault(); setTool({ move: 'rotate', rotate: 'scale', scale: 'move' }[tool]); }
     else if (k === 'delete' || k === 'backspace') { if (it) { e.preventDefault(); $('a-del').click(); } }
@@ -1537,7 +1554,59 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     $('drawerbtn').textContent = tr('menu') + (open ? ' ▾' : ' ▴'); $('drawerbtn').setAttribute('aria-expanded', String(open)); if (walk.on) $('hint').hidden = true;
   }
   onLang.push(updateWalkUI);
+  // ---- ruler: Measure on, tap two points anywhere (floor, walls, furniture) for the straight distance between them. A second point nearly in
+  // line with the first along x, z or height snaps into line, as does one at nearly the same height. A third tap starts a new measurement.
+  var ruler = { on: false, a: null, b: null, hover: null }, rulerG = new THREE.Group(); rulerG.renderOrder = 997; scene.add(rulerG);
+  var mRuler = new THREE.MeshBasicMaterial({ color: 0xc4561f, depthTest: false, transparent: true, opacity: 0.95 });
+  var rDotA = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 10), mRuler), rDotB = rDotA.clone(), rBar = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1, 8), mRuler);
+  [rDotA, rDotB, rBar].forEach(function (m) { m.renderOrder = 997; m.visible = false; rulerG.add(m); });
+  function rulerPoint(e, from) {
+    aim(e); var hits = ray.intersectObjects([itemsG, low, tall, walls, floorMesh], true), p = null;
+    for (var i = 0; i < hits.length; i++) { var o = hits[i].object, v = o.visible; for (var q = o; q && v; q = q.parent) v = q.visible; if (o.isMesh && v) { p = hits[i].point.clone(); break; } }
+    if (!p) p = onPlane(e, UP, new THREE.Vector3(0, 0, 0)); if (!p) return null;
+    if (from) {   // snap into line with the first point
+      var dx = Math.abs(p.x - from.x), dz = Math.abs(p.z - from.z), dy = Math.abs(p.y - from.y), hz = Math.hypot(dx, dz);
+      if (dy < 0.04 || dy < hz * 0.06) p.y = from.y;
+      if (dx < dz * 0.09) p.x = from.x; else if (dz < dx * 0.09) p.z = from.z;
+      if (hz < 0.05 && dy > 0.1) { p.x = from.x; p.z = from.z; }   // straight up or down
+    }
+    return p;
+  }
+  function rulerText(a, b) {
+    var d = a.distanceTo(b), t = d < 1 ? Math.round(d * 100) + ' cm' : d.toFixed(2) + ' m';
+    var dy = Math.abs(b.y - a.y), hz = Math.hypot(b.x - a.x, b.z - a.z);
+    if (dy > 0.05 && hz > 0.05) t += ' · ↔ ' + Math.round(hz * 100) + ' · ↕ ' + Math.round(dy * 100) + ' cm';   // a sloping line also gives its level and upright parts
+    return t;
+  }
+  function measTags() {
+    var a = ruler.a, b = ruler.b || ruler.hover, mt = $('meastag'), on = ruler.on && !walk.on;
+    rulerG.visible = on; if (!on || !a) { mt.hidden = true; rDotA.visible = rDotB.visible = rBar.visible = false; return; }
+    var k = function (p) { return camera.position.distanceTo(p) * 0.008; };
+    rDotA.position.copy(a); rDotA.scale.setScalar(k(a)); rDotA.visible = true;
+    if (!b || a.distanceTo(b) < 0.005) { rDotB.visible = rBar.visible = false; mt.hidden = true; return; }
+    rDotB.position.copy(b); rDotB.scale.setScalar(k(b)); rDotB.visible = !!ruler.b;
+    var mid = a.clone().add(b).multiplyScalar(0.5), r = k(mid) * 0.3;
+    rBar.position.copy(mid); rBar.scale.set(r, a.distanceTo(b), r); rBar.quaternion.setFromUnitVectors(UP, b.clone().sub(a).normalize()); rBar.visible = true;
+    tag(mt, mid, rulerText(a, b), -18);
+  }
+  function rulerHint() { $('meashint').hidden = !ruler.on || walk.on; $('meashint').textContent = tr(!ruler.a ? 'meas1' : !ruler.b ? 'meas2' : 'meas3'); }
+  onLang.push(rulerHint);
+  function setRuler(on) {
+    ruler.on = on; ruler.a = ruler.b = ruler.hover = null; $('measbtn').setAttribute('aria-pressed', String(on)); document.body.classList.toggle('measuring', on);
+    if (on) { select(null); hideHint(); } rulerHint(); dirty = true;
+  }
+  function rulerTap(e) {
+    if (!ruler.a || ruler.b) { ruler.b = ruler.hover = null; ruler.a = rulerPoint(e); } else { ruler.b = rulerPoint(e, ruler.a); ruler.hover = null; }
+    rulerHint(); dirty = true;
+  }
+  $('measbtn').addEventListener('click', function () { setRuler(!ruler.on); });
+  canvas.addEventListener('pointermove', function (e) {   // with a mouse, the line follows the pointer to the second point
+    if (!ruler.on || walk.on || !ruler.a || ruler.b || e.pointerType === 'touch' || e.buttons) return; ruler.hover = rulerPoint(e, ruler.a); dirty = true;
+  });
+  $('dims').setAttribute('aria-pressed', String(dimsOn));
+  $('dims').addEventListener('click', function () { dimsOn = !dimsOn; try { localStorage.setItem('capston-dims', dimsOn ? 'on' : 'off'); } catch (e) {} this.setAttribute('aria-pressed', String(dimsOn)); refreshGizmo(); dirty = true; });
   function enterWalk() {
+    setRuler(false);
     walk.prevWalls = document.querySelector('[data-walls][aria-pressed="true"]').dataset.walls; select(null); goal = null;
     walk.prevTab = $('tab-bank').getAttribute('aria-pressed') === 'true' ? 'bank' : $('tab-layouts').getAttribute('aria-pressed') === 'true' ? 'layouts' : null; openTab('layouts'); document.body.classList.remove('drawer');
     hideHint(); walk.on = true; walk.pitch = 0; walkKeys = {}; walk.sx = walk.sy = 0; setWalls('full'); ceiling.visible = true; backdrop.visible = true; nemo.enter(); updateWalkUI(); resize();
@@ -1630,7 +1699,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   }
   canvas.addEventListener('pointerdown', function (e) {
     canvas.setPointerCapture(e.pointerId); ptrs[e.pointerId] = { x: e.clientX, y: e.clientY }; goal = null; hideHint();
-    if (pts().length === 1) { var hit = pick(e); down = { x: e.clientX, y: e.clientY, hit: hit, moved: 0 }; drag = startDrag(e, hit); }
+    if (pts().length === 1) { var hit = ruler.on ? null : pick(e); down = { x: e.clientX, y: e.clientY, hit: hit, moved: 0 }; drag = ruler.on ? null : startDrag(e, hit); }
     else { if (drag && drag.touched) commit(); drag = null; down = null; }
   });
   canvas.addEventListener('pointermove', function (e) {
@@ -1652,7 +1721,8 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     if (!ptrs[e.pointerId]) return; delete ptrs[e.pointerId];
     if (drag && drag.touched) commit();
     if (drag && drag.it && drag.it.ol && !drag.it.lock) drag.it.ol.material.color.set(0x1f6fd9);
-    if (down && down.moved < 6 && e.type === 'pointerup') { var h = down.hit; if (!h) select(null); else if (h.item) select({ item: h.item }); else if (h.fix) select({ fix: h.fix }); }
+    if (down && down.moved < 6 && e.type === 'pointerup' && ruler.on) rulerTap(e);
+    else if (down && down.moved < 6 && e.type === 'pointerup') { var h = down.hit; if (!h) select(null); else if (h.item) select({ item: h.item }); else if (h.fix) select({ fix: h.fix }); }
     drag = null; down = null; dirty = true; endMeasure();
   }
   function endMeasure() { if (!measuring) return; measuring = false; refreshGizmo(); dirty = true; }
@@ -1810,6 +1880,8 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   }
   function tags() {
     var dt = $('dimtag'), it = sel && sel.item;
+    measTags();
+    if (!dimsOn) { dt.hidden = true; for (var q = 0; q < 4; q++) $('gap' + q).hidden = true; return; }
     if (it) {
       dt.classList.remove('fixed'); tag(dt, new THREE.Vector3(it.x, it.y + it.h, it.z), cm(it.w) + ' × ' + cm(it.d) + ' × ' + cm(it.h) + ' cm', -34);
       for (var i = 0; i < 4; i++) { var g = $('gap' + i); if (measuring && gaps[i] != null && gaps[i] > 0.015 && gaps[i] < 4) tag(g, gapMid[i], cm(gaps[i]) + ' cm'); else g.hidden = true; }

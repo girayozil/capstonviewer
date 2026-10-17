@@ -45,10 +45,11 @@ A single-page 3D layout planner for flats N11.01 and N11.02 at The Capston (Emba
 ## Where the controls live
 
 - Header: title and one EN / TR toggle (`#langbtn`).
-- On the 3D view: Walk through (top right), the Display menu below it (`#dispmenu`: Walls and Partitions), the view buttons along the bottom (`#views`; Alt+J toggles Plan), and a floating Undo (`#undo`) shown only when there is something to undo. The hint shows on a first visit only.
+- On the 3D view: Walk through (top right), Measure and the Display menu below it (`#tools`; `#dispmenu`: Walls, Partitions and Measurements), the view buttons along the bottom (`#views`; Alt+J toggles Plan), and a floating Undo (`#undo`) shown only when there is something to undo. The hint shows on a first visit only.
 - Item panel (`#inspector`): modes Move / Rotate / Resize as a segmented control plus Magnet; actions Duplicate / Lock / Delete; less common ones (Sits on furniture, Fill with books, Shelf up / down) behind More (`#insp-more`).
 - Dock (`#dock`): Furniture and Layouts tabs, `openTab(name)`. On phones it sits under the 3D view, both tabs can be closed, and `body.editing` hides it while an item is selected. On screens 900 px and wider `placeBank` moves the whole dock into the right sidebar (`#side`), with one tab always open.
-- Wall gap measurements (`gap0..3`, `gapLines`) show only while an item is being moved, turned or resized (`measuring`); a selected item shows just its own size.
+- Wall gap measurements (`gap0..3`, `gapLines`) show only while an item is being moved, turned or resized (`measuring`); a selected item shows just its own size. The Measurements toggle (`dimsOn`, stored as `capston-dims`) hides both.
+- The ruler (`ruler`, Measure button or M, Esc to leave): tap two points on any visible surface for the straight distance, drawn in orange with `#meastag`. A second point nearly in line with the first along x, z or height snaps into line; a sloping line also shows its level and upright parts. A drag still turns the view, and a third tap starts again. It switches off in walk mode.
 - `Nemo`: the dog, described below.
 
 ## Objects
