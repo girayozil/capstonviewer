@@ -648,6 +648,18 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     for (i = 0; i < 1600; i++) { g.fillStyle = 'rgba(' + (r() > 0.5 ? '255,240,210,' : '90,60,30,') + (0.05 + r() * 0.08) + ')'; g.fillRect(r() * S2, r() * S2, 3, 1); }
     var t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; return t;
   }
+  // the sage dining table: limewash-like plaster, soft blotches of lighter and darker sage
+  var mSage = new THREE.MeshStandardMaterial({ roughness: 0.8 });
+  function sageTex() {
+    var S2 = 512, c = document.createElement('canvas'); c.width = c.height = S2; var g = c.getContext('2d'), r = rng(1800), i;
+    g.fillStyle = '#8aa298'; g.fillRect(0, 0, S2, S2);
+    for (i = 0; i < 140; i++) {
+      var x = r() * S2, y = r() * S2, rad = 20 + r() * 90, light = r() > 0.5, gr = g.createRadialGradient(x, y, 0, x, y, rad);
+      gr.addColorStop(0, light ? 'rgba(178,198,188,0.1)' : 'rgba(96,120,110,0.09)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+      [[0, 0], [S2, 0], [-S2, 0], [0, S2], [0, -S2]].forEach(function (o) { g.fillStyle = gr; g.save(); g.translate(o[0], o[1]); g.fillRect(x - rad, y - rad, rad * 2, rad * 2); g.restore(); });   // wraps, so it tiles
+    }
+    var t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(0.9, 0.9); t.encoding = THREE.sRGBEncoding; return t;
+  }
   var mNock = M(0x544e4b, 0.97), mNockCush = M(0x625b58, 0.97), mNockBack = M(0x6b6461, 0.97);   // the Nockeby sofa: charcoal brown woven fabric
   var mChestGreen = M(0x2c6a3f, 0.75), mChestPine = M(0xb7773f, 0.55), mChestShadow = M(0x0f2416, 0.9);   // the green chest of drawers: painted pine, honey pine top and legs
   var mBlush = M(0xd6bcbf, 0.97), mBlushSeam = M(0xdcc4c6, 0.97), mBlackMetal = M(0x1f1e1d, 0.45);   // the pink wing chair: soft fabric, a lighter inner back
@@ -1257,6 +1269,20 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       var bc = new THREE.Mesh(new THREE.BoxGeometry(w - 2 * arm - 0.02, h - seatTop, 0.229 * kz), mLinenCush);
       bc.position.set(0, seatTop + (h - seatTop) / 2 - 0.01, -d / 2 + back + 0.229 * kz / 2 + 0.03 * kz); bc.rotation.x = -0.14; bc.castShadow = true; bc.receiveShadow = true; g.add(bc);
     },
+    sageTable: function (g, w, d, h) {
+      // Sage green dining table, 180 x 120 x 75 cm: a soft rounded rectangle top 3.5 cm thick with a rounded edge, on one round pedestal,
+      // all in mottled sage plaster.
+      if (!mSage.map) mSage.map = sageTex();
+      var t = 0.035, R = Math.min(0.34, w / 4, d / 3), x = w / 2, z = d / 2, sh = new THREE.Shape(), k = 0.55;   // corners eased like a squircle
+      sh.moveTo(-x + R, -z); sh.lineTo(x - R, -z); sh.bezierCurveTo(x - R * (1 - k), -z, x, -z + R * (1 - k), x, -z + R);
+      sh.lineTo(x, z - R); sh.bezierCurveTo(x, z - R * (1 - k), x - R * (1 - k), z, x - R, z);
+      sh.lineTo(-x + R, z); sh.bezierCurveTo(-x + R * (1 - k), z, -x, z - R * (1 - k), -x, z - R);
+      sh.lineTo(-x, -z + R); sh.bezierCurveTo(-x, -z + R * (1 - k), -x + R * (1 - k), -z, -x + R, -z);
+      var bv = 0.012, geo = new THREE.ExtrudeGeometry(sh, { depth: t - 2 * bv, bevelEnabled: true, bevelThickness: bv, bevelSize: bv, bevelOffset: -bv, bevelSegments: 4, curveSegments: 16 });
+      geo.rotateX(-Math.PI / 2); var top = new THREE.Mesh(geo, mSage); top.position.y = h - t + bv; top.castShadow = top.receiveShadow = true; g.add(top);
+      var r = Math.min(0.24, w / 5, d / 4);
+      tube(g, 0, 0, r, r, 0.012, h - t, mSage); tube(g, 0, 0, r - 0.012, r - 0.012, 0, 0.012, mHob);   // pedestal on a slightly recessed dark plinth
+    },
     nockeby: function (g, w, d, h) {
       // IKEA Nockeby three-seat sofa with a chaise longue on the right (seen from the front), 277 wide, 92 deep, 171 deep at the chaise,
       // 66 high: a slim upholstered frame on dark metal legs, a squared arm on the left, the back and right side as one low panel around
@@ -1665,6 +1691,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     { k: 'sideTable', b: 'round', n: ['Side table', 'Yan sehpa'], w: 0.48, d: 0.48, h: 0.45 },
     { k: 'dining', b: 'table', n: ['Dining table', 'Yemek masası'], w: 1.8, d: 0.9, h: 0.75 },
     { k: 'diningOak', b: 'oakTable', n: ['Dining table, dark oak 200', 'Yemek masası, koyu meşe 200'], w: 2.0, d: 0.95, h: 0.76 },
+    { k: 'sageTable', b: 'sageTable', n: ['Dining table, sage plaster 180', 'Yemek masası, adaçayı yeşili sıva 180'], w: 1.8, d: 1.198, h: 0.75 },
     { k: 'dchair', b: 'chair', n: ['Dining chair', 'Sandalye'], w: 0.45, d: 0.5, h: 0.85 },
     { k: 'desk', b: 'desk', n: ['Desk', 'Çalışma masası'], w: 2.0, d: 0.8, h: 0.75 },
     { k: 'deskCorner', b: 'deskCorner', n: ['Corner desk 109°', 'Köşe masa 109°'], w: 2.21, d: 1.92, h: 0.75 },
@@ -2354,7 +2381,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
 
   // ================= furniture bank: tap to add at the centre of the view, or drag a card into the flat
   var CATS = [['seat', ['nockeby', 'sofa3', 'sofa2', 'sofaCurve', 'armchair', 'neva', 'hudson', 'wingChair', 'dchair', 'ochair']], ['bed', ['bedKing', 'bedSuper', 'bedDouble', 'bedSingle']],
-    ['table', ['coffee', 'nestBig', 'nestSmall', 'sideTable', 'dining', 'diningOak']], ['office', ['desk', 'standDesk', 'deskCorner', 'monitor', 'synth', 'bbgKeyboard', 'rig']],
+    ['table', ['coffee', 'nestBig', 'nestSmall', 'sideTable', 'dining', 'diningOak', 'sageTable']], ['office', ['desk', 'standDesk', 'deskCorner', 'monitor', 'synth', 'bbgKeyboard', 'rig']],
     ['store', ['shelving', 'shelving100', 'mediaUnit', 'mediaUnit150', 'mediaUnit350', 'cabinet', 'sideboard', 'caneSideboard', 'greenChest', 'bookcase', 'slatBookcase', 'wardrobe']], ['art', ['artSun', 'artLeaf', 'artDunes', 'artGrid', 'artShapes', 'artLine', 'artSea', 'artField']], ['books', ['booksRow', 'booksArt', 'booksNeutral', 'booksLean', 'booksStack', 'booksPaper']], ['other', ['tv65', 'speaker', 'dogBed', 'rug', 'rugMoroccan', 'rugLayered', 'rugRound', 'screen', 'plant', 'pothos', 'snakePlant', 'lamp', 'box']]];
   BANK.forEach(function (b) { if (!b.spec) b.c = 'other'; }); CATS.forEach(function (c) { c[1].forEach(function (k) { if (BK[k]) BK[k].c = c[0]; }); });
   var bankFilter = 'all';
