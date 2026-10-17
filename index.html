@@ -82,6 +82,7 @@ button:disabled { opacity: 0.45; cursor: default; }
 #measbtn { display: inline-flex; align-items: center; gap: 5px; }
 #measbtn svg { width: 15px; height: 15px; }
 #measbtn[aria-pressed="true"] { background: var(--accent); }
+#doorbtn { position: absolute; transform: translate(-50%, -50%); z-index: 2; white-space: nowrap; font-weight: 600; background: var(--accent); color: var(--accent-fg); border-color: var(--accent); box-shadow: 0 2px 10px rgba(40, 28, 20, 0.3); }
 #meastag { border-color: #c4561f; color: #c4561f; font-size: 0.8rem; }
 #meashint { position: absolute; left: 50%; top: 104px; transform: translateX(-50%); width: max-content; max-width: calc(100% - 32px); text-align: center; font-size: 0.74rem;
   background: var(--panel); border: 1px solid #c4561f; color: var(--fg); border-radius: 12px; padding: 4px 10px; pointer-events: none; z-index: 2; }
@@ -163,7 +164,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
 <body>
 
 <header>
-  <h1><span class="flatpick"><select id="flatpick" aria-label="Flat / Daire"><option value="n1101">Capston N11.01</option><option value="n1102">Capston N11.02</option></select></span></h1>
+  <h1><span class="flatpick"><select id="flatpick" aria-label="Flat / Daire"><option value="n1101">Capston N11.01</option><option value="n1102">Capston N11.02</option><option value="both">Capston N11.01 + 02</option></select></span></h1>
   <button id="langbtn" aria-label="Language / Dil"><span data-lang="en">EN</span> / <span data-lang="tr" lang="tr">TR</span></button>
 </header>
 
@@ -178,6 +179,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   </div>
   <div id="meashint" hidden></div>
   <div id="meastag" class="tag" hidden></div>
+  <button id="doorbtn" hidden></button>
   <div id="dispmenu" hidden>
     <div class="row small" role="group" aria-label="Walls" id="walls-row">
       <span class="cap" data-i18n="walls">Walls</span>
@@ -287,10 +289,19 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
         over: { t: [5.3, 0.5, 6.1], r: 18.5, pol: 0.78, az: 0.65 }, top: { t: [5.3, 0, 6.1], r: 20.5, pol: 0.03, az: 0 },
         living: { t: [6.3, 0.7, 9.0], r: 6.5, pol: 1.0, az: 3.0 }, nook: { t: [2.2, 0.6, 9.3], r: 6.2, pol: 0.85, az: -1.25 },
         bed: { t: [5.6, 0.6, 1.6], r: 6.2, pol: 0.85, az: 3.4 } },
-      walk: [2.77, 1.65, Math.PI], lim: [-2, 14, -2, 14.5], add: [0.5, 10, 0.5, 11.5], roam: [0.2, 9.6, 0.2, 11.6], grid: [-0.4, -0.4, 74, 87], sun: [5.2, 0, 6.2] }
+      walk: [2.77, 1.65, Math.PI], lim: [-2, 14, -2, 14.5], add: [0.5, 10, 0.5, 11.5], roam: [0.2, 9.6, 0.2, 11.6], grid: [-0.4, -0.4, 74, 87], sun: [5.2, 0, 6.2] },
+    // both flats side by side in N11.01's frame, with the shared hallway between their front doors
+    both: { name: 'N11.01 + N11.02', labels: ['hall', 'liv1', 'liv2'],
+      views: {
+        over: { t: [7, 0.5, 11.8], r: 33, pol: 0.78, az: 0.65 }, top: { t: [7, 0, 11.5], r: 32, pol: 0.03, az: 0 },
+        living: { t: [2.3, 0.8, 12.6], r: 6, pol: 0.85, az: -0.8 }, nook: { t: [5.4, 0.7, 5.0], r: 5.6, pol: 1.12, az: 0.75 },
+        bed: { t: [9.18, 0.7, 19.72], r: 6.5, pol: 1.0, az: 3.0 } },
+      walk: [1.0, 12.7, Math.PI / 2], lim: [-2, 16, -2, 25], add: [0.5, 13, 0.5, 22.5], roam: [0.2, 13.5, 0.2, 22.5], grid: [-0.4, -0.4, 100, 158], sun: [7, 0, 11.5], sh: 14 }
   };
+  // N11.02 sits south of N11.01: N11.01's kitchen wall is N11.02's north wall, and the slanted facades continue one line
+  var DX2 = 2.8757, DZ2 = 10.7223;
   var FLAT = (function () {
-    var q = (location.search.match(/[?&]flat=(n110[12])/) || [])[1];
+    var q = (location.search.match(/[?&]flat=(n110[12]|both)/) || [])[1];
     if (!q) { try { q = localStorage.getItem('capston-flat'); } catch (e) {} }
     return FLATS[q] ? q : 'n1101';
   })(), FL = FLATS[FLAT], KEY = 'capston-' + FLAT;
@@ -298,6 +309,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   document.title = 'Capston ' + FL.name + ' in 3D';
   $('flatpick').value = FLAT;
   $('flatpick').addEventListener('change', function () { try { localStorage.setItem('capston-flat', this.value); } catch (e) {} location.href = location.pathname + '?flat=' + this.value + location.hash; });
+  if (FL.labels.length > 2) $('v-living').dataset.i18n = FL.labels.shift();
   $('v-nook').dataset.i18n = FL.labels[0]; $('v-bed').dataset.i18n = FL.labels[1];
 
   // ================= language: English / Turkish. A link ending in #tr opens in Turkish.
@@ -311,7 +323,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       builtin: 'Built-in', locked: 'Locked', fixedmsg: 'Built-in feature. It cannot be moved or resized.', size: 'Size',
       nosaved: 'No saved layouts yet.', shared: 'shared', device: 'this device', savedShared: 'Saved. Everyone who can open this page while signed in will see it.',
       savedLocal: 'Saved on this device only.', copied: 'Layout copied. Paste it into the chat.', copyfail: 'Select the text below and copy it.', needname: 'Type a name first.',
-      aria: '3D model of apartment {flat}', bed1: 'Bedroom 1', bed2: 'Bedroom 2' },
+      aria: '3D model of apartment {flat}', bed1: 'Bedroom 1', bed2: 'Bedroom 2', hall: 'Hallway', liv1: 'N11.01 living', liv2: 'N11.02 living', dopen: 'Open door', dclose: 'Close door' },
     tr: { hint: 'Seçmek için bir nesneye dokunun · görünümü çevirmek için boş alanı sürükleyin · yakınlaştırmak için iki parmağınızı açın', fail: 'Bu cihazda 3B görünüm açılamadı.',
       undo: 'Geri al', magnet: 'Mıknatıs', screens: 'Bölmeler', display: 'Görünüm', dims: 'Ölçüler', measure: 'Ölç', meas1: 'Ölçmeye başlamak için bir noktaya dokunun', meas2: 'İkinci noktaya dokunun', meas3: 'Başka bir şey ölçmek için tekrar dokunun', more: 'Daha fazla', resetq: 'Mevcut yerleşim başlangıç yerleşimiyle değiştirilsin mi?', walk: 'İçeride gezin', exitwalk: 'Yürüyüşten çık', menu: 'Menü', walkhint: 'Yürümek için W A S D veya çubuk · bakmak için sürükleyin · Boşluk Nemo’yu çağırır · B yatağına yollar · çıkmak için Esc', done: 'Tamam', move: 'Taşı', rotate: 'Döndür', scale: 'Boyut', dup: 'Çoğalt', sits: 'Mobilya üstünde durur', lock: 'Kilitle', unlock: 'Kilidi aç', del: 'Sil',
       fw: 'Genişlik cm', fd: 'Derinlik cm', fh: 'Yükseklik cm', fy: 'Yerden', fr: 'Açı °',
@@ -321,12 +333,12 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       builtin: 'Sabit', locked: 'Kilitli', fixedmsg: 'Sabit öğe. Taşınamaz ve boyutu değiştirilemez.', size: 'Ölçü',
       nosaved: 'Henüz kayıtlı yerleşim yok.', shared: 'ortak', device: 'bu cihaz', savedShared: 'Kaydedildi. Oturum açıp bu sayfayı açabilen herkes görür.',
       savedLocal: 'Yalnızca bu cihaza kaydedildi.', copied: 'Yerleşim kopyalandı. Sohbete yapıştırın.', copyfail: 'Aşağıdaki metni seçip kopyalayın.', needname: 'Önce bir ad yazın.',
-      aria: '{flat} dairesinin 3B modeli', bed1: 'Yatak odası 1', bed2: 'Yatak odası 2' }
+      aria: '{flat} dairesinin 3B modeli', bed1: 'Yatak odası 1', bed2: 'Yatak odası 2', hall: 'Koridor', liv1: 'N11.01 salon', liv2: 'N11.02 salon', dopen: 'Kapıyı aç', dclose: 'Kapıyı kapat' }
   };
   var FIXNAME = {
     wall: ['Wall or column', 'Duvar veya kolon'], glazing: ['Window', 'Pencere'], wardrobe: ['Built-in wardrobe', 'Gömme dolap'],
     utility: ['Utility cupboard', 'Çamaşır dolabı'], closet: ['Hall closet', 'Antre dolabı'], fridge: ['Fridge freezer housing', 'Buzdolabı'],
-    oven: ['Oven housing', 'Fırın dolabı'], door: ['Entrance door', 'Giriş kapısı'], kitchen: ['Kitchen counter', 'Mutfak tezgâhı'],
+    oven: ['Oven housing', 'Fırın dolabı'], door: ['Entrance door', 'Giriş kapısı'], ndoor: ['Neighbour’s door', 'Komşu kapısı'], core: ['Lift and stair core', 'Asansör ve merdiven çekirdeği'], kitchen: ['Kitchen counter', 'Mutfak tezgâhı'],
     island: ['Kitchen island', 'Mutfak adası'], bath: ['Bath', 'Küvet'], wc: ['Toilet', 'Klozet'], shower: ['Shower', 'Duş'],
     vanity: ['Vanity unit', 'Lavabo dolabı'], wardrobe2: ['Built-in wardrobe', 'Gömme dolap'], balcony: ['Balcony', 'Balkon'], vanity2: ['Vanity unit', 'Lavabo dolabı'], wc2: ['Toilet', 'Klozet'], basin2: ['Basin', 'Lavabo']
   };
@@ -357,10 +369,12 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   var scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(45, 1, 0.1, 120);
 
   // ---- plan coordinates: pixels of the measured plan -> metres
-  var S = FL.S, H = 2.6;
-  function X(px) { return (px - FL.ox) * S; }
-  function Z(py) { return (py - FL.oy) * S; }
-  function gx(py) { return FL.g0[0] + 0.342 * (py - FL.g0[1]); }   // the slanted facade's glazing line, the same angle in both flats
+  var S = 0, H = 2.6, FR = null;   // FR: the plan in use, so a shell can be built where it sits in the combined view
+  function setFrame(k, dx, dz) { var f = FLATS[k]; FR = { ox: f.ox, oy: f.oy, g0: f.g0, dx: dx || 0, dz: dz || 0 }; S = f.S; }
+  setFrame(FLAT === 'both' ? 'n1101' : FLAT);
+  function X(px) { return (px - FR.ox) * S + FR.dx; }
+  function Z(py) { return (py - FR.oy) * S + FR.dz; }
+  function gx(py) { return FR.g0[0] + 0.342 * (py - FR.g0[1]); }   // the slanted facade's glazing line, the same angle in both flats
   var TH = Math.atan2(0.342, 1), FACADE = 71.1;
 
   // ---- textures
@@ -533,8 +547,9 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   scene.add(walls, tall, low, itemsG);
 
   // ================= the fixed shell: walls, glazing, built-in joinery and fittings
-  var curFix = 'wall', FIX = {}, ceiling = null, floorMesh = null;
-  function reg(m) { m.userData.fix = curFix; if (curFix) (FIX[curFix] = FIX[curFix] || []).push(m); return m; }
+  var curFix = 'wall', FIX = {}, FIXSUF = '', ceiling = null, floorMesh = null, POLYS = [];
+  function reg(m) { var k = curFix ? curFix + FIXSUF : curFix; m.userData.fix = k; if (k) (FIX[k] = FIX[k] || []).push(m); return m; }
+  function fixBase(k) { return String(k).split('@')[0]; }
   function box(g, x0, y0, x1, y1, h, mat, base) {
     var m = new THREE.Mesh(new THREE.BoxGeometry(Math.abs(x1 - x0) * S, h, Math.abs(y1 - y0) * S), mat);
     m.position.set(X((x0 + x1) / 2), (base || 0) + h / 2, Z((y0 + y1) / 2)); m.castShadow = true; m.receiveShadow = true; g.add(m); if (mat.userData.planar) planarUV(m); return reg(m);
@@ -617,8 +632,10 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     pts.forEach(function (p, i) { if (i) sh.lineTo(X(p[0]), -Z(p[1])); else sh.moveTo(X(p[0]), -Z(p[1])); });
     var slab = new THREE.Mesh(new THREE.ExtrudeGeometry(sh, { depth: 0.25, bevelEnabled: false }), mSlab);
     slab.rotation.x = -Math.PI / 2; slab.position.y = -0.26; slab.receiveShadow = true; scene.add(slab);
-    var fl = new THREE.Mesh(new THREE.ShapeGeometry(sh), mFloor); fl.rotation.x = -Math.PI / 2; fl.receiveShadow = true; scene.add(fl); floorMesh = fl;
-    var cmat = mWall.clone(); cmat.side = THREE.DoubleSide; cmat.emissive = new THREE.Color(0x4f4a44); ceiling = new THREE.Mesh(new THREE.ShapeGeometry(sh), cmat); ceiling.rotation.x = -Math.PI / 2; ceiling.position.y = H; ceiling.visible = false; scene.add(ceiling);
+    if (!floorMesh) { floorMesh = new THREE.Group(); scene.add(floorMesh); ceiling = new THREE.Group(); ceiling.visible = false; scene.add(ceiling); }
+    POLYS.push(pts.map(function (p) { return [X(p[0]), Z(p[1])]; }));
+    var fl = new THREE.Mesh(new THREE.ShapeGeometry(sh), mFloor); fl.rotation.x = -Math.PI / 2; fl.receiveShadow = true; floorMesh.add(fl);
+    var cmat = mWall.clone(); cmat.side = THREE.DoubleSide; cmat.emissive = new THREE.Color(0x4f4a44); var cm2 = new THREE.Mesh(new THREE.ShapeGeometry(sh), cmat); cm2.rotation.x = -Math.PI / 2; cm2.position.y = H; ceiling.add(cm2);
   }
   // Full-height glazing on the slanted facade from plan row ya to yb, set off px pixels outside the glazing line, with n panes
   function slantGlass(ya, yb, n, off) {
@@ -880,7 +897,36 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     var m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: t, side: THREE.BackSide, fog: false, toneMapped: false }));
     m.position.set(X(at[0]), 1.7, Z(at[1])); m.visible = false; scene.add(m); return m;
   }
-  var OUTLOOK = (FLAT === 'n1102' ? shellN1102 : shellN1101)();
+  // The shared hallway, in N11.01's plan: south of its front door, west of N11.02's, with the neighbour's door on its south wall
+  function hallway() {
+    var mHall = M(0x8b857e, 0.95), x0 = X(316), x1 = X(514), z0 = Z(1685), z1 = Z(1774);
+    var fl = new THREE.Mesh(new THREE.PlaneGeometry(x1 - x0, z1 - z0), mHall); fl.rotation.x = -Math.PI / 2; fl.position.set((x0 + x1) / 2, 0.002, (z0 + z1) / 2); fl.receiveShadow = true; floorMesh.add(fl);
+    var sl = new THREE.Mesh(new THREE.BoxGeometry(x1 - x0, 0.25, z1 - z0), mSlab); sl.position.set((x0 + x1) / 2, -0.135, (z0 + z1) / 2); scene.add(sl);
+    var cmat = mWall.clone(); cmat.side = THREE.DoubleSide; cmat.emissive = new THREE.Color(0x4f4a44);
+    var cl = new THREE.Mesh(new THREE.PlaneGeometry(x1 - x0, z1 - z0), cmat); cl.rotation.x = -Math.PI / 2; cl.position.set((x0 + x1) / 2, H, (z0 + z1) / 2); ceiling.add(cl);
+    curFix = 'core'; wall(286, 1602, 429, 1685, M(0xdcd5c9));   // the lift and stair core west of N11.01's hall
+    curFix = 'wall'; wall(304, 1685, 316, 1787); wall(304, 1774, 466, 1787);   // the end of this stretch of corridor, and the neighbour's flat
+    curFix = 'ndoor'; box(tall, 362, 1772.5, 420, 1775.5, 2.1, mOakDark);
+    curFix = null;
+  }
+  // Front doors hinged so they swing into each flat; in walk mode one opens with E or the button that appears on it when close
+  var DOORS = [];
+  function hingeDoor(key, hingeAtMin, into) {
+    var m = FIX[key] && FIX[key][0]; if (!m) return;
+    var b = new THREE.Box3().setFromObject(m), c = b.getCenter(new THREE.Vector3()), sz = b.getSize(new THREE.Vector3()), ax = sz.x > sz.z;
+    var hp = ax ? new THREE.Vector3(hingeAtMin ? b.min.x : b.max.x, 0, c.z) : new THREE.Vector3(c.x, 0, hingeAtMin ? b.min.z : b.max.z);
+    var piv = new THREE.Group(); piv.position.copy(hp); m.parent.add(piv); m.parent.remove(m); m.position.sub(hp); piv.add(m);
+    var v = ax ? new THREE.Vector3(hingeAtMin ? 1 : -1, 0, 0) : new THREE.Vector3(0, 0, hingeAtMin ? 1 : -1), to = Math.PI / 2;
+    [Math.PI / 2, -Math.PI / 2].forEach(function (a) { var w = v.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), a); if (w.x * into[0] + w.z * into[1] > 0.5) to = a; });
+    DOORS.push({ piv: piv, open: false, to: to, c: new THREE.Vector3(c.x, 1.25, c.z) });
+  }
+  var OUTLOOK;
+  if (FLAT === 'both') {
+    FIXSUF = '@1'; shellN1101(); FIXSUF = ''; hallway();
+    FIXSUF = '@2'; setFrame('n1102', DX2, DZ2); shellN1102(); FIXSUF = '';
+    hingeDoor('door@1', true, [0, -1]); hingeDoor('door@2', true, [1, 0]);
+    OUTLOOK = { pano: [540, 340] };   // one panorama round both flats
+  } else OUTLOOK = (FLAT === 'n1102' ? shellN1102 : shellN1101)();
   curFix = null;
   // ---- the view from the windows (walk mode only): an original painted backdrop about 30 m beyond the glazing, in the spirit of the
   // neighbourhood: a red brick tower with anthracite window bays and balconies, towers further off, treetops below, open sky
@@ -921,7 +967,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   })();
   var FIXDIM = {};
   Object.keys(FIX).forEach(function (k) {
-    if (k === 'wall' || k === 'glazing') return;
+    if (fixBase(k) === 'wall' || fixBase(k) === 'glazing') return;
     var b = new THREE.Box3(); FIX[k].forEach(function (m) { b.expandByObject(m); }); var s = b.getSize(new THREE.Vector3());
     FIXDIM[k] = [s.x, s.z, b.max.y];
   });
@@ -1408,7 +1454,14 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   // ---- undo and autosave on this device
   var undoStack = [];
   function pushUndo() { undoStack.push(snapshot()); if (undoStack.length > 60) undoStack.shift(); $('undo').hidden = false; }
-  function commit() { settleAll(); try { localStorage.setItem(KEY + '-work', JSON.stringify({ v: 4, items: items.map(plain) })); } catch (e) {} }
+  function inPoly(x, z, P) { var c = false; for (var i = 0, j = P.length - 1; i < P.length; j = i++) { if (((P[i][1] > z) !== (P[j][1] > z)) && (x < (P[j][0] - P[i][0]) * (z - P[i][1]) / (P[j][1] - P[i][1]) + P[i][0])) c = !c; } return c; }
+  function inN1102(x, z) { return !inPoly(x, z, POLYS[0]) && (inPoly(x, z, POLYS[1]) || z > DZ2); }
+  function commit() { settleAll(); try {
+    if (FLAT === 'both') {   // each piece is saved with the flat it stands in, so both flats show what was arranged here
+      var a = [], b = []; items.forEach(function (it) { var q = plain(it); if (inN1102(it.x, it.z)) { q.x = r2(q.x - DX2); q.z = r2(q.z - DZ2); b.push(q); } else a.push(q); });
+      localStorage.setItem('capston-n1101-work', JSON.stringify({ v: 4, items: a })); localStorage.setItem('capston-n1102-work', JSON.stringify({ v: 4, items: b }));
+    } else localStorage.setItem(KEY + '-work', JSON.stringify({ v: 4, items: items.map(plain) }));
+  } catch (e) {} }
   $('undo').addEventListener('click', function () {
     var s = undoStack.pop(); if (!s) return; setItems(JSON.parse(s)); commit(); $('undo').hidden = !undoStack.length;
   });
@@ -1590,7 +1643,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       var mo = !$('insp-more').hidden; $('a-more').textContent = tr('more') + (mo ? ' ▴' : ' ▾'); $('a-more').setAttribute('aria-expanded', String(mo));
       $('a-lock').textContent = tr(it.lock ? 'unlock' : 'lock'); $('a-lock').setAttribute('aria-pressed', String(it.lock));
     } else {
-      $('insp-name').textContent = nm(FIXNAME[sel.fix]); $('insp-badge').hidden = false; $('insp-badge').textContent = tr('builtin');
+      $('insp-name').textContent = nm(FIXNAME[fixBase(sel.fix)]); $('insp-badge').hidden = false; $('insp-badge').textContent = tr('builtin');
       var dm = FIXDIM[sel.fix];
       $('insp-fixed').textContent = tr('fixedmsg') + (dm ? ' ' + tr('size') + ': ' + cm(dm[0]) + ' × ' + cm(dm[1]) + ' × ' + cm(dm[2]) + ' cm.' : '');
     }
@@ -1619,7 +1672,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   window.addEventListener('keydown', function (e) {
     var tg = e.target, tn = tg && tg.tagName; if (tn === 'INPUT' || tn === 'TEXTAREA' || (tg && tg.isContentEditable)) return;
     var k = e.key.toLowerCase(), mod = e.ctrlKey || e.metaKey, it = sel && sel.item;
-    if (walk.on) { if (k === 'escape') exitWalk(); else if (k === ' ' && !e.repeat) nemo.call(); else if (k === 'b' && !e.repeat) nemo.bed(); else walkKeys[k] = true; if (k.indexOf('arrow') === 0 || k === ' ') e.preventDefault(); return; }
+    if (walk.on) { if (k === 'escape') exitWalk(); else if (k === ' ' && !e.repeat) nemo.call(); else if (k === 'b' && !e.repeat) nemo.bed(); else if (k === 'e' && !e.repeat && nearDoor()) toggleDoor(); else walkKeys[k] = true; if (k.indexOf('arrow') === 0 || k === ' ') e.preventDefault(); return; }
     if (mod && k === 'z') { e.preventDefault(); $('undo').click(); return; }
     if (mod && k === 'd') { e.preventDefault(); if (it) $('a-dup').click(); return; }
     if (e.altKey && k === 'j') { e.preventDefault(); $($('v-top').getAttribute('aria-pressed') === 'true' ? 'v-over' : 'v-top').click(); return; }
@@ -2003,8 +2056,8 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   // ================= light, frame loop, tags
   scene.add(new THREE.HemisphereLight(0xfff6e6, 0x8a7a66, 0.62));
   var sun = new THREE.DirectionalLight(0xfff1dc, 0.6); sun.position.set(16, 12, 2); sun.target.position.set(FL.sun[0], FL.sun[1], FL.sun[2]); scene.add(sun, sun.target);
-  sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); sun.shadow.bias = -0.0006;
-  var sc = sun.shadow.camera; sc.left = -9; sc.right = 9; sc.top = 9; sc.bottom = -9; sc.near = 1; sc.far = 45; sc.updateProjectionMatrix();
+  sun.castShadow = true; sun.shadow.mapSize.set(FL.sh ? 4096 : 2048, FL.sh ? 4096 : 2048); sun.shadow.bias = -0.0006;
+  var sc = sun.shadow.camera, shh = FL.sh || 9; sc.left = -shh; sc.right = shh; sc.top = shh; sc.bottom = -shh; sc.near = 1; sc.far = 45; sc.updateProjectionMatrix();
 
   function bg() { var c = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#dad1bd'; renderer.setClearColor(new THREE.Color(c), 1); dirty = true; }
   function resize() {
@@ -2022,7 +2075,15 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     if (v3.z > 1 || v3.z < -1) { el.hidden = true; return; }
     el.hidden = false; el.textContent = text; el.style.left = ((v3.x + 1) / 2 * w) + 'px'; el.style.top = ((1 - v3.y) / 2 * h + (dy || 0)) + 'px';
   }
+  function nearDoor() {   // the closest door within reach that is roughly in front of you
+    var best = null, bd = 1.8, fx = Math.sin(walk.yaw), fz = -Math.cos(walk.yaw); if (!walk.on) return null;
+    DOORS.forEach(function (d) { var dx = d.c.x - walk.x, dz = d.c.z - walk.z, dd = Math.hypot(dx, dz); if (dd < bd && (dx * fx + dz * fz) / (dd || 1) > 0.35) { bd = dd; best = d; } }); return best;
+  }
+  function doorUI() { var b = $('doorbtn'), d = nearDoor(); if (!d) { b.hidden = true; return; } tag(b, d.c, tr(d.open ? 'dclose' : 'dopen') + ' · E'); }
+  function toggleDoor() { var d = nearDoor(); if (!d) return; d.open = !d.open; dirty = true; setTimeout(function () { nemo.regrid(); }, 450); }
+  $('doorbtn').addEventListener('click', function () { toggleDoor(); });
   function tags() {
+    doorUI();
     var dt = $('dimtag'), it = sel && sel.item;
     measTags();
     if (!dimsOn) { dt.hidden = true; for (var q = 0; q < 4; q++) $('gap' + q).hidden = true; return; }
@@ -2198,6 +2259,8 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     };
   })();
   function tick(ts) {
+    var ddt = Math.min(0.1, ((ts || 0) - (tick.last || 0)) / 1000 || 0); tick.last = ts || 0;
+    DOORS.forEach(function (d) { var t = d.open ? d.to : 0, r0 = d.piv.rotation.y; if (r0 !== t) { var st = 2.6 * ddt; d.piv.rotation.y = Math.abs(t - r0) <= st ? t : r0 + Math.sign(t - r0) * st; dirty = true; } });   // about 0.6 s to swing
     walkStep(ts || 0); nemo.step(ts || 0);
     if (goal && !walk.on) {
       var a = 0.14; cam.t.lerp(goal.t, a); cam.r += (goal.r - cam.r) * a; cam.pol += (goal.pol - cam.pol) * a;
@@ -2216,6 +2279,11 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     if (!l) l = /^tr/i.test(navigator.language || '') ? 'tr' : 'en';
     loadLocal();
     var work = null; try { work = JSON.parse(localStorage.getItem(KEY + '-work') || 'null'); } catch (e) {}
+    if (FLAT === 'both') {   // the two flats' own layouts, N11.02's moved into place
+      var rd = function (k) { try { var w = JSON.parse(localStorage.getItem(k) || 'null'); return w && Array.isArray(w.items) ? w.items : null; } catch (e) { return null; } };
+      var B = (rd('capston-n1102-work') || []).map(function (it) { var c = {}; for (var f in it) c[f] = it[f]; c.x = (+c.x || 0) + DX2; c.z = (+c.z || 0) + DZ2; return c; });
+      work = { v: 4, items: (rd('capston-n1101-work') || START).concat(B) };
+    }
     var ok = work && (work.v >= 1 && work.v <= 4) && Array.isArray(work.items);
     if (ok && work.v === 1) work.items.forEach(function (it) { if (it && it.k === 'rug') { var wide = (+it.w || 0) >= (+it.d || 0); it.w = wide ? 2.85 : 1.95; it.d = wide ? 1.95 : 2.85; } });   // one-off: the rug became 285 x 195
     if (ok && work.v < 3) work.items.forEach(function (it) { if (it && it.k === 'rugRound') it.w = it.d = 2.45; });   // one-off: the round rug became 245 across
