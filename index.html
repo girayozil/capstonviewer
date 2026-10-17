@@ -2114,12 +2114,21 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   saveCustom();
   // N11.02's default: the master bedroom, Teodora's studio desk, and the living room with the Nockeby, the Layered rug, the wing chair, the
   // sage table by the dining bench, the TV, her painting and Nemo's crate
-  // the HAY Palissade set on the balcony: the table in the middle, square to the slanted balustrade, and a chair at each end of it facing the other
+  // the HAY Palissade set on the balcony: the table in the middle, square to the slanted balustrade, and a chair at each end of it facing
+  // the other, pushed in under the table as far as their backs allow (arms below the rail, front legs between the table's)
   var BALC02 = [{ k: 'palissadeTable', x: 9.84, z: 10.0, r: 251.1, w: 0.825, d: 0.9, h: 0.74, y: 0, top: false },
-    { k: 'palissade', x: 9.66, z: 9.35, r: 341.1, w: 0.63, d: 0.66, h: 0.8, y: 0, top: false }, { k: 'palissade', x: 10.03, z: 10.65, r: 161.1, w: 0.63, d: 0.66, h: 0.8, y: 0, top: false }];
+    { k: 'palissade', x: 9.72, z: 9.66, r: 341.1, w: 0.63, d: 0.66, h: 0.8, y: 0, top: false }, { k: 'palissade', x: 9.96, z: 10.34, r: 161.1, w: 0.63, d: 0.66, h: 0.8, y: 0, top: false }];
   var START02 = [{"k":"bedSuper","x":5.38,"z":1.05,"r":0,"w":2.04,"d":2.1,"h":1.1,"y":0,"top":false},{"k":"diningOak","x":1.2,"z":10.07,"r":360,"w":2,"d":0.95,"h":0.76,"y":0,"top":false},{"k":"ochair","x":0.8,"z":9.4,"r":360,"w":0.68,"d":0.66,"h":1.28,"y":0,"top":false},{"k":"monitor","x":0.85,"z":9.97,"r":0,"w":0.8,"d":0.2,"h":0.56,"y":0.76,"top":true},{"k":"bbgKeyboard","x":0.85,"z":9.72,"r":180,"w":0.45,"d":0.16,"h":0.03,"y":0.76,"top":true},{"k":"c-dog-crate-black-46hz","x":4.85,"z":11.6,"r":0,"w":0.76,"d":0.48,"h":0.55,"y":0,"top":false},{"k":"wingChair","x":5.45,"z":8,"r":334,"w":0.76,"d":0.9,"h":1.05,"y":0,"top":false},{"k":"rugLayered","x":5.85,"z":9.55,"r":0,"w":3,"d":4,"h":0.02,"y":0,"top":false},{"k":"nockeby","x":7.1,"z":9.45,"r":90,"w":2.77,"d":1.71,"h":0.66,"y":0,"top":false},{"k":"paintT1","x":4.92,"z":11.69,"r":180,"w":1.04,"d":0.05,"h":1.04,"y":0.93,"top":false},{"k":"sageTable","x":7.43,"z":6.65,"r":0,"w":1.6,"d":1.2,"h":0.75,"y":0,"top":false},{"k":"greenChest","x":3.69,"z":1.15,"r":270,"w":0.76,"d":0.4,"h":1.27,"y":0,"top":false},{"k":"tv65","x":3.82,"z":9.54,"r":270,"w":1.44,"d":0.05,"h":0.81,"y":0.6,"top":false},{"k":"caneSideboard","x":1.05,"z":11.48,"r":180,"w":1.36,"d":0.41,"h":0.7,"y":0,"top":false},{"k":"pothos","x":1.5,"z":11.45,"r":0,"w":0.3,"d":0.25,"h":0.32,"y":0.7,"top":true},{"k":"snakePlant","x":1.15,"z":11.45,"r":0,"w":0.18,"d":0.18,"h":0.32,"y":0.7,"top":true},{"k":"rug","x":1.63,"z":10,"r":180,"w":2.85,"d":1.95,"h":0.02,"y":0,"top":false},{"k":"booksStack","x":1.85,"z":10.23,"r":0,"w":0.28,"d":0.22,"h":0.12,"y":0.76,"top":true},{"k":"booksNeutral","x":0.7,"z":11.5,"r":0,"w":0.36,"d":0.18,"h":0.22,"y":0.7,"top":true},{"k":"pothos","x":1.85,"z":9.95,"r":0,"w":0.3,"d":0.25,"h":0.32,"y":0.76,"top":true},{"k":"paintT2","x":0.23,"z":10.47,"r":270,"w":1.2,"d":0.05,"h":1.4,"y":0.85,"top":false},{"k":"daliSpeaker","x":4.15,"z":8.35,"r":285,"w":0.2,"d":0.38,"h":0.99,"y":0,"top":false},{"k":"daliSpeaker","x":4.15,"z":10.6,"r":261,"w":0.2,"d":0.38,"h":0.99,"y":0,"top":false},{"k":"easelT3","x":3.39,"z":7.73,"r":90,"w":0.54,"d":0.61,"h":1.6,"y":0,"top":false},{"k":"teakChair","x":7.1,"z":7.35,"r":180,"w":0.5,"d":0.54,"h":0.76,"y":0,"top":false},{"k":"teakChair","x":7.7,"z":7.35,"r":180,"w":0.5,"d":0.54,"h":0.76,"y":0,"top":false},{"k":"teakChair","x":8.3,"z":6.7,"r":90,"w":0.5,"d":0.54,"h":0.76,"y":0,"top":false}].concat(BALC02);
   function withBalcony(list, v) {   // one-off (layouts before version 6): N11.02 layouts without the balcony table get the whole set, replacing chairs already out there
-    if (v >= 6 || list.some(function (it) { return it && it.k === 'palissadeTable'; })) return list;
+    if (v === 6) {   // version 6 set the chairs out from the table; ones still where they were put go in under it
+      var moved = false, out = list.map(function (it) {
+        if (!it || it.k !== 'palissade') return it;
+        var to = Math.abs(it.x - 9.66) < 0.01 && Math.abs(it.z - 9.35) < 0.01 ? BALC02[1] : Math.abs(it.x - 10.03) < 0.01 && Math.abs(it.z - 10.65) < 0.01 ? BALC02[2] : null;
+        if (!to) return it; moved = true; var q = {}; for (var f in it) q[f] = it[f]; q.x = to.x; q.z = to.z; return q;
+      });
+      return moved ? out : list;
+    }
+    if (v >= 7 || list.some(function (it) { return it && it.k === 'palissadeTable'; })) return list;
     return list.filter(function (it) { return !(it && it.k === 'palissade' && +it.x > 9.1 && +it.z > 7.9); }).concat(BALC02.map(function (c) { var q = {}; for (var f in c) q[f] = c[f]; return q; }));
   }
   function shift02(list) { return list.map(function (it) { var c = {}; for (var f in it) c[f] = it[f]; c.x = (+c.x || 0) + DX2; c.z = (+c.z || 0) + DZ2; return c; }); }
@@ -2170,8 +2179,8 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   function commit() { settleAll(); shadowDirty = true; dirty = true; try {
     if (FLAT === 'both') {   // each piece is saved with the flat it stands in, so both flats show what was arranged here
       var a = [], b = []; items.forEach(function (it) { var q = plain(it); if (inN1102(it.x, it.z)) { q.x = r2(q.x - DX2); q.z = r2(q.z - DZ2); b.push(q); } else a.push(q); });
-      localStorage.setItem('capston-n1101-work', JSON.stringify({ v: 6, items: a, types: typesFor(a) })); localStorage.setItem('capston-n1102-work', JSON.stringify({ v: 6, items: b, types: typesFor(b) }));
-    } else localStorage.setItem(KEY + '-work', JSON.stringify({ v: 6, items: items.map(plain), types: typesFor(items) }));
+      localStorage.setItem('capston-n1101-work', JSON.stringify({ v: 7, items: a, types: typesFor(a) })); localStorage.setItem('capston-n1102-work', JSON.stringify({ v: 7, items: b, types: typesFor(b) }));
+    } else localStorage.setItem(KEY + '-work', JSON.stringify({ v: 7, items: items.map(plain), types: typesFor(items) }));
   } catch (e) {} }
   $('undo').addEventListener('click', function () {
     var s = undoStack.pop(); if (!s) return; setItems(JSON.parse(s)); commit(); $('undo').hidden = !undoStack.length;
@@ -3339,13 +3348,13 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     if (FLAT === 'both') {   // the two flats' own layouts, N11.02's moved into place
       var rd = function (k) { try { var w = JSON.parse(localStorage.getItem(k) || 'null'); if (w) addTypes(w.types); return w && Array.isArray(w.items) ? (k === 'capston-n1102-work' ? withBalcony(w.items, +w.v || 0) : w.items) : null; } catch (e) { return null; } };
       var B = shift02(rd('capston-n1102-work') || START02);
-      work = { v: 6, items: (rd('capston-n1101-work') || START).concat(B) };
+      work = { v: 7, items: (rd('capston-n1101-work') || START).concat(B) };
     }
-    var ok = work && (work.v >= 1 && work.v <= 6) && Array.isArray(work.items);
+    var ok = work && (work.v >= 1 && work.v <= 7) && Array.isArray(work.items);
     if (ok) addTypes(work.types);
     if (ok && work.v === 1) work.items.forEach(function (it) { if (it && it.k === 'rug') { var wide = (+it.w || 0) >= (+it.d || 0); it.w = wide ? 2.85 : 1.95; it.d = wide ? 1.95 : 2.85; } });   // one-off: the rug became 285 x 195
     if (ok && work.v < 3) work.items.forEach(function (it) { if (it && it.k === 'rugRound') it.w = it.d = 2.45; });   // one-off: the round rug became 245 across
-    var balc = ok && FLAT === 'n1102' && work.v < 6 && withBalcony(work.items, work.v) !== work.items;
+    var balc = ok && FLAT === 'n1102' && work.v < 7 && withBalcony(work.items, work.v) !== work.items;
     if (balc) work.items = withBalcony(work.items, work.v);
     setItems(ok ? work.items : START);
     if (balc) commit();

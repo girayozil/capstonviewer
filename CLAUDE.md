@@ -79,7 +79,7 @@ Conventions already in use: wall-hung pieces carry a default `y` (wall shelving 
 
 Browser localStorage, all per device:
 
-- `capston-<flat>-work` (`capston-n1101-work`, `capston-n1102-work`): the working layout, `{v, items}`. `v` is currently 6. Loading an older version runs one-off migrations (rug sizes, first fill of shelving with books, and for N11.02 the HAY Palissade balcony set `BALC02` via `withBalcony`, which replaces chairs already on the balcony). Bump `v` and add a migration when a change must alter layouts people already have.
+- `capston-<flat>-work` (`capston-n1101-work`, `capston-n1102-work`): the working layout, `{v, items}`. `v` is currently 7. Loading an older version runs one-off migrations (rug sizes, first fill of shelving with books, and for N11.02 the HAY Palissade balcony set `BALC02` via `withBalcony`, which replaces chairs already on the balcony, and from version 6 to 7 slides chairs still at their old spots in under the table). Bump `v` and add a migration when a change must alter layouts people already have.
 - `capston-<flat>-saved`: named layouts.
 - `capston-flat`: the flat last picked.
 - `capston-lang`, `capston-magnet`, `capston-screens` (glazed partitions, hidden unless `on`), `capston-nemo`.
