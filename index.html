@@ -91,6 +91,9 @@ button:disabled { opacity: 0.45; cursor: default; }
 #meashint { position: absolute; left: 50%; top: 104px; transform: translateX(-50%); width: max-content; max-width: calc(100% - 32px); text-align: center; font-size: 0.74rem;
   background: var(--panel); border: 1px solid #c4561f; color: var(--fg); border-radius: 12px; padding: 4px 10px; pointer-events: none; z-index: 2; }
 body.measuring #stage canvas { cursor: crosshair; }
+#flytag { position: absolute; left: 50%; top: 104px; transform: translateX(-50%); width: max-content; max-width: calc(100% - 32px); text-align: center; font-size: 0.74rem;
+  background: var(--panel); border: 1px solid var(--line); color: var(--fg); border-radius: 12px; padding: 4px 10px; pointer-events: none; z-index: 2; }
+body.flying #stage canvas { cursor: none; }
 body.walking #measbtn, body.walking #meashint { display: none; }
 #dispbtn[aria-expanded="true"] { border-color: var(--accent); }
 #dispmenu { position: absolute; top: 98px; right: 16px; max-width: calc(100% - 32px); z-index: 3; display: flex; flex-direction: column; gap: 8px;
@@ -213,6 +216,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     <button id="dispbtn" aria-expanded="false" aria-controls="dispmenu"><span data-i18n="display">Display</span> ▾</button>
   </div>
   <div id="meashint" hidden></div>
+  <div id="flytag" hidden></div>
   <div id="meastag" class="tag" hidden></div>
   <button id="doorbtn" hidden></button>
   <div id="dispmenu" hidden>
@@ -383,7 +387,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       builtin: 'Built-in', locked: 'Locked', fixedmsg: 'Built-in feature. It cannot be moved or resized.', size: 'Size',
       nosaved: 'No saved layouts yet.', shared: 'shared', device: 'this device', savedShared: 'Saved. Everyone who can open this page while signed in will see it.',
       savedLocal: 'Saved on this device only.', copied: 'Layout copied. Paste it into the chat.', copyfail: 'Select the text below and copy it.', needname: 'Type a name first.',
-      aria: '3D model of apartment {flat}', bed1: 'Studio', bed2: 'Master bedroom', hall: 'Hallway', liv1: 'N11.01 living', liv2: 'N11.02 living', dopen: 'Open door', dclose: 'Close door',
+      aria: '3D model of apartment {flat}', bed1: 'Studio', bed2: 'Master bedroom', hall: 'Hallway', liv1: 'N11.01 living', liv2: 'N11.02 living', dopen: 'Open door', dclose: 'Close door', flyhint: 'W A S D to fly · E Q up and down · scroll for speed', flyspeed: 'Flight speed',
       aikeynote: 'Claude can make new furniture and arrange the flat for you. To turn it on, paste an Anthropic API key. It is kept only in this browser, never in the page or the repository. A key with a monthly spending limit is safest.',
       aikeysave: 'Save key', aikeybad: 'That does not look like an Anthropic API key. It starts with sk-ant-.', aiph: 'Describe a piece of furniture, or ask to place, move or remove something',
       aisend: 'Send', aistop: 'Stop', aiphoto: 'Add a photo', ainew: 'New chat', aiexport: 'Copy my furniture', aiforget: 'Forget key', aiforgetq: 'Remove the API key from this browser?',
@@ -401,7 +405,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       builtin: 'Sabit', locked: 'Kilitli', fixedmsg: 'Sabit öğe. Taşınamaz ve boyutu değiştirilemez.', size: 'Ölçü',
       nosaved: 'Henüz kayıtlı yerleşim yok.', shared: 'ortak', device: 'bu cihaz', savedShared: 'Kaydedildi. Oturum açıp bu sayfayı açabilen herkes görür.',
       savedLocal: 'Yalnızca bu cihaza kaydedildi.', copied: 'Yerleşim kopyalandı. Sohbete yapıştırın.', copyfail: 'Aşağıdaki metni seçip kopyalayın.', needname: 'Önce bir ad yazın.',
-      aria: '{flat} dairesinin 3B modeli', bed1: 'Stüdyo', bed2: 'Ana yatak odası', hall: 'Koridor', liv1: 'N11.01 salon', liv2: 'N11.02 salon', dopen: 'Kapıyı aç', dclose: 'Kapıyı kapat',
+      aria: '{flat} dairesinin 3B modeli', bed1: 'Stüdyo', bed2: 'Ana yatak odası', hall: 'Koridor', liv1: 'N11.01 salon', liv2: 'N11.02 salon', dopen: 'Kapıyı aç', dclose: 'Kapıyı kapat', flyhint: 'Uçmak için W A S D · yukarı ve aşağı için E Q · hız için tekerlek', flyspeed: 'Uçuş hızı',
       aikeynote: 'Claude sizin için yeni mobilyalar yapabilir ve daireyi düzenleyebilir. Açmak için bir Anthropic API anahtarı yapıştırın. Anahtar yalnızca bu tarayıcıda saklanır, sayfaya veya depoya asla eklenmez. Aylık harcama sınırı olan bir anahtar en güvenlisidir.',
       aikeysave: 'Anahtarı kaydet', aikeybad: 'Bu bir Anthropic API anahtarına benzemiyor. Anahtar sk-ant- ile başlar.', aiph: 'Bir mobilya tarif edin ya da bir şeyi yerleştirmemi, taşımamı veya kaldırmamı isteyin',
       aisend: 'Gönder', aistop: 'Durdur', aiphoto: 'Fotoğraf ekle', ainew: 'Yeni sohbet', aiexport: 'Mobilyalarımı kopyala', aiforget: 'Anahtarı unut', aiforgetq: 'API anahtarı bu tarayıcıdan silinsin mi?',
@@ -2225,11 +2229,11 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   var cam = { t: new THREE.Vector3(), r: 17, pol: 0.78, az: 0.65 }, goal = null, dirty = true;
   function setView(name, instant) {
     if (walk.on) exitWalk();
-    var v = views[name]; goal = { t: new THREE.Vector3(v.t[0], v.t[1], v.t[2]), r: v.r, pol: v.pol, az: v.az };
+    var v = views[name]; cam.free = false; goal = { t: new THREE.Vector3(v.t[0], v.t[1], v.t[2]), r: v.r, pol: v.pol, az: v.az };
     if (instant) { cam.t.copy(goal.t); cam.r = goal.r; cam.pol = goal.pol; cam.az = goal.az; goal = null; } dirty = true;
   }
   function place() {
-    cam.pol = clamp(cam.pol, 0.02, 1.5); cam.r = clamp(cam.r, 1.2, 45); var s = Math.sin(cam.pol);
+    cam.pol = clamp(cam.pol, 0.02, cam.free ? 2.6 : 1.5); cam.r = clamp(cam.r, 1.2, 45); var s = Math.sin(cam.pol);
     camera.position.set(cam.t.x + cam.r * s * Math.sin(cam.az), cam.t.y + cam.r * Math.cos(cam.pol), cam.t.z + cam.r * s * Math.cos(cam.az)); camera.lookAt(cam.t);
   }
   function pan(dx, dy) {
@@ -2411,12 +2415,49 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     var size = clamp(snapTo(sign * (l - anchor), 0.05), 0.05, 15), c = anchor + sign * size / 2;
     if (ax) it.w = size; else it.d = size; it.x = b.x + u.x * c; it.z = b.z + u.z * c; changed(it, true);
   }
+  // ---- flying, as in Unreal Editor: hold the right mouse button to look around from where the camera is, W A S D to fly, E Q to go up and
+  // down, the wheel for speed. The camera keeps orbiting a point in front of it, so letting go leaves the normal controls working from there.
+  var fly = { on: false, id: null, x: 0, y: 0, speed: 3, keys: {}, tagT: 0 };
+  try { fly.speed = clamp(+localStorage.getItem('capston-flyspeed') || 3, 0.3, 30); } catch (e) {}
+  function camPos() { var s = Math.sin(cam.pol); return new THREE.Vector3(cam.t.x + cam.r * s * Math.sin(cam.az), cam.t.y + cam.r * Math.cos(cam.pol), cam.t.z + cam.r * s * Math.cos(cam.az)); }
+  function aimFrom(P) { var s = Math.sin(cam.pol); cam.t.set(P.x - cam.r * s * Math.sin(cam.az), P.y - cam.r * Math.cos(cam.pol), P.z - cam.r * s * Math.cos(cam.az)); }
+  function flyTag(text) { var t = $('flytag'); t.textContent = text; t.hidden = false; clearTimeout(fly.tagT); fly.tagT = setTimeout(function () { t.hidden = true; }, 1800); }
+  function startFly(e) {
+    var P = camPos(); fly.on = true; fly.id = e.pointerId; fly.x = e.clientX; fly.y = e.clientY; fly.keys = {}; goal = null; hideHint();
+    cam.r = Math.min(cam.r, 4); aimFrom(P); try { canvas.setPointerCapture(e.pointerId); } catch (x) {}
+    document.body.classList.add('flying'); flyTag(tr('flyhint')); press('[data-view]', function () { return false; });   // no longer at a named view
+  }
+  function endFly() {
+    if (!fly.on) return; fly.on = false; fly.keys = {}; document.body.classList.remove('flying');
+    if (cam.pol <= 1.5) cam.free = false;   // looking upwards stays as it is until the view is next turned the normal way
+    dirty = true;
+  }
+  function flyStep(dt) {
+    var k = fly.keys, f = (k.w ? 1 : 0) - (k.s ? 1 : 0), r = (k.d ? 1 : 0) - (k.a ? 1 : 0), u = (k.e ? 1 : 0) - (k.q ? 1 : 0); if (!f && !r && !u) return;
+    var s = Math.sin(cam.pol), step = fly.speed * dt;
+    var v = new THREE.Vector3(-s * Math.sin(cam.az) * f + Math.cos(cam.az) * r, -Math.cos(cam.pol) * f + u, -s * Math.cos(cam.az) * f - Math.sin(cam.az) * r);
+    if (v.lengthSq() > 1) v.normalize(); v.multiplyScalar(step);
+    var P = camPos(); if (P.y + v.y < 0.15) v.y = 0.15 - P.y; if (P.y + v.y > 40) v.y = 40 - P.y;   // stay above the floor
+    cam.t.add(v); dirty = true;
+  }
+  window.addEventListener('keydown', function (e) {   // while flying, these keys steer the camera and do nothing else
+    if (!fly.on) return; var k = e.key.toLowerCase(); if ('wasdqe'.indexOf(k) < 0 || k.length !== 1) return;
+    fly.keys[k] = true; e.preventDefault(); e.stopImmediatePropagation();
+  }, true);
+  window.addEventListener('keyup', function (e) { var k = e.key.toLowerCase(); if (fly.keys[k]) { delete fly.keys[k]; } });
+  window.addEventListener('blur', endFly);
   canvas.addEventListener('pointerdown', function (e) {
+    if (e.button === 2 && e.pointerType === 'mouse' && !walk.on) { e.preventDefault(); startFly(e); return; }
+    if (cam.free) { var P0 = camPos(); cam.free = false; cam.pol = Math.min(cam.pol, 1.5); aimFrom(P0); }
     canvas.setPointerCapture(e.pointerId); ptrs[e.pointerId] = { x: e.clientX, y: e.clientY }; goal = null; hideHint();
     if (pts().length === 1) { var hit = ruler.on ? null : pick(e); down = { x: e.clientX, y: e.clientY, hit: hit, moved: 0 }; drag = ruler.on ? null : startDrag(e, hit); }
     else { if (drag && drag.touched) commit(); drag = null; down = null; }
   });
   canvas.addEventListener('pointermove', function (e) {
+    if (fly.on && e.pointerId === fly.id) {   // look around: the camera turns where it stands
+      var P = camPos(), dx = e.clientX - fly.x, dy = e.clientY - fly.y; fly.x = e.clientX; fly.y = e.clientY;
+      cam.az -= dx * 0.004; cam.pol = clamp(cam.pol - dy * 0.004, 0.05, 2.6); if (cam.pol > 1.5) cam.free = true; aimFrom(P); dirty = true; return;
+    }
     if (!ptrs[e.pointerId]) return;
     var before = pts().map(function (p) { return { x: p.x, y: p.y }; }), p0 = ptrs[e.pointerId], dx = e.clientX - p0.x, dy = e.clientY - p0.y; p0.x = e.clientX; p0.y = e.clientY;
     if (down) down.moved = Math.max(down.moved, Math.hypot(e.clientX - down.x, e.clientY - down.y));
@@ -2432,6 +2473,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     dirty = true;
   });
   function up(e) {
+    if (fly.on && e.pointerId === fly.id && (e.type === 'pointercancel' || e.button === 2)) { endFly(); return; }
     if (!ptrs[e.pointerId]) return; delete ptrs[e.pointerId];
     if (drag && drag.touched) commit();
     if (drag && drag.it && drag.it.ol && !drag.it.lock) drag.it.ol.material.color.set(0x1f6fd9);
@@ -2442,7 +2484,14 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   function endMeasure() { if (!measuring) return; measuring = false; refreshGizmo(); dirty = true; }
   canvas.addEventListener('pointerup', up); canvas.addEventListener('pointercancel', up);
   canvas.addEventListener('contextmenu', function (e) { e.preventDefault(); });
-  canvas.addEventListener('wheel', function (e) { e.preventDefault(); goal = null; cam.r *= Math.exp(e.deltaY * 0.0012); dirty = true; }, { passive: false });
+  canvas.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    if (fly.on) {   // flight speed
+      fly.speed = clamp(fly.speed * Math.exp(-e.deltaY * 0.002), 0.3, 30); try { localStorage.setItem('capston-flyspeed', fly.speed.toFixed(2)); } catch (x) {}
+      flyTag(tr('flyspeed') + ' ' + (fly.speed < 10 ? fly.speed.toFixed(1) : Math.round(fly.speed)) + ' m/s'); return;
+    }
+    goal = null; cam.r *= Math.exp(e.deltaY * 0.0012); dirty = true;
+  }, { passive: false });
 
 
   // ---- the hint shows on a first visit only, and fades on the first touch
@@ -3079,7 +3128,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   function tick(ts) {
     var ddt = Math.min(0.1, ((ts || 0) - (tick.last || 0)) / 1000 || 0); tick.last = ts || 0;
     DOORS.forEach(function (d) { var t = d.open ? d.to : 0, r0 = d.piv.rotation.y; if (r0 !== t) { var st = 2.6 * ddt; d.piv.rotation.y = Math.abs(t - r0) <= st ? t : r0 + Math.sign(t - r0) * st; dirty = true; } });   // about 0.6 s to swing
-    walkStep(ts || 0); nemo.step(ts || 0);
+    walkStep(ts || 0); nemo.step(ts || 0); if (fly.on) flyStep(ddt);
     if (goal && !walk.on) {
       var a = 0.14; cam.t.lerp(goal.t, a); cam.r += (goal.r - cam.r) * a; cam.pol += (goal.pol - cam.pol) * a;
       var da = goal.az - cam.az; da = Math.atan2(Math.sin(da), Math.cos(da)); cam.az += da * a;
