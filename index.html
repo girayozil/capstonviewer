@@ -675,7 +675,21 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   }
   var mTeak = M(0x5c3d2c, 0.4);
   var mBeech = M(0xc98c57, 0.55);
-  var mPalOlive = M(0x667345, 0.5);   // the HAY Palissade chairs: olive powder coat
+  var mPalOlive = M(0x667345, 0.5);
+  // the Swoon media unit in dark oak: the case, and its doors carved in tumbling cubes, each cube face a different shade of the wood
+  var mDarkOakG = M(0x4d3626, 0.55), mCubes = new THREE.MeshStandardMaterial({ roughness: 0.6 });
+  function cubeTex() {   // one tile holds two rows of pointy-top hexagons, each split into a light top and a mid and a dark side
+    var s = 64, w = Math.round(Math.sqrt(3) * s), hh = 3 * s, c = document.createElement('canvas'); c.width = w; c.height = hh; var g = c.getContext('2d'), r = rng(1203);
+    function poly(pts, col) { g.fillStyle = col; g.beginPath(); pts.forEach(function (p, i) { if (i) g.lineTo(p[0], p[1]); else g.moveTo(p[0], p[1]); }); g.closePath(); g.fill(); g.strokeStyle = 'rgba(20,12,6,0.55)'; g.lineWidth = 1.5; g.stroke(); }
+    var hx = Math.sqrt(3) / 2 * s;
+    function cube(cx, cy) {
+      var T = [cx, cy - s], UR = [cx + hx, cy - s / 2], LR = [cx + hx, cy + s / 2], B = [cx, cy + s], LL = [cx - hx, cy + s / 2], UL = [cx - hx, cy - s / 2], C = [cx, cy];
+      poly([T, UR, C, UL], '#7a5a40'); poly([UL, C, B, LL], '#5a412d'); poly([C, UR, LR, B], '#3d2b1e');
+    }
+    [[0, 0], [w, 0], [w / 2, 1.5 * s], [0, 3 * s], [w, 3 * s], [-w / 2, 1.5 * s], [1.5 * w, 1.5 * s], [w / 2, -1.5 * s], [w / 2, 4.5 * s]].forEach(function (p) { cube(p[0], p[1]); });
+    for (var i = 0; i < 260; i++) { g.strokeStyle = 'rgba(30,18,10,' + (0.05 + r() * 0.08) + ')'; g.lineWidth = 0.6 + r(); var y = r() * hh, x = r() * w; g.beginPath(); g.moveTo(x, y); g.lineTo(x + 6 + r() * 14, y + (r() - 0.5) * 3); g.stroke(); }   // grain
+    var t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; return t;
+  }   // the HAY Palissade chairs: olive powder coat
   var mConcrete = M(0x4a4847, 0.92), mFigBark = M(0x6e5946, 0.9), mFigLeaf = M(0x3d6b2c, 0.38), mFigLeaf2 = M(0x4f7f36, 0.38);   // the fiddle-leaf fig
   var mTaupe = M(0xc8beb2, 0.9), mSoil = M(0x3a2e24, 1), mStalk = M(0x55693f, 0.7), mLeafBird = M(0x4e8a48, 0.6), mLeafBird2 = M(0x67a05a, 0.6), mBeak = M(0x2f5d6e, 0.5), mOrangeFlower = M(0xf08a1c, 0.5);   // the bird of paradise   // the easel: oiled beech   // the teak dining chair: brown stained, varnished
   var mWalnut = M(0x8a5c3c, 0.45), mAlu = M(0x9a9c9f, 0.35), mDaliCone = M(0x6c3a2c, 0.8); mAlu.metalness = 0.35;   // the DALI speakers
@@ -1345,6 +1359,35 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       part(u, -0.17, zy - 0.01, 0.17, zy + 0.06, 0.82, 0.885, mBeech);                                                          // box under the tray
       var kn = new THREE.Mesh(new THREE.SphereGeometry(0.012, 10, 8), mBrass); kn.position.set(0, 0.85, zy + 0.065); u.add(kn);
     },
+    swoonMedia: function (g, w, d, h) {
+      // Swoon media unit, 120 x 35 x 41 cm, here in dark oak: a top with a raised edge at the back and sides, two doors carved in a tumbling
+      // cube pattern over the left two thirds, an open section with one shelf on the right, on four tapered legs that splay out.
+      var u = new THREE.Group(); u.scale.set(w / 1.2, h / 0.41, d / 0.35); g.add(u);
+      if (!mDarkOakG.map) { mDarkOakG.map = grainTex('wood'); mCubes.map = cubeTex(); }
+      var W = 1.2, D = 0.35, y0 = 0.135, yt = 0.392, zf = D / 2, xd = 0.226;
+      part(u, -W / 2, -D / 2, W / 2, D / 2, yt, yt + 0.012, mDarkOakG);                                                   // top
+      part(u, -W / 2, -D / 2, W / 2, -D / 2 + 0.012, yt + 0.012, 0.41, mDarkOakG);                                        // raised edge: back
+      part(u, -W / 2, -D / 2, -W / 2 + 0.012, D / 2, yt + 0.012, 0.41, mDarkOakG); part(u, W / 2 - 0.012, -D / 2, W / 2, D / 2, yt + 0.012, 0.41, mDarkOakG);
+      part(u, -W / 2, -D / 2, -W / 2 + 0.018, D / 2, y0, yt, mDarkOakG); part(u, W / 2 - 0.018, -D / 2, W / 2, D / 2, y0, yt, mDarkOakG);   // ends
+      part(u, -W / 2, -D / 2, W / 2, D / 2, y0, y0 + 0.018, mDarkOakG);                                                   // bottom
+      part(u, -W / 2, -D / 2, W / 2, -D / 2 + 0.012, y0, yt, mDarkOakG);                                                  // back
+      part(u, -W / 2 + 0.018, -D / 2, xd, zf - 0.02, y0 + 0.018, yt, mDarkOakG);                                         // closed section behind the doors
+      part(u, xd, -D / 2, xd + 0.016, zf - 0.005, y0 + 0.018, yt, mDarkOakG);                                             // divider
+      part(u, xd + 0.016, -D / 2, W / 2 - 0.018, zf - 0.005, 0.27, 0.285, mDarkOakG);                                    // shelf
+      var dw = (xd + W / 2 - 0.018 - 0.006) / 2;
+      for (var i = 0; i < 2; i++) {   // the carved doors: the cube pattern at real scale, a little proud of the case
+        var x0 = -W / 2 + 0.018 + i * (dw + 0.006), dh = yt - y0 - 0.026;
+        part(u, x0, zf - 0.02, x0 + dw, zf - 0.002, y0 + 0.022, yt - 0.004, mDarkOakG);
+        var geo = new THREE.PlaneGeometry(dw, dh), uv = geo.attributes.uv; for (var k = 0; k < uv.count; k++) uv.setXY(k, uv.getX(k) * dw / 0.0866 + i * 0.5, uv.getY(k) * dh / 0.15);
+        var pane = new THREE.Mesh(geo, mCubes); pane.position.set(x0 + dw / 2, y0 + 0.022 + dh / 2, zf - 0.0015); pane.receiveShadow = true; u.add(pane);
+      }
+      var up = new THREE.Vector3(0, 1, 0);
+      [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(function (c) {   // splayed tapered legs on small blocks
+        var x = c[0] * 0.46, z = c[1] * 0.11; part(u, x - 0.025, z - 0.025, x + 0.025, z + 0.025, y0 - 0.012, y0, mDarkOakG);
+        var A = new THREE.Vector3(x, y0 - 0.012, z), B = new THREE.Vector3(x + c[0] * 0.05, 0, z + c[1] * 0.04), v = B.clone().sub(A);
+        var m = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.011, v.length(), 12), mDarkOakG); m.position.copy(A).add(B).multiplyScalar(0.5); m.quaternion.setFromUnitVectors(up, v.normalize().negate()); m.castShadow = true; u.add(m);
+      });
+    },
     palissade: function (g, w, d, h) {
       // HAY Palissade dining armchair, 63 x 66 x 80 cm, olive powder-coated steel: a tube frame (front legs that bend back into the armrests
       // and down into the back legs, side and front rails under the seat, a back frame leaning back with a top rail) and nine flat straps
@@ -1929,6 +1972,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     { k: 'booksPaper', b: 'booksPaper', n: ['Books, paperbacks', 'Kitaplar, cep boy'], w: 0.22, d: 0.13, h: 0.19, top: true },
     { k: 'tv65', b: 'tv', n: ['65" TV', '65" TV'], w: 1.44, d: 0.05, h: 0.81, y: 0.6 },
     { k: 'caneSideboard', b: 'caneSideboard', n: ['Sideboard, cane and charcoal oak 136 (MADE)', 'Konsol, hasır ve antrasit meşe 136 (MADE)'], w: 1.36, d: 0.41, h: 0.70 },
+    { k: 'swoonMedia', b: 'swoonMedia', n: ['Media unit, carved dark oak 120 (Swoon)', 'TV ünitesi, oymalı koyu meşe 120 (Swoon)'], w: 1.2, d: 0.35, h: 0.41 },
     { k: 'greenChest', b: 'greenChest', n: ['Chest of drawers, green 76', 'Çekmeceli dolap, yeşil 76'], w: 0.76, d: 0.40, h: 1.27 },
     { k: 'cabinet', b: 'storage', n: ['Low cabinet', 'Alçak dolap'], w: 1.8, d: 0.6, h: 1.0 },
     { k: 'sideboard', b: 'storage', n: ['Sideboard unit', 'Konsol'], w: 0.65, d: 0.27, h: 0.72 },
@@ -2654,7 +2698,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   // ================= furniture bank: tap to add at the centre of the view, or drag a card into the flat
   var CATS = [['seat', ['nockeby', 'sofa3', 'sofa2', 'sofaCurve', 'armchair', 'neva', 'hudson', 'wingChair', 'teakChair', 'palissade', 'dchair', 'ochair']], ['bed', ['bedKing', 'bedSuper', 'bedDouble', 'bedSingle']],
     ['table', ['coffee', 'nestBig', 'nestSmall', 'sideTable', 'dining', 'diningOak', 'sageTable']], ['office', ['desk', 'standDesk', 'deskCorner', 'monitor', 'synth', 'bbgKeyboard', 'rig']],
-    ['store', ['shelving', 'shelving100', 'mediaUnit', 'mediaUnit150', 'mediaUnit350', 'cabinet', 'sideboard', 'caneSideboard', 'greenChest', 'bookcase', 'slatBookcase', 'wardrobe']], ['art', ['paintT1', 'paintT2', 'artSun', 'artLeaf', 'artDunes', 'artGrid', 'artShapes', 'artLine', 'artSea', 'artField']], ['books', ['booksRow', 'booksArt', 'booksNeutral', 'booksLean', 'booksStack', 'booksPaper']], ['other', ['tv65', 'speaker', 'daliSpeaker', 'easel', 'easelT3', 'dogBed', 'rug', 'rugMoroccan', 'rugLayered', 'rugRound', 'screen', 'plant', 'birdPlant', 'figPlant', 'pothos', 'snakePlant', 'lamp', 'box']]];
+    ['store', ['shelving', 'shelving100', 'mediaUnit', 'mediaUnit150', 'mediaUnit350', 'swoonMedia', 'cabinet', 'sideboard', 'caneSideboard', 'greenChest', 'bookcase', 'slatBookcase', 'wardrobe']], ['art', ['paintT1', 'paintT2', 'artSun', 'artLeaf', 'artDunes', 'artGrid', 'artShapes', 'artLine', 'artSea', 'artField']], ['books', ['booksRow', 'booksArt', 'booksNeutral', 'booksLean', 'booksStack', 'booksPaper']], ['other', ['tv65', 'speaker', 'daliSpeaker', 'easel', 'easelT3', 'dogBed', 'rug', 'rugMoroccan', 'rugLayered', 'rugRound', 'screen', 'plant', 'birdPlant', 'figPlant', 'pothos', 'snakePlant', 'lamp', 'box']]];
   BANK.forEach(function (b) { if (!b.spec) b.c = 'other'; }); CATS.forEach(function (c) { c[1].forEach(function (k) { if (BK[k]) BK[k].c = c[0]; }); });
   var bankFilter = 'all';
   function bankCard(b, el) {
