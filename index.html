@@ -715,6 +715,16 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   }
   // the Swoon media unit in dark oak: the case, and its doors carved in tumbling cubes, each cube face a different shade of the wood
   // the pouf: linen with a raised rust bouclé meander; the pattern wraps round the drum without a seam
+  // the master bed: walnut butcher block, beige headboard, oatmeal linen bedding with a rust throw
+  var mBlock = new THREE.MeshStandardMaterial({ roughness: 0.5 }), mWalnutBed = M(0x4a2e20, 0.5), mHeadboard = M(0xcdbfab, 0.97);
+  var mDuvet = M(0xd8ccb8, 0.98), mDuvetFold = M(0xf2eee6, 0.95), mPillow = M(0xd2c4ad, 0.98), mPillow2 = M(0xf4f1ea, 0.95), mThrow2 = M(0xa4532f, 0.98);
+  function blockTex() {   // walnut strips of random lengths in staggered rows, each a slightly different shade, about 6 cm high
+    var W = 1024, Hc = 256, c = document.createElement('canvas'); c.width = W; c.height = Hc; var g = c.getContext('2d'), r = rng(2052), rows = 4, rh = Hc / rows;
+    for (var i = 0; i < rows; i++) { var x = -r() * 200; while (x < W) { var len = 120 + r() * 260, l = 18 + r() * 14; g.fillStyle = 'hsl(' + (18 + r() * 8) + ',' + (40 + r() * 15) + '%,' + l + '%)'; g.fillRect(x, i * rh, len, rh);
+      for (var k = 0; k < 6; k++) { g.fillStyle = 'rgba(0,0,0,' + (0.05 + r() * 0.08) + ')'; g.fillRect(x, i * rh + r() * rh, len, 1 + r() * 2); }
+      g.fillStyle = 'rgba(0,0,0,0.35)'; g.fillRect(x, i * rh, 2, rh); x += len; } g.fillStyle = 'rgba(0,0,0,0.3)'; g.fillRect(0, i * rh, W, 1.5); }
+    var t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; return t;
+  }
   var mPoufSide = new THREE.MeshStandardMaterial({ roughness: 1 }), mPoufTop = new THREE.MeshStandardMaterial({ roughness: 1 });
   function poufTex() {
     var W = 1024, Hc = 384, c = document.createElement('canvas'); c.width = W; c.height = Hc; var g = c.getContext('2d'), r = rng(3546), i, k;
@@ -1417,6 +1427,41 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       part(u, -0.17, zy - 0.01, 0.17, zy + 0.06, 0.82, 0.885, mBeech);                                                          // box under the tray
       var kn = new THREE.Mesh(new THREE.SphereGeometry(0.012, 10, 8), mBrass); kn.position.set(0, 0.85, zy + 0.065); u.add(kn);
     },
+    masterBed: function (g, w, d, h) {
+      // Master bed, 205 wide, 218 long, 63 high made up, headboard 90: a walnut frame of staggered butcher-block strips on four round tapered
+      // legs, a beige upholstered headboard leaning back a little, a white mattress, and made up with an oatmeal linen duvet turned down at the
+      // top, two white and two oatmeal pillows, and a rust throw across the foot.
+      var u = new THREE.Group(); u.scale.set(w / 2.05, h / 0.9, d / 2.18); g.add(u);
+      if (!mBlock.map) { mBlock.map = blockTex(); mDuvet.map = mPillow.map = mThrow2.map = grainTex('fabric'); }
+      var W = 2.05, D = 2.18, z0 = -D / 2, zh = z0 + 0.1, z1 = D / 2, yl = 0.17, yf = 0.42, ym = 0.555, yt = 0.63;
+      // frame: four boards round the mattress, and the legs
+      part(u, -W / 2, zh, W / 2, z1, yl, yf, mBlock, false);
+      [[-1, 1], [1, 1], [-1, -1], [1, -1]].forEach(function (c) {
+        var up = new THREE.Vector3(0, 1, 0), A = new THREE.Vector3(c[0] * (W / 2 - 0.08), yl, c[1] > 0 ? z1 - 0.08 : zh + 0.1), B = A.clone().add(new THREE.Vector3(c[0] * 0.04, -yl, c[1] * 0.03)), v = B.clone().sub(A);
+        var m = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.015, v.length(), 14), mWalnutBed); m.position.copy(A).add(B).multiplyScalar(0.5); m.quaternion.setFromUnitVectors(up, v.normalize().negate()); m.castShadow = true; u.add(m);
+      });
+      // headboard: a padded panel on the back, its top leaning back
+      var hb = new THREE.Group(); hb.position.set(0, yf - 0.04, zh + 0.02); hb.rotation.x = -0.1; u.add(hb);
+      part(hb, -W / 2 + 0.03, -0.09, W / 2 - 0.03, 0, 0, 0.9 - yf + 0.04, mHeadboard);
+      var hr = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, W - 0.06, 20), mHeadboard); hr.rotation.z = Math.PI / 2; hr.position.set(0, 0.9 - yf - 0.005, -0.045); hr.scale.set(1, 1, 1); u.add(hr); hb.add(hr);
+      // mattress
+      part(u, -W / 2 + 0.04, zh + 0.03, W / 2 - 0.04, z1 - 0.04, yf - 0.02, ym, mWhite);
+      // duvet: over the mattress and hanging a little over the sides and foot, turned down at the top
+      var zt = zh + 0.62;
+      part(u, -W / 2 + 0.01, zt, W / 2 - 0.01, z1 - 0.01, ym - 0.1, yt - 0.01, mDuvet);
+      var edge = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, W - 0.02, 16), mDuvet); edge.rotation.z = Math.PI / 2; edge.position.set(0, yt - 0.03, z1 - 0.035); u.add(edge);
+      part(u, -W / 2 + 0.01, zt - 0.02, W / 2 - 0.01, zt + 0.3, yt - 0.015, yt + 0.008, mDuvetFold);   // the turn-down, white sheet side up
+      var roll = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, W - 0.02, 16), mDuvet); roll.rotation.z = Math.PI / 2; roll.position.set(0, yt - 0.005, zt + 0.3); u.add(roll);
+      // pillows: two white against the headboard, two oatmeal in front
+      [-1, 1].forEach(function (sd) {
+        var p1 = new THREE.Mesh(new THREE.SphereGeometry(0.5, 20, 12), mPillow2); p1.scale.set(0.82, 0.16, 0.48); p1.position.set(sd * 0.47, ym + 0.1, zh + 0.32); p1.rotation.x = -0.35; u.add(p1);
+        var p2 = new THREE.Mesh(new THREE.SphereGeometry(0.5, 20, 12), mPillow); p2.scale.set(0.76, 0.14, 0.42); p2.position.set(sd * 0.45, ym + 0.07, zh + 0.5); p2.rotation.x = -0.25; u.add(p2);
+      });
+      // throw across the foot, hanging down the sides
+      part(u, -W / 2 - 0.0, z1 - 0.5, W / 2, z1 - 0.1, yt - 0.005, yt + 0.012, mThrow2);
+      [-1, 1].forEach(function (sd) { part(u, sd * (W / 2) - (sd > 0 ? 0 : 0.01), z1 - 0.5, sd * (W / 2) + (sd > 0 ? 0.01 : 0), z1 - 0.1, yt - 0.2, yt + 0.012, mThrow2); });
+      u.traverse(function (m) { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } });
+    },
     pouf: function (g, w, d, h) {
       // Round pouf, 35 across and 46 high: a drum upholstered in natural linen with a raised rust bouclé pattern of meandering bars and hooks,
       // a piped top edge, on a dark wood plinth set in a little.
@@ -2039,6 +2084,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   };
   // The bank. New furniture is added here: key, shape, names, width, depth, height, height off the floor (all metres).
   var BANK = [
+    { k: 'masterBed', b: 'masterBed', n: ['Master bed, walnut 180, made up', 'Ana yatak, ceviz 180, yapılı'], w: 2.05, d: 2.18, h: 0.9 },
     { k: 'bedKing', b: 'bed', n: ['UK king bed', 'Çift kişilik yatak 150'], w: 1.5, d: 2.0, h: 1.1 },
     { k: 'bedSuper', b: 'bed', n: ['Super king bed', 'Çift kişilik yatak 180'], w: 1.8, d: 2.0, h: 1.1 },
     { k: 'bedDouble', b: 'bed', n: ['Double bed', 'Çift kişilik yatak 135'], w: 1.35, d: 1.9, h: 1.1 },
@@ -2826,7 +2872,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   each('[data-walls]', function (b) { b.addEventListener('click', function () { setWalls(b.dataset.walls); }); });
 
   // ================= furniture bank: tap to add at the centre of the view, or drag a card into the flat
-  var CATS = [['seat', ['quincy439', 'quincy438', 'quincy422', 'nockeby', 'sofa3', 'sofa2', 'sofaCurve', 'armchair', 'neva', 'hudson', 'wingChair', 'teakChair', 'palissade', 'pouf', 'dchair', 'ochair']], ['bed', ['bedKing', 'bedSuper', 'bedDouble', 'bedSingle']],
+  var CATS = [['seat', ['quincy439', 'quincy438', 'quincy422', 'nockeby', 'sofa3', 'sofa2', 'sofaCurve', 'armchair', 'neva', 'hudson', 'wingChair', 'teakChair', 'palissade', 'pouf', 'dchair', 'ochair']], ['bed', ['masterBed', 'bedKing', 'bedSuper', 'bedDouble', 'bedSingle']],
     ['table', ['coffee', 'nestBig', 'nestSmall', 'sideTable', 'dining', 'diningOak', 'sageTable', 'palissadeTable']], ['office', ['desk', 'standDesk', 'deskCorner', 'monitor', 'synth', 'bbgKeyboard', 'rig']],
     ['store', ['shelving', 'shelving100', 'mediaUnit', 'mediaUnit150', 'mediaUnit350', 'swoonMedia', 'dressingTable', 'cabinet', 'sideboard', 'caneSideboard', 'greenChest', 'bookcase', 'slatBookcase', 'wardrobe']], ['art', ['paintT1', 'paintT2', 'artSun', 'artLeaf', 'artDunes', 'artGrid', 'artShapes', 'artLine', 'artSea', 'artField']], ['books', ['booksRow', 'booksArt', 'booksNeutral', 'booksLean', 'booksStack', 'booksPaper']], ['other', ['tv65', 'speaker', 'daliSpeaker', 'easel', 'easelT3', 'dogBed', 'rug', 'rugMoroccan', 'rugLayered', 'rugRound', 'screen', 'plant', 'birdPlant', 'figPlant', 'pothos', 'snakePlant', 'lamp', 'box']]];
   BANK.forEach(function (b) { if (!b.spec) b.c = 'other'; }); CATS.forEach(function (c) { c[1].forEach(function (k) { if (BK[k]) BK[k].c = c[0]; }); });
