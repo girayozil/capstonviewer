@@ -714,6 +714,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     f.scale.set(w / sz.x, h / sz.y, d / sz.z); g.add(f);
   }
   // the Swoon media unit in dark oak: the case, and its doors carved in tumbling cubes, each cube face a different shade of the wood
+  var mDressGreen = M(0x2e3a30, 0.8), mDressBlack = M(0x1f2420, 0.6);   // the dressing table: matt dark green, black legs
   var mDarkOakG = M(0x4d3626, 0.55), mCubes = new THREE.MeshStandardMaterial({ roughness: 0.6 });
   function cubeTex() {   // one tile holds two rows of pointy-top hexagons, each split into a light top and a mid and a dark side
     var s = 64, w = Math.round(Math.sqrt(3) * s), hh = 3 * s, c = document.createElement('canvas'); c.width = w; c.height = hh; var g = c.getContext('2d'), r = rng(1203);
@@ -1396,6 +1397,31 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       part(u, -0.17, zy - 0.01, 0.17, zy + 0.06, 0.82, 0.885, mBeech);                                                          // box under the tray
       var kn = new THREE.Mesh(new THREE.SphereGeometry(0.012, 10, 8), mBrass); kn.position.set(0, 0.85, zy + 0.065); u.add(kn);
     },
+    dressingTable: function (g, w, d, h) {
+      // Dressing table, 90 x 40 x 80 cm, matt dark green: a box top 20 cm deep with two drawers whose fronts frame a rattan cane panel, slim
+      // black bar handles, on four round tapered legs that splay out.
+      var u = new THREE.Group(); u.scale.set(w / 0.9, h / 0.8, d / 0.4); g.add(u);
+      if (!mCane.map) mCane.map = caneTex();
+      var W = 0.9, D = 0.4, yb = 0.6, zf = D / 2 - 0.006, dw = (W - 0.04 - 0.006) / 2;
+      part(u, -W / 2, -D / 2, W / 2, zf - 0.012, yb, 0.8, mDressGreen);                                  // box
+      part(u, -W / 2, zf - 0.012, W / 2, D / 2, 0.8 - 0.016, 0.8, mDressGreen); part(u, -W / 2, zf - 0.012, W / 2, D / 2, yb, yb + 0.016, mDressGreen);
+      part(u, -W / 2, zf - 0.012, -W / 2 + 0.02, D / 2, yb, 0.8, mDressGreen); part(u, W / 2 - 0.02, zf - 0.012, W / 2, D / 2, yb, 0.8, mDressGreen);
+      part(u, -0.003, zf - 0.012, 0.003, D / 2, yb, 0.8, mChestShadow, true);
+      for (var i = 0; i < 2; i++) {
+        var x0 = -W / 2 + 0.02 + i * (dw + 0.006), x1 = x0 + dw, y0 = yb + 0.02, y1 = 0.8 - 0.02, f = 0.035;
+        part(u, x0, zf - 0.012, x0 + f, D / 2, y0, y1, mDressGreen); part(u, x1 - f, zf - 0.012, x1, D / 2, y0, y1, mDressGreen);
+        part(u, x0, zf - 0.012, x1, D / 2, y1 - f * 1.4, y1, mDressGreen); part(u, x0, zf - 0.012, x1, D / 2, y0, y0 + f, mDressGreen);
+        var pw = dw - 2 * f, ph = y1 - y0 - f * 2.4, geo = new THREE.PlaneGeometry(pw, ph), uv = geo.attributes.uv;
+        for (var k = 0; k < uv.count; k++) uv.setXY(k, uv.getX(k) * pw / 0.08, uv.getY(k) * ph / 0.08);
+        var pane = new THREE.Mesh(geo, mCane); pane.position.set((x0 + x1) / 2, y0 + f + ph / 2, D / 2 - 0.004); u.add(pane);
+        part(u, (x0 + x1) / 2 - 0.06, D / 2 - 0.002, (x0 + x1) / 2 + 0.06, D / 2, y1 - 0.03, y1 - 0.016, mHob);   // bar handle, kept within the depth
+      }
+      var up = new THREE.Vector3(0, 1, 0);
+      [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(function (c) {
+        var A = new THREE.Vector3(c[0] * 0.37, yb, c[1] * 0.12), B = new THREE.Vector3(c[0] * 0.42, 0, c[1] * 0.17), v = B.clone().sub(A);
+        var m = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.013, v.length(), 14), mDressBlack); m.position.copy(A).add(B).multiplyScalar(0.5); m.quaternion.setFromUnitVectors(up, v.normalize().negate()); m.castShadow = true; u.add(m);
+      });
+    },
     swoonMedia: function (g, w, d, h) {
       // Swoon media unit, 120 x 35 x 41 cm, here in dark oak: a top with a raised edge at the back and sides, two doors carved in a tumbling
       // cube pattern over the left two thirds, an open section with one shelf on the right, on four tapered legs that splay out.
@@ -2030,6 +2056,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     { k: 'booksPaper', b: 'booksPaper', n: ['Books, paperbacks', 'Kitaplar, cep boy'], w: 0.22, d: 0.13, h: 0.19, top: true },
     { k: 'tv65', b: 'tv', n: ['65" TV', '65" TV'], w: 1.44, d: 0.05, h: 0.81, y: 0.6 },
     { k: 'caneSideboard', b: 'caneSideboard', n: ['Sideboard, cane and charcoal oak 136 (MADE)', 'Konsol, hasır ve antrasit meşe 136 (MADE)'], w: 1.36, d: 0.41, h: 0.70 },
+    { k: 'dressingTable', b: 'dressingTable', n: ['Dressing table, dark green and cane 90', 'Makyaj masası, koyu yeşil ve hasır 90'], w: 0.9, d: 0.4, h: 0.8 },
     { k: 'swoonMedia', b: 'swoonMedia', n: ['Media unit, carved dark oak 120 (Swoon)', 'TV ünitesi, oymalı koyu meşe 120 (Swoon)'], w: 1.2, d: 0.35, h: 0.41 },
     { k: 'greenChest', b: 'greenChest', n: ['Chest of drawers, green 76', 'Çekmeceli dolap, yeşil 76'], w: 0.76, d: 0.40, h: 1.27 },
     { k: 'cabinet', b: 'storage', n: ['Low cabinet', 'Alçak dolap'], w: 1.8, d: 0.6, h: 1.0 },
@@ -2768,7 +2795,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   // ================= furniture bank: tap to add at the centre of the view, or drag a card into the flat
   var CATS = [['seat', ['quincy439', 'quincy438', 'quincy422', 'nockeby', 'sofa3', 'sofa2', 'sofaCurve', 'armchair', 'neva', 'hudson', 'wingChair', 'teakChair', 'palissade', 'dchair', 'ochair']], ['bed', ['bedKing', 'bedSuper', 'bedDouble', 'bedSingle']],
     ['table', ['coffee', 'nestBig', 'nestSmall', 'sideTable', 'dining', 'diningOak', 'sageTable', 'palissadeTable']], ['office', ['desk', 'standDesk', 'deskCorner', 'monitor', 'synth', 'bbgKeyboard', 'rig']],
-    ['store', ['shelving', 'shelving100', 'mediaUnit', 'mediaUnit150', 'mediaUnit350', 'swoonMedia', 'cabinet', 'sideboard', 'caneSideboard', 'greenChest', 'bookcase', 'slatBookcase', 'wardrobe']], ['art', ['paintT1', 'paintT2', 'artSun', 'artLeaf', 'artDunes', 'artGrid', 'artShapes', 'artLine', 'artSea', 'artField']], ['books', ['booksRow', 'booksArt', 'booksNeutral', 'booksLean', 'booksStack', 'booksPaper']], ['other', ['tv65', 'speaker', 'daliSpeaker', 'easel', 'easelT3', 'dogBed', 'rug', 'rugMoroccan', 'rugLayered', 'rugRound', 'screen', 'plant', 'birdPlant', 'figPlant', 'pothos', 'snakePlant', 'lamp', 'box']]];
+    ['store', ['shelving', 'shelving100', 'mediaUnit', 'mediaUnit150', 'mediaUnit350', 'swoonMedia', 'dressingTable', 'cabinet', 'sideboard', 'caneSideboard', 'greenChest', 'bookcase', 'slatBookcase', 'wardrobe']], ['art', ['paintT1', 'paintT2', 'artSun', 'artLeaf', 'artDunes', 'artGrid', 'artShapes', 'artLine', 'artSea', 'artField']], ['books', ['booksRow', 'booksArt', 'booksNeutral', 'booksLean', 'booksStack', 'booksPaper']], ['other', ['tv65', 'speaker', 'daliSpeaker', 'easel', 'easelT3', 'dogBed', 'rug', 'rugMoroccan', 'rugLayered', 'rugRound', 'screen', 'plant', 'birdPlant', 'figPlant', 'pothos', 'snakePlant', 'lamp', 'box']]];
   BANK.forEach(function (b) { if (!b.spec) b.c = 'other'; }); CATS.forEach(function (c) { c[1].forEach(function (k) { if (BK[k]) BK[k].c = c[0]; }); });
   var bankFilter = 'all';
   function bankCard(b, el) {
