@@ -714,6 +714,26 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     f.scale.set(w / sz.x, h / sz.y, d / sz.z); g.add(f);
   }
   // the Swoon media unit in dark oak: the case, and its doors carved in tumbling cubes, each cube face a different shade of the wood
+  // the pouf: linen with a raised rust bouclé meander; the pattern wraps round the drum without a seam
+  var mPoufSide = new THREE.MeshStandardMaterial({ roughness: 1 }), mPoufTop = new THREE.MeshStandardMaterial({ roughness: 1 });
+  function poufTex() {
+    var W = 1024, Hc = 384, c = document.createElement('canvas'); c.width = W; c.height = Hc; var g = c.getContext('2d'), r = rng(3546), i, k;
+    g.fillStyle = '#d9cfbd'; g.fillRect(0, 0, W, Hc);
+    for (i = 0; i < Hc; i += 2) { g.fillStyle = 'rgba(120,100,70,' + (0.04 + r() * 0.05) + ')'; g.fillRect(0, i, W, 1); }
+    for (i = 0; i < W; i += 2) { g.fillStyle = 'rgba(120,100,70,' + (0.03 + r() * 0.04) + ')'; g.fillRect(i, 0, 1, Hc); }
+    var cell = 64, cols = W / cell, rows = Math.ceil(Hc / cell) + 1;
+    g.lineCap = 'round'; g.lineJoin = 'round'; g.strokeStyle = '#7b4530'; g.lineWidth = 30;
+    function seg(x0, y0, x1, y1) { [-W, 0, W].forEach(function (o) { g.beginPath(); g.moveTo(x0 + o, y0); g.lineTo(x1 + o, y1); g.stroke(); }); }
+    for (k = 0; k < cols; k++) for (i = 0; i < rows; i++) {   // meanders: each cell draws a bar and sometimes a hook, on a grid so they join up
+      var x = k * cell + cell / 2, y = i * cell + cell / 2 - 20, t = r();
+      if (t < 0.45) seg(x, y, x + cell, y); else if (t < 0.85) seg(x, y, x, y + cell);
+      if (r() < 0.35) seg(x, y, x + (r() < 0.5 ? -1 : 1) * cell * 0.45, y);
+    }
+    for (i = 0; i < 9000; i++) {   // bouclé texture on the rust and a little on the linen
+      var px = r() * W, py = r() * Hc; g.fillStyle = r() < 0.5 ? 'rgba(150,90,60,0.16)' : 'rgba(80,42,25,0.18)'; g.beginPath(); g.arc(px, py, 1 + r() * 1.5, 0, 7); g.fill();
+    }
+    var t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; return t;
+  }
   var mDressGreen = M(0x2e3a30, 0.8), mDressBlack = M(0x1f2420, 0.6);   // the dressing table: matt dark green, black legs
   var mDarkOakG = M(0x4d3626, 0.55), mCubes = new THREE.MeshStandardMaterial({ roughness: 0.6 });
   function cubeTex() {   // one tile holds two rows of pointy-top hexagons, each split into a light top and a mid and a dark side
@@ -1397,6 +1417,18 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       part(u, -0.17, zy - 0.01, 0.17, zy + 0.06, 0.82, 0.885, mBeech);                                                          // box under the tray
       var kn = new THREE.Mesh(new THREE.SphereGeometry(0.012, 10, 8), mBrass); kn.position.set(0, 0.85, zy + 0.065); u.add(kn);
     },
+    pouf: function (g, w, d, h) {
+      // Round pouf, 35 across and 46 high: a drum upholstered in natural linen with a raised rust bouclé pattern of meandering bars and hooks,
+      // a piped top edge, on a dark wood plinth set in a little.
+      var u = new THREE.Group(); u.scale.set(w / 0.35, h / 0.46, d / 0.35); g.add(u);
+      if (!mPoufSide.map) { var t = poufTex(); mPoufSide.map = t; var t2 = t.clone(); t2.needsUpdate = true; t2.repeat.set(0.35, 0.35); mPoufTop.map = t2; }
+      var R = 0.175, yb = 0.055;
+      tube(u, 0, 0, R - 0.012, R - 0.012, 0, yb, mDarkOakG);
+      var side = new THREE.Mesh(new THREE.CylinderGeometry(R, R - 0.004, 0.46 - yb - 0.012, 48, 1, true), mPoufSide); side.position.y = (0.46 + yb - 0.012) / 2; side.castShadow = side.receiveShadow = true; u.add(side);
+      var bot = new THREE.Mesh(new THREE.CircleGeometry(R - 0.004, 48), mPoufSide); bot.rotation.x = Math.PI / 2; bot.position.y = yb; u.add(bot);
+      var top = new THREE.Mesh(new THREE.CircleGeometry(R - 0.008, 48), mPoufTop); top.rotation.x = -Math.PI / 2; top.position.y = 0.46; top.receiveShadow = true; u.add(top);
+      var pipe = new THREE.Mesh(new THREE.TorusGeometry(R - 0.008, 0.008, 8, 48), mPoufTop); pipe.rotation.x = Math.PI / 2; pipe.position.y = 0.452; u.add(pipe);
+    },
     dressingTable: function (g, w, d, h) {
       // Dressing table, 90 x 40 x 80 cm, matt dark green: a box top 20 cm deep with two drawers whose fronts frame a rattan cane panel, slim
       // black bar handles, on four round tapered legs that splay out.
@@ -2056,6 +2088,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     { k: 'booksPaper', b: 'booksPaper', n: ['Books, paperbacks', 'Kitaplar, cep boy'], w: 0.22, d: 0.13, h: 0.19, top: true },
     { k: 'tv65', b: 'tv', n: ['65" TV', '65" TV'], w: 1.44, d: 0.05, h: 0.81, y: 0.6 },
     { k: 'caneSideboard', b: 'caneSideboard', n: ['Sideboard, cane and charcoal oak 136 (MADE)', 'Konsol, hasır ve antrasit meşe 136 (MADE)'], w: 1.36, d: 0.41, h: 0.70 },
+    { k: 'pouf', b: 'pouf', n: ['Pouf, linen and rust bouclé', 'Puf, keten ve kiremit bukle'], w: 0.35, d: 0.35, h: 0.46 },
     { k: 'dressingTable', b: 'dressingTable', n: ['Dressing table, dark green and cane 90', 'Makyaj masası, koyu yeşil ve hasır 90'], w: 0.9, d: 0.4, h: 0.8 },
     { k: 'swoonMedia', b: 'swoonMedia', n: ['Media unit, carved dark oak 120 (Swoon)', 'TV ünitesi, oymalı koyu meşe 120 (Swoon)'], w: 1.2, d: 0.35, h: 0.41 },
     { k: 'greenChest', b: 'greenChest', n: ['Chest of drawers, green 76', 'Çekmeceli dolap, yeşil 76'], w: 0.76, d: 0.40, h: 1.27 },
@@ -2793,7 +2826,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   each('[data-walls]', function (b) { b.addEventListener('click', function () { setWalls(b.dataset.walls); }); });
 
   // ================= furniture bank: tap to add at the centre of the view, or drag a card into the flat
-  var CATS = [['seat', ['quincy439', 'quincy438', 'quincy422', 'nockeby', 'sofa3', 'sofa2', 'sofaCurve', 'armchair', 'neva', 'hudson', 'wingChair', 'teakChair', 'palissade', 'dchair', 'ochair']], ['bed', ['bedKing', 'bedSuper', 'bedDouble', 'bedSingle']],
+  var CATS = [['seat', ['quincy439', 'quincy438', 'quincy422', 'nockeby', 'sofa3', 'sofa2', 'sofaCurve', 'armchair', 'neva', 'hudson', 'wingChair', 'teakChair', 'palissade', 'pouf', 'dchair', 'ochair']], ['bed', ['bedKing', 'bedSuper', 'bedDouble', 'bedSingle']],
     ['table', ['coffee', 'nestBig', 'nestSmall', 'sideTable', 'dining', 'diningOak', 'sageTable', 'palissadeTable']], ['office', ['desk', 'standDesk', 'deskCorner', 'monitor', 'synth', 'bbgKeyboard', 'rig']],
     ['store', ['shelving', 'shelving100', 'mediaUnit', 'mediaUnit150', 'mediaUnit350', 'swoonMedia', 'dressingTable', 'cabinet', 'sideboard', 'caneSideboard', 'greenChest', 'bookcase', 'slatBookcase', 'wardrobe']], ['art', ['paintT1', 'paintT2', 'artSun', 'artLeaf', 'artDunes', 'artGrid', 'artShapes', 'artLine', 'artSea', 'artField']], ['books', ['booksRow', 'booksArt', 'booksNeutral', 'booksLean', 'booksStack', 'booksPaper']], ['other', ['tv65', 'speaker', 'daliSpeaker', 'easel', 'easelT3', 'dogBed', 'rug', 'rugMoroccan', 'rugLayered', 'rugRound', 'screen', 'plant', 'birdPlant', 'figPlant', 'pothos', 'snakePlant', 'lamp', 'box']]];
   BANK.forEach(function (b) { if (!b.spec) b.c = 'other'; }); CATS.forEach(function (c) { c[1].forEach(function (k) { if (BK[k]) BK[k].c = c[0]; }); });
