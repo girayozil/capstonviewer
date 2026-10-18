@@ -732,7 +732,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     f438: [{ L: 1.45, D: 0.95 }, { L: 1.05, D: 1.2, turn: -34 }],                                                     // island: no arm, the back turns forward into a deep chaise on the right
     // the horseshoe composition, 343 x 291: a rounded arm and a deep end on the left, the back rising up and over the top in two pieces, down
     // the right side to a rounded arm; the seats face into the U
-    u343: [{ L: 1.25, D: 1.05, turn: 52, arm: 'start' }, { L: 0.85, D: 0.95, turn: -30 }, { L: 0.85, D: 0.95, turn: -34 }, { L: 1.05, D: 0.95, turn: -42 }, { L: 1.05, D: 0.95, turn: -6, arm: 'end' }],
+    u343: [{ L: 1.3, D: 1.01, turn: 52, arm: 'start' }, { L: 0.96, D: 1.04, turn: -34 }, { L: 1.04, D: 1.06, turn: -37 }, { L: 1.27, D: 1.01, turn: -48 }, { L: 1.24, D: 0.97, turn: -13, arm: 'end' }],   // fitted to the maker's plan; the back takes about 35 cm of the depth
     f422: [{ L: 1.05, D: 1.2, back: 0.45 }, { L: 1.05, D: 0.95, turn: -26 }, { L: 1.4, D: 0.95, turn: -18, arm: 'end' }]   // F470 six-sided side and F422 end piece
   };
   var mQuincy = M(0x887a6a, 0.97), mQuincySeam = M(0x7b6e5f, 0.97), QMAT = [mQuincy, mQuincySeam];
@@ -746,11 +746,12 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       [-S2, 0, S2].forEach(function (o) { g.beginPath(); g.ellipse(x + o, y, 1.6 + r() * 1.6, 1.2 + r() * 1.2, r() * 3, 0, 7); g.fill(); }); }
     var t2 = new THREE.CanvasTexture(c); t2.wrapS = t2.wrapT = THREE.RepeatWrapping; t2.repeat.set(5, 5); t2.encoding = THREE.sRGBEncoding; return t2;
   }
-  function quincy(g, w, d, h, spec, mats) {
+  function quincy(g, w, d, h, spec, mats, bk) {
     if (!QMAT[0].map) QMAT[0].map = QMAT[1].map = grainTex('fabric');
     if (mats && !mats[0].map) mats[0].map = mats[1].map = navyBoucle();
     var mQuincy = mats ? mats[0] : QMAT[0], mQuincySeam = mats ? mats[1] : QMAT[1];   // the fabric: the taupe by default
-    var u = new THREE.Group(), x = 0, z = 0, a = 0, bk = 0.2, yb = 0.24, ys = 0.42, H = 0.76;
+    bk = bk || 0.2;   // depth of the back seen from above
+    var u = new THREE.Group(), x = 0, z = 0, a = 0, yb = 0.24, ys = 0.42, H = 0.76;
     spec.forEach(function (sec, i) {
       a += (sec.turn || 0) * Math.PI / 180;
       var s = new THREE.Group(); s.position.set(x, 0, z); s.rotation.y = a; u.add(s);
@@ -760,9 +761,10 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       var roll = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.085, L, 20), mQuincy); roll.rotation.z = Math.PI / 2; roll.position.set(L / 2, ys - 0.085, D - 0.085); roll.castShadow = roll.receiveShadow = true; s.add(roll);
       part(s, b0, 0, L, bk, yb, H - 0.09, mQuincy);                                                      // back
       var top = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, L - b0, 20), mQuincy); top.rotation.z = Math.PI / 2; top.position.set((b0 + L) / 2, H - 0.1, 0.1); top.castShadow = top.receiveShadow = true; s.add(top);
+      if (bk > 0.3) { var top2 = top.clone(); top2.position.z = bk - 0.1; s.add(top2); part(s, b0, 0.1, L, bk - 0.1, H - 0.1, H, mQuincy); }   // a thick back: rounded on both edges, flat between
       if (b0) { var cap = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, H - 0.09 - yb, 20), mQuincy); cap.position.set(b0, (H - 0.09 + yb) / 2, 0.1); s.add(cap); }
       if (sec.arm) {   // a rounded arm, as high as the back, coming forward a little over half the depth
-        var ax = sec.arm === 'start' ? 0.1 : L - 0.1, ad = D * 0.55;
+        var ax = sec.arm === 'start' ? 0.1 : L - 0.1, ad = bk > 0.3 ? Math.max(D * 0.55, bk + 0.35) : D * 0.55;
         part(s, ax - 0.1, bk - 0.02, ax + 0.1, ad - 0.1, yb, H - 0.1, mQuincy);
         var ac = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, ad - 0.1, 20), mQuincy); ac.rotation.x = Math.PI / 2; ac.position.set(ax, H - 0.1, (ad - 0.1) / 2 + 0.05); s.add(ac);
         var af = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, H - 0.1 - yb, 20), mQuincy); af.position.set(ax, (H - 0.1 + yb) / 2, ad - 0.1); s.add(af);
@@ -1677,7 +1679,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     quincy439: function (g, w, d, h) { quincy(g, w, d, h, QUINCY.f439); },
     quincy438: function (g, w, d, h) { quincy(g, w, d, h, QUINCY.f438); },
     quincy422: function (g, w, d, h) { quincy(g, w, d, h, QUINCY.f422); },
-    quincyU: function (g, w, d, h) { quincy(g, w, d, h, QUINCY.u343, [mQuNavy, mQuNavySeam]); },
+    quincyU: function (g, w, d, h) { quincy(g, w, d, h, QUINCY.u343, [mQuNavy, mQuNavySeam], 0.35); },
     palissadeTable: function (g, w, d, h) {
       // HAY Palissade table, 82.5 x 90 x 74 cm, olive powder-coated steel: four straight tube legs, a tube frame round the top with rounded
       // corners, and flat straps running front to back across it, turned down over the front and back rails.
