@@ -676,6 +676,43 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   var mTeak = M(0x5c3d2c, 0.4);
   var mBeech = M(0xc98c57, 0.55);
   var mPalOlive = M(0x667345, 0.5);
+  // ---- Flexform Quincy modular sofa (fabric Everyday 881): each element is a chain of straight upholstered sections that meet at angles,
+  // as in the plan views. A section has a seat (base and a cushion with a rolled front) and a back with a rounded top; sections can end in
+  // a rounded arm. The chain is built at natural size, then fitted exactly to the element's width x depth x height.
+  // Each section: L length along the back, D depth, a turn in degrees from the previous one (negative brings the far end forward), arm at its end.
+  var QUINCY = {
+    f439: [{ L: 0.95, D: 1.25, arm: 'start' }, { L: 1.5, D: 0.95, turn: -32 }],                                   // island: rounded arm on the left, deep part beside it
+    f438: [{ L: 1.45, D: 0.95 }, { L: 1.05, D: 1.2, turn: -34 }],                                                     // island: no arm, the back turns forward into a deep chaise on the right
+    f422: [{ L: 1.05, D: 1.2, back: 0.45 }, { L: 1.05, D: 0.95, turn: -26 }, { L: 1.4, D: 0.95, turn: -18, arm: 'end' }]   // F470 six-sided side and F422 end piece
+  };
+  var mQuincy = M(0x887a6a, 0.97), mQuincySeam = M(0x7b6e5f, 0.97);
+  function quincy(g, w, d, h, spec) {
+    if (!mQuincy.map) mQuincy.map = mQuincySeam.map = grainTex('fabric');
+    var u = new THREE.Group(), x = 0, z = 0, a = 0, bk = 0.2, yb = 0.24, ys = 0.42, H = 0.76;
+    spec.forEach(function (sec, i) {
+      a += (sec.turn || 0) * Math.PI / 180;
+      var s = new THREE.Group(); s.position.set(x, 0, z); s.rotation.y = a; u.add(s);
+      var L = sec.L, D = sec.D, b0 = sec.back ? L * sec.back : 0;   // back may start part way along (the open end of F470)
+      part(s, 0.02, 0.03, L - 0.02, D - 0.04, 0, yb, mQuincySeam);                                      // base
+      part(s, 0, bk - 0.02, L, D - 0.08, yb, ys, mQuincy);                                              // cushion
+      var roll = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.085, L, 20), mQuincy); roll.rotation.z = Math.PI / 2; roll.position.set(L / 2, ys - 0.085, D - 0.085); roll.castShadow = roll.receiveShadow = true; s.add(roll);
+      part(s, b0, 0, L, bk, yb, H - 0.09, mQuincy);                                                      // back
+      var top = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, L - b0, 20), mQuincy); top.rotation.z = Math.PI / 2; top.position.set((b0 + L) / 2, H - 0.1, 0.1); top.castShadow = top.receiveShadow = true; s.add(top);
+      if (b0) { var cap = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, H - 0.09 - yb, 20), mQuincy); cap.position.set(b0, (H - 0.09 + yb) / 2, 0.1); s.add(cap); }
+      if (sec.arm) {   // a rounded arm, as high as the back, coming forward a little over half the depth
+        var ax = sec.arm === 'start' ? 0.1 : L - 0.1, ad = D * 0.55;
+        part(s, ax - 0.1, bk - 0.02, ax + 0.1, ad - 0.1, yb, H - 0.1, mQuincy);
+        var ac = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, ad - 0.1, 20), mQuincy); ac.rotation.x = Math.PI / 2; ac.position.set(ax, H - 0.1, (ad - 0.1) / 2 + 0.05); s.add(ac);
+        var af = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, H - 0.1 - yb, 20), mQuincy); af.position.set(ax, (H - 0.1 + yb) / 2, ad - 0.1); s.add(af);
+        var ab = new THREE.Mesh(new THREE.SphereGeometry(0.1, 16, 10), mQuincy); ab.position.set(ax, H - 0.1, ad - 0.1); s.add(ab);
+      }
+      x += Math.cos(a) * L; z -= Math.sin(a) * L;   // the next section starts at this one's back far corner (local +x turned by a, y up)
+    });
+    u.traverse(function (m) { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } });
+    u.updateMatrixWorld(true); var bb = new THREE.Box3().setFromObject(u), sz = bb.getSize(new THREE.Vector3());
+    var f = new THREE.Group(); f.add(u); u.position.set(-(bb.min.x + bb.max.x) / 2, 0, -(bb.min.z + bb.max.z) / 2);
+    f.scale.set(w / sz.x, h / sz.y, d / sz.z); g.add(f);
+  }
   // the Swoon media unit in dark oak: the case, and its doors carved in tumbling cubes, each cube face a different shade of the wood
   var mDarkOakG = M(0x4d3626, 0.55), mCubes = new THREE.MeshStandardMaterial({ roughness: 0.6 });
   function cubeTex() {   // one tile holds two rows of pointy-top hexagons, each split into a light top and a mid and a dark side
@@ -1388,6 +1425,9 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
         var m = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.011, v.length(), 12), mDarkOakG); m.position.copy(A).add(B).multiplyScalar(0.5); m.quaternion.setFromUnitVectors(up, v.normalize().negate()); m.castShadow = true; u.add(m);
       });
     },
+    quincy439: function (g, w, d, h) { quincy(g, w, d, h, QUINCY.f439); },
+    quincy438: function (g, w, d, h) { quincy(g, w, d, h, QUINCY.f438); },
+    quincy422: function (g, w, d, h) { quincy(g, w, d, h, QUINCY.f422); },
     palissadeTable: function (g, w, d, h) {
       // HAY Palissade table, 82.5 x 90 x 74 cm, olive powder-coated steel: four straight tube legs, a tube frame round the top with rounded
       // corners, and flat straps running front to back across it, turned down over the front and back rails.
@@ -1945,6 +1985,9 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     { k: 'bedSuper', b: 'bed', n: ['Super king bed', 'Çift kişilik yatak 180'], w: 1.8, d: 2.0, h: 1.1 },
     { k: 'bedDouble', b: 'bed', n: ['Double bed', 'Çift kişilik yatak 135'], w: 1.35, d: 1.9, h: 1.1 },
     { k: 'bedSingle', b: 'bed', n: ['Single bed', 'Tek kişilik yatak'], w: 0.9, d: 1.9, h: 1.0 },
+    { k: 'quincy439', b: 'quincy439', n: ['Flexform Quincy F439, island', 'Flexform Quincy F439, ada'], w: 2.35, d: 1.58, h: 0.76 },
+    { k: 'quincy438', b: 'quincy438', n: ['Flexform Quincy F438, island', 'Flexform Quincy F438, ada'], w: 2.35, d: 1.58, h: 0.76 },
+    { k: 'quincy422', b: 'quincy422', n: ['Flexform Quincy F422+F470', 'Flexform Quincy F422+F470'], w: 3.4, d: 1.55, h: 0.76 },
     { k: 'nockeby', b: 'nockeby', n: ['Nockeby sofa with chaise right, grey 277 (IKEA)', 'Nockeby köşe koltuk, sağ şezlong, gri 277 (IKEA)'], w: 2.77, d: 1.71, h: 0.66 },
     { k: 'sofa3', b: 'sofa', n: ['Sofa, 3 seats', 'Üçlü koltuk'], w: 2.2, d: 0.95, h: 0.8 },
     { k: 'sofa2', b: 'sofa', n: ['Sofa, 2 seats', 'İkili koltuk'], w: 1.6, d: 0.9, h: 0.8 },
@@ -2723,7 +2766,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   each('[data-walls]', function (b) { b.addEventListener('click', function () { setWalls(b.dataset.walls); }); });
 
   // ================= furniture bank: tap to add at the centre of the view, or drag a card into the flat
-  var CATS = [['seat', ['nockeby', 'sofa3', 'sofa2', 'sofaCurve', 'armchair', 'neva', 'hudson', 'wingChair', 'teakChair', 'palissade', 'dchair', 'ochair']], ['bed', ['bedKing', 'bedSuper', 'bedDouble', 'bedSingle']],
+  var CATS = [['seat', ['quincy439', 'quincy438', 'quincy422', 'nockeby', 'sofa3', 'sofa2', 'sofaCurve', 'armchair', 'neva', 'hudson', 'wingChair', 'teakChair', 'palissade', 'dchair', 'ochair']], ['bed', ['bedKing', 'bedSuper', 'bedDouble', 'bedSingle']],
     ['table', ['coffee', 'nestBig', 'nestSmall', 'sideTable', 'dining', 'diningOak', 'sageTable', 'palissadeTable']], ['office', ['desk', 'standDesk', 'deskCorner', 'monitor', 'synth', 'bbgKeyboard', 'rig']],
     ['store', ['shelving', 'shelving100', 'mediaUnit', 'mediaUnit150', 'mediaUnit350', 'swoonMedia', 'cabinet', 'sideboard', 'caneSideboard', 'greenChest', 'bookcase', 'slatBookcase', 'wardrobe']], ['art', ['paintT1', 'paintT2', 'artSun', 'artLeaf', 'artDunes', 'artGrid', 'artShapes', 'artLine', 'artSea', 'artField']], ['books', ['booksRow', 'booksArt', 'booksNeutral', 'booksLean', 'booksStack', 'booksPaper']], ['other', ['tv65', 'speaker', 'daliSpeaker', 'easel', 'easelT3', 'dogBed', 'rug', 'rugMoroccan', 'rugLayered', 'rugRound', 'screen', 'plant', 'birdPlant', 'figPlant', 'pothos', 'snakePlant', 'lamp', 'box']]];
   BANK.forEach(function (b) { if (!b.spec) b.c = 'other'; }); CATS.forEach(function (c) { c[1].forEach(function (k) { if (BK[k]) BK[k].c = c[0]; }); });
