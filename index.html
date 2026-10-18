@@ -100,14 +100,23 @@ body.measuring #stage canvas { cursor: crosshair; }
 #paint-sw { gap: 6px; }
 #paint-sw button { width: 30px; height: 30px; padding: 0; border-radius: 50%; border: 2px solid var(--line); }
 #paint-sw button[aria-pressed="true"] { border-color: var(--fg); box-shadow: 0 0 0 2px var(--panel) inset; }
-.pcustom { display: inline-flex; align-items: center; gap: 6px; font-size: 0.74rem; border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px 2px 3px; cursor: pointer; }
-.pcustom input { width: 24px; height: 24px; padding: 0; border: none; border-radius: 50%; background: none; }
+#paint-cname { font-size: 0.78rem; color: var(--muted); margin-right: auto; }
+#paint-editor { align-items: center; }
+#pe-label { font-size: 0.74rem; color: var(--muted); }
+#pe-hex, #pe-name { font: 500 0.82rem var(--body); color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; min-width: 0; }
+#pe-hex { width: 6.5em; font-variant-numeric: tabular-nums; }
+#pe-name { flex: 1 1 7em; }
+#pe-pick { width: 30px; height: 30px; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: none; }
+#paint-sw button[data-editing="true"] { outline: 2px dashed var(--accent); outline-offset: 2px; }
+#paintbtn { display: inline-flex; align-items: center; gap: 5px; }
+#paintbtn svg { width: 15px; height: 15px; }
+#paintbtn[aria-pressed="true"] { background: var(--accent); }
 body.painting #views, body.painting #undo, body.painting #hint { display: none; }
 body.painting #stage canvas { cursor: pointer; }
 #flytag { position: absolute; left: 50%; top: 104px; transform: translateX(-50%); width: max-content; max-width: calc(100% - 32px); text-align: center; font-size: 0.74rem;
   background: var(--panel); border: 1px solid var(--line); color: var(--fg); border-radius: 12px; padding: 4px 10px; pointer-events: none; z-index: 2; }
 body.flying #stage canvas { cursor: none; }
-body.walking #measbtn, body.walking #meashint { display: none; }
+body.walking #measbtn, body.walking #paintbtn, body.walking #meashint { display: none; }
 #dispbtn[aria-expanded="true"] { border-color: var(--accent); }
 #dispmenu { position: absolute; top: 98px; right: 16px; max-width: calc(100% - 32px); z-index: 3; display: flex; flex-direction: column; gap: 8px;
   background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; box-shadow: 0 4px 16px rgba(40, 28, 20, 0.18); }
@@ -226,6 +235,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   <div id="walkhud" hidden><span id="walkhint"></span><span class="row small"><button id="nemo-btn" role="switch" aria-checked="true" data-i18n="nhome">Nemo is at home</button><button id="nemo-call" data-i18n="ncall" title="Space" aria-keyshortcuts="Space">Call Nemo</button><button id="nemo-bed" data-i18n="nbed" title="B" aria-keyshortcuts="B">Send Nemo to bed</button></span></div>
   <div id="tools">
     <button id="measbtn" aria-pressed="false" title="M" aria-keyshortcuts="M"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M1.5 10.5 10.5 1.5l4 4-9 9zM4 8l1.5 1.5M6 6l2 2M8 4l1.5 1.5"/></svg><span data-i18n="measure">Measure</span></button>
+    <button id="paintbtn" aria-pressed="false" title="P" aria-keyshortcuts="P"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="M2 2.5h9.5v3.5H2z"/><path d="M11.5 4.2h2v3.3H7.2v2"/><path d="M6.4 9.5h1.6v5H6.4z"/></svg><span data-i18n="paintbtn">Paint</span></button>
     <button id="dispbtn" aria-expanded="false" aria-controls="dispmenu"><span data-i18n="display">Display</span> ▾</button>
   </div>
   <div id="meashint" hidden></div>
@@ -239,17 +249,23 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       <button id="w-full" data-walls="full" aria-pressed="false" data-i18n="full">Full height</button>
     </div>
     <div class="row small"><button id="screens" aria-pressed="false" data-i18n="screens">Partitions</button><button id="dims" aria-pressed="true" data-i18n="dims">Measurements</button></div>
-    <div class="row small"><button id="paintbtn" aria-pressed="false" data-i18n="paintbtn">Paint walls</button></div>
   </div>
   <div id="paintpanel" hidden>
     <div class="row"><b id="paint-name"></b><button id="paint-done" class="small" data-i18n="done">Done</button></div>
     <p id="paint-hint" data-i18n="painthint"></p>
+    <div id="paint-sw" class="row" role="group" aria-label="Colour"></div>
+    <div class="row small"><span id="paint-cname"></span><button id="paint-editbtn" aria-pressed="false" data-i18n="pedit">Edit colours</button></div>
+    <div id="paint-editor" class="row small" hidden>
+      <span id="pe-label"></span>
+      <input id="pe-hex" type="text" maxlength="7" spellcheck="false" autocomplete="off" aria-label="Hex" placeholder="#rrggbb">
+      <input id="pe-pick" type="color" aria-label="Colour">
+      <input id="pe-name" type="text" maxlength="24" data-i18n-ph="pename" placeholder="Name">
+    </div>
     <div id="paint-edit">
-      <div id="paint-sw" class="row" role="group" aria-label="Colour"></div>
-      <div class="row small"><label class="pcustom"><input id="paint-color" type="color" value="#f4f0e8"><span data-i18n="pcustom">Custom colour</span></label>
-        <button id="paint-room" aria-pressed="false" data-i18n="pwhole">Whole room</button><button id="paint-white" data-i18n="pwhite">Back to white</button></div>
+      <div class="row small"><button id="paint-room" aria-pressed="false" data-i18n="pwhole">Whole room</button><button id="paint-white" data-i18n="pwhite">Back to white</button></div>
       <div id="paint-wp" class="row small" role="group" aria-label="Wallpaper"></div>
     </div>
+    <div class="row small"><button id="paint-copy" class="linkbtn" data-i18n="pcopy">Copy colours as text</button><button id="paint-reset" class="linkbtn" data-i18n="pdefault">Back to default colours</button></div>
     <input id="paint-file" type="file" accept="image/*" hidden>
   </div>
   <div id="views" role="group" aria-label="View" class="small">
@@ -413,7 +429,8 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       nosaved: 'No saved layouts yet.', shared: 'shared', device: 'this device', savedShared: 'Saved. Everyone who can open this page while signed in will see it.',
       savedLocal: 'Saved on this device only.', copied: 'Layout copied. Paste it into the chat.', copyfail: 'Select the text below and copy it.', needname: 'Type a name first.',
       aria: '3D model of apartment {flat}', bed1: 'Studio', bed2: 'Master bedroom', hall: 'Hallway', liv1: 'N11.01 living', liv2: 'N11.02 living', dopen: 'Open door', dclose: 'Close door', flyhint: 'W A S D to fly · E Q up and down · scroll for speed', flyspeed: 'Flight speed',
-      paintbtn: 'Paint walls', painthint: 'Tap a wall to paint it.', pcustom: 'Custom colour', pwhole: 'Whole room', pwhite: 'Back to white',
+      paintbtn: 'Paint', painthint: 'Tap a wall to paint it.', pwhole: 'Whole room', pwhite: 'Back to white', pedit: 'Edit colours', pename: 'Name', pcolour: 'Colour {n}',
+      pcopy: 'Copy colours as text', pcopied: 'Copied. Paste it to Claude Code to make these the defaults.', pdefault: 'Back to default colours', pdefq: 'Replace your colours and painted walls with the defaults?',
       wpnone: 'Plain', wpstripe: 'Stripe', wpgrass: 'Grasscloth', wpcheck: 'Check', wpbot: 'Botanical', wpphoto: 'Photo…', wn: 'north wall', ws: 'south wall', we: 'east wall', ww: 'west wall',
       aikeynote: 'Claude can make new furniture and arrange the flat for you. To turn it on, paste an Anthropic API key. It is kept only in this browser, never in the page or the repository. A key with a monthly spending limit is safest.',
       aikeysave: 'Save key', aikeybad: 'That does not look like an Anthropic API key. It starts with sk-ant-.', aiph: 'Describe a piece of furniture, or ask to place, move or remove something',
@@ -433,7 +450,8 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       nosaved: 'Henüz kayıtlı yerleşim yok.', shared: 'ortak', device: 'bu cihaz', savedShared: 'Kaydedildi. Oturum açıp bu sayfayı açabilen herkes görür.',
       savedLocal: 'Yalnızca bu cihaza kaydedildi.', copied: 'Yerleşim kopyalandı. Sohbete yapıştırın.', copyfail: 'Aşağıdaki metni seçip kopyalayın.', needname: 'Önce bir ad yazın.',
       aria: '{flat} dairesinin 3B modeli', bed1: 'Stüdyo', bed2: 'Ana yatak odası', hall: 'Koridor', liv1: 'N11.01 salon', liv2: 'N11.02 salon', dopen: 'Kapıyı aç', dclose: 'Kapıyı kapat', flyhint: 'Uçmak için W A S D · yukarı ve aşağı için E Q · hız için tekerlek', flyspeed: 'Uçuş hızı',
-      paintbtn: 'Duvarları boya', painthint: 'Boyamak için bir duvara dokunun.', pcustom: 'Özel renk', pwhole: 'Tüm oda', pwhite: 'Beyaza dön',
+      paintbtn: 'Boya', painthint: 'Boyamak için bir duvara dokunun.', pwhole: 'Tüm oda', pwhite: 'Beyaza dön', pedit: 'Renkleri düzenle', pename: 'Ad', pcolour: 'Renk {n}',
+      pcopy: 'Renkleri metin olarak kopyala', pcopied: 'Kopyalandı. Bunları varsayılan yapmak için Claude Code’a yapıştırın.', pdefault: 'Varsayılan renklere dön', pdefq: 'Renkleriniz ve boyalı duvarlar varsayılanlarla değiştirilsin mi?',
       wpnone: 'Düz', wpstripe: 'Çizgili', wpgrass: 'Hasır doku', wpcheck: 'Kareli', wpbot: 'Botanik', wpphoto: 'Fotoğraf…', wn: 'kuzey duvarı', ws: 'güney duvarı', we: 'doğu duvarı', ww: 'batı duvarı',
       aikeynote: 'Claude sizin için yeni mobilyalar yapabilir ve daireyi düzenleyebilir. Açmak için bir Anthropic API anahtarı yapıştırın. Anahtar yalnızca bu tarayıcıda saklanır, sayfaya veya depoya asla eklenmez. Aylık harcama sınırı olan bir anahtar en güvenlisidir.',
       aikeysave: 'Anahtarı kaydet', aikeybad: 'Bu bir Anthropic API anahtarına benzemiyor. Anahtar sk-ant- ile başlar.', aiph: 'Bir mobilya tarif edin ya da bir şeyi yerleştirmemi, taşımamı veya kaldırmamı isteyin',
@@ -2664,6 +2682,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     if (e.altKey && k === 'j') { e.preventDefault(); $($('v-top').getAttribute('aria-pressed') === 'true' ? 'v-over' : 'v-top').click(); return; }
     if (mod || e.altKey) return;
     if (k === 'm') { setRuler(!ruler.on); return; }
+    if (k === 'p') { setPaintMode(!paint.on); return; }
     if (k === 'escape' && ruler.on) { setRuler(false); return; }
     if (k === 'escape' && paint.on) { setPaintMode(false); return; }
     if (k === 'w') setTool('move'); else if (k === 'e') setTool('rotate'); else if (k === 'r') setTool('scale');
@@ -3092,9 +3111,17 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
 
   // ================= wall paint: in paint mode a tap picks a wall (SURF), which takes a colour or a wallpaper, alone or with its whole room.
   // Kept on this device in capston-paint (all flats in one map, keyed as SURF), in the Undo history, and inside saved layouts.
-  var PAINT = {}, paint = { on: false, key: null, whole: false };
-  try { PAINT = JSON.parse(localStorage.getItem('capston-paint') || '{}') || {}; } catch (e) { PAINT = {}; }
-  var SWATCHES = ['#f4f0e8', '#e6dccb', '#d8c6a8', '#b9c4a7', '#8fa58f', '#4d6250', '#c0795a', '#e2c2b8', '#a86e55', '#8c9db0', '#3d4b5e', '#4a4a48'];
+  // A wall refers to one of the 12 palette colours ({p: slot}), so editing a colour repaints every wall that uses it; older entries keep a hex ({c}).
+  // The palette (capston-palette) and the painted walls start from PAINT_DEFAULTS; "Copy colours as text" exports both to be made the defaults here.
+  var PAINT_DEFAULTS = { palette: [], walls: {} };
+  for (var pi = 0; pi < 12; pi++) PAINT_DEFAULTS.palette.push({ c: '#f4f0e8', n: '' });
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  var PAINT = clone(PAINT_DEFAULTS.walls), PALETTE = clone(PAINT_DEFAULTS.palette), paint = { on: false, key: null, whole: false, editing: false, slot: null };
+  try { var sp = JSON.parse(localStorage.getItem('capston-paint') || 'null'); if (sp && typeof sp === 'object') PAINT = sp; } catch (e) {}
+  try { var sl = JSON.parse(localStorage.getItem('capston-palette') || 'null'); if (Array.isArray(sl) && sl.length === 12) PALETTE = sl; } catch (e) {}
+  function savePalette() { try { localStorage.setItem('capston-palette', JSON.stringify(PALETTE)); } catch (e) {} }
+  function slotName(i) { return PALETTE[i].n || tr('pcolour').replace('{n}', i + 1); }
+  function wallColour(p) { return p.p != null && PALETTE[p.p] ? PALETTE[p.p].c : p.c || '#f4f0e8'; }
   var WALLPAPERS = [['none', 'wpnone'], ['stripe', 'wpstripe', 0.5], ['grass', 'wpgrass', 0.6], ['check', 'wpcheck', 0.32], ['bot', 'wpbot', 0.53], ['photo', 'wpphoto', 0.53]];
   var wpCanvases = {};
   function wpCanvas(name) {   // near-white patterns, so the chosen colour tints them; one tile each
@@ -3119,7 +3146,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   function inRoom(key) { var s = SURF[paint.key]; return !!s && (paint.whole ? SURF[key].ri === s.ri : key === paint.key); }
   function applyPaint(key) {
     var p = PAINT[key] || {}, m = surfMats[key]; if (!m) return;
-    m.color.set(p.c || '#f4f0e8').convertSRGBToLinear();
+    m.color.set(wallColour(p)).convertSRGBToLinear();
     var sig = p.wp ? p.wp + (p.wp === 'photo' && p.img ? p.img.length + p.img.slice(-24) : '') : '';
     if (m.userData.wp !== sig) {
       if (m.map) m.map.dispose();
@@ -3140,7 +3167,8 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   function paintKeys(list, change) {   // change: fields to set, or null for plain white again
     list.forEach(function (k) {
       if (change === null) delete PAINT[k];
-      else { var q = {}, f; for (f in PAINT[k] || {}) q[f] = PAINT[k][f]; for (f in change) q[f] = change[f]; if (q.wp === 'none') { delete q.wp; delete q.img; } PAINT[k] = q; }
+      else { var q = {}, f; for (f in PAINT[k] || {}) q[f] = PAINT[k][f]; for (f in change) q[f] = change[f]; if (q.wp === 'none') { delete q.wp; delete q.img; }
+        if (change.p != null) delete q.c; else if (change.c) delete q.p; PAINT[k] = q; }
       applyPaint(k);
     });
     savePaint();
@@ -3150,11 +3178,17 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     paintKeys(Object.keys(SURF).filter(inRoom), change); refreshPaintUI();
   }
   function refreshPaintUI() {
-    var k = paint.key, s = k && SURF[k], p = (k && PAINT[k]) || {}, c = (p.c || '#f4f0e8').toLowerCase();
+    var k = paint.key, s = k && SURF[k], p = (k && PAINT[k]) || {}, cur = s && p.p != null ? p.p : null;
     $('paint-hint').hidden = !!s; $('paint-edit').hidden = !s;
     $('paint-name').textContent = s ? nm(ROOMS[s.ri].n) + (paint.whole ? '' : ', ' + tr('w' + s.side)) : tr('paintbtn');
-    $('paint-room').setAttribute('aria-pressed', String(paint.whole)); $('paint-color').value = c;
-    each('#paint-sw button', function (b) { b.setAttribute('aria-pressed', String(b.dataset.c === c)); });
+    $('paint-room').setAttribute('aria-pressed', String(paint.whole));
+    each('#paint-sw button', function (b) { var i = +b.dataset.i; b.style.background = PALETTE[i].c; b.title = slotName(i); b.setAttribute('aria-label', slotName(i));
+      b.setAttribute('aria-pressed', String(i === cur)); b.dataset.editing = String(paint.editing && i === paint.slot); });
+    $('paint-cname').textContent = cur != null ? slotName(cur) : '';
+    $('paint-editbtn').setAttribute('aria-pressed', String(paint.editing));
+    var ed = paint.editing && paint.slot != null; $('paint-editor').hidden = !ed;
+    if (ed) { var e = PALETTE[paint.slot]; $('pe-label').textContent = tr('pcolour').replace('{n}', paint.slot + 1);
+      if (document.activeElement !== $('pe-hex')) $('pe-hex').value = e.c; $('pe-pick').value = e.c; if (document.activeElement !== $('pe-name')) $('pe-name').value = e.n; }
     each('#paint-wp button', function (b) { b.setAttribute('aria-pressed', String(b.dataset.wp === (p.wp || 'none'))); });
   }
   function setPaintMode(on) {
@@ -3167,15 +3201,32 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     for (var i = 0; i < hits.length && hits[i].distance - hits[0].distance < 0.08; i++) if (hits[i].object.userData.surface) { key = hits[i].object.userData.surface; break; }
     paint.key = key; repaintAll(); refreshPaintUI();
   }
-  SWATCHES.forEach(function (c) {
-    var b = document.createElement('button'); b.dataset.c = c; b.style.background = c; b.setAttribute('aria-label', c);
-    b.addEventListener('click', function () { setPaint({ c: c }); }); $('paint-sw').appendChild(b);
+  PALETTE.forEach(function (e, i) {   // a tap paints with the colour, or picks it for editing while Edit colours is on
+    var b = document.createElement('button'); b.dataset.i = i;
+    b.addEventListener('click', function () { if (paint.editing) { paint.slot = i; refreshPaintUI(); } else setPaint({ p: i }); }); $('paint-sw').appendChild(b);
+  });
+  function editSlot(c) {   // a palette colour changed: repaint every wall that uses it
+    PALETTE[paint.slot].c = c; savePalette();
+    Object.keys(SURF).forEach(function (k) { if (PAINT[k] && PAINT[k].p === paint.slot) applyPaint(k); }); refreshPaintUI();
+  }
+  $('paint-editbtn').addEventListener('click', function () { paint.editing = !paint.editing; if (paint.editing && paint.slot == null) paint.slot = 0; refreshPaintUI(); });
+  $('pe-hex').addEventListener('input', function () { var v = this.value.trim().toLowerCase(); if (v[0] !== '#') v = '#' + v; if (/^#[0-9a-f]{6}$/.test(v)) editSlot(v); });
+  $('pe-hex').addEventListener('change', function () { refreshPaintUI(); });
+  $('pe-pick').addEventListener('input', function () { $('pe-hex').value = this.value; editSlot(this.value.toLowerCase()); });
+  $('pe-name').addEventListener('input', function () { PALETTE[paint.slot].n = this.value.slice(0, 24); savePalette(); refreshPaintUI(); });
+  $('paint-copy').addEventListener('click', function () {
+    var text = 'Capston wall colours (palette and painted walls):\n' + JSON.stringify({ palette: PALETTE, walls: PAINT });
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { window.alert(tr('pcopied')); }, function () { window.prompt('', text); });
+    else window.prompt('', text);
+  });
+  $('paint-reset').addEventListener('click', function () {
+    if (!window.confirm(tr('pdefq'))) return; pushUndo();
+    PALETTE = clone(PAINT_DEFAULTS.palette); savePalette(); PAINT = clone(PAINT_DEFAULTS.walls); savePaint(); repaintAll(); refreshPaintUI();
   });
   WALLPAPERS.forEach(function (w) {
     var b = document.createElement('button'); b.dataset.wp = w[0]; b.dataset.i18n = w[1]; b.textContent = tr(w[1]);
     b.addEventListener('click', function () { if (w[0] === 'photo') $('paint-file').click(); else setPaint({ wp: w[0] }); }); $('paint-wp').appendChild(b);
   });
-  $('paint-color').addEventListener('change', function () { setPaint({ c: this.value.toLowerCase() }); });
   $('paint-file').addEventListener('change', function () {   // a photo wallpaper, scaled down to 512 px so it stays small in storage
     var f = this.files && this.files[0]; this.value = ''; if (!f) return;
     var url = URL.createObjectURL(f), im = new Image();
