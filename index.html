@@ -716,6 +716,21 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   // the Swoon media unit in dark oak: the case, and its doors carved in tumbling cubes, each cube face a different shade of the wood
   // the pouf: linen with a raised rust bouclé meander; the pattern wraps round the drum without a seam
   // the master bed: walnut butcher block, beige headboard, oatmeal linen bedding with a rust throw
+  // the Vance table: emerald marble with white veins, high-gloss mint base
+  var mEmerald = new THREE.MeshStandardMaterial({ roughness: 0.18 }), mEmeraldEdge = M(0x13241e, 0.2), mMint = M(0x9cc3b4, 0.15);
+  function emeraldTex() {
+    var S2 = 1024, c = document.createElement('canvas'); c.width = c.height = S2; var g = c.getContext('2d'), r = rng(1207), i, k;
+    g.fillStyle = '#1b3229'; g.fillRect(0, 0, S2, S2);
+    for (i = 0; i < 70; i++) { var x = r() * S2, y = r() * S2, rad = 60 + r() * 220, gr = g.createRadialGradient(x, y, 0, x, y, rad);
+      gr.addColorStop(0, r() > 0.5 ? 'rgba(60,100,82,0.35)' : 'rgba(8,20,16,0.4)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(x - rad, y - rad, 2 * rad, 2 * rad); }
+    for (i = 0; i < 26; i++) {   // white veins: wandering strokes that branch, mostly running one way
+      var px = r() * S2, py = r() * S2, a = -0.3 + (r() - 0.5) * 0.9, lw = 0.6 + r() * 2.2; g.strokeStyle = 'rgba(235,240,236,' + (0.35 + r() * 0.5) + ')'; g.lineWidth = lw; g.beginPath(); g.moveTo(px, py);
+      for (k = 0; k < 30; k++) { a += (r() - 0.5) * 0.7; px += Math.cos(a) * 18; py += Math.sin(a) * 18; g.lineTo(px, py);
+        if (r() < 0.12) { g.stroke(); g.lineWidth = lw * 0.5; g.beginPath(); g.moveTo(px, py); } }
+      g.stroke();
+    }
+    var t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; return t;
+  }
   var mOakRim = M(0xc49a64, 0.5); mOakRim.side = THREE.DoubleSide;   // the Stockholm mirror: oak rim, and silver glass with a soft diagonal sheen instead of a reflection
   var mMirror = (function () {
     var c = document.createElement('canvas'); c.width = c.height = 256; var g = c.getContext('2d'), gr = g.createLinearGradient(0, 0, 256, 256);
@@ -1434,6 +1449,19 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       part(u, -0.17, zy - 0.01, 0.17, zy + 0.06, 0.82, 0.885, mBeech);                                                          // box under the tray
       var kn = new THREE.Mesh(new THREE.SphereGeometry(0.012, 10, 8), mBrass); kn.position.set(0, 0.85, zy + 0.065); u.add(kn);
     },
+    vanceTable: function (g, w, d, h) {
+      // Vance round dining table, 120 across and 76 high: an emerald marble top on a thin mint plate, a slim mint column, and a wide drum base
+      // with a rounded top edge, all in high-gloss mint.
+      var u = new THREE.Group(); u.scale.set(w / 1.2, h / 0.76, d / 1.2); g.add(u);
+      if (!mEmerald.map) mEmerald.map = emeraldTex();
+      var top = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 0.022, 72), [mEmeraldEdge, mEmerald, mEmerald]); top.position.y = 0.749; u.add(top);
+      var plate = new THREE.Mesh(new THREE.CylinderGeometry(0.585, 0.585, 0.01, 72), mMint); plate.position.y = 0.733; u.add(plate);
+      var col = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.38, 32), mMint); col.position.y = 0.538; u.add(col);
+      var drum = new THREE.Mesh(new THREE.CylinderGeometry(0.245, 0.245, 0.3, 48), mMint); drum.position.y = 0.15; u.add(drum);
+      var round = new THREE.Mesh(new THREE.TorusGeometry(0.21, 0.035, 12, 48), mMint); round.rotation.x = Math.PI / 2; round.position.y = 0.3; u.add(round);
+      var cap = new THREE.Mesh(new THREE.CylinderGeometry(0.212, 0.212, 0.07, 48), mMint); cap.position.y = 0.3; u.add(cap);
+      u.traverse(function (m) { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } });
+    },
     stockholmMirror: function (g, w, d, h) {
       // IKEA Stockholm mirror, 80 cm across: a deep oak veneer rim, the mirror set back inside it. Silver glass, it does not reflect.
       var u = new THREE.Group(); u.scale.set(w / 0.8, h / 0.8, d / 0.06); u.position.y = 0.4; g.add(u);
@@ -2125,6 +2153,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     { k: 'diningOak', b: 'oakTable', n: ['Dining table, dark oak 200', 'Yemek masası, koyu meşe 200'], w: 2.0, d: 0.95, h: 0.76 },
     { k: 'sageTable', b: 'sageTable', n: ['Dining table, sage plaster 180', 'Yemek masası, adaçayı yeşili sıva 180'], w: 1.8, d: 1.198, h: 0.75 },
     { k: 'teakChair', b: 'teakChair', n: ['Dining chair, brown teak (Burnish)', 'Yemek sandalyesi, kahverengi tik (Burnish)'], w: 0.50, d: 0.54, h: 0.76 },
+    { k: 'vanceTable', b: 'vanceTable', n: ['Round dining table, emerald marble 120 (Vance)', 'Yuvarlak yemek masası, zümrüt mermer 120 (Vance)'], w: 1.2, d: 1.2, h: 0.76 },
     { k: 'dchair', b: 'chair', n: ['Dining chair', 'Sandalye'], w: 0.45, d: 0.5, h: 0.85 },
     { k: 'desk', b: 'desk', n: ['Desk', 'Çalışma masası'], w: 2.0, d: 0.8, h: 0.75 },
     { k: 'deskCorner', b: 'deskCorner', n: ['Corner desk 109°', 'Köşe masa 109°'], w: 2.21, d: 1.92, h: 0.75 },
@@ -2891,7 +2920,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
 
   // ================= furniture bank: tap to add at the centre of the view, or drag a card into the flat
   var CATS = [['seat', ['quincy439', 'quincy438', 'quincy422', 'nockeby', 'sofa3', 'sofa2', 'sofaCurve', 'armchair', 'neva', 'hudson', 'wingChair', 'teakChair', 'palissade', 'pouf', 'dchair', 'ochair']], ['bed', ['masterBed', 'bedKing', 'bedSuper', 'bedDouble', 'bedSingle']],
-    ['table', ['coffee', 'nestBig', 'nestSmall', 'sideTable', 'dining', 'diningOak', 'sageTable', 'palissadeTable']], ['office', ['desk', 'standDesk', 'deskCorner', 'monitor', 'synth', 'bbgKeyboard', 'rig']],
+    ['table', ['coffee', 'nestBig', 'nestSmall', 'sideTable', 'dining', 'diningOak', 'sageTable', 'vanceTable', 'palissadeTable']], ['office', ['desk', 'standDesk', 'deskCorner', 'monitor', 'synth', 'bbgKeyboard', 'rig']],
     ['store', ['shelving', 'shelving100', 'mediaUnit', 'mediaUnit150', 'mediaUnit350', 'swoonMedia', 'dressingTable', 'cabinet', 'sideboard', 'caneSideboard', 'greenChest', 'bookcase', 'slatBookcase', 'wardrobe']], ['art', ['paintT1', 'paintT2', 'stockholmMirror', 'artSun', 'artLeaf', 'artDunes', 'artGrid', 'artShapes', 'artLine', 'artSea', 'artField']], ['books', ['booksRow', 'booksArt', 'booksNeutral', 'booksLean', 'booksStack', 'booksPaper']], ['other', ['tv65', 'speaker', 'daliSpeaker', 'easel', 'easelT3', 'dogBed', 'rug', 'rugMoroccan', 'rugLayered', 'rugRound', 'screen', 'plant', 'birdPlant', 'figPlant', 'pothos', 'snakePlant', 'lamp', 'box']]];
   BANK.forEach(function (b) { if (!b.spec) b.c = 'other'; }); CATS.forEach(function (c) { c[1].forEach(function (k) { if (BK[k]) BK[k].c = c[0]; }); });
   var bankFilter = 'all';
