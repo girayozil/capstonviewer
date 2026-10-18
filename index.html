@@ -91,6 +91,19 @@ button:disabled { opacity: 0.45; cursor: default; }
 #meashint { position: absolute; left: 50%; top: 104px; transform: translateX(-50%); width: max-content; max-width: calc(100% - 32px); text-align: center; font-size: 0.74rem;
   background: var(--panel); border: 1px solid #c4561f; color: var(--fg); border-radius: 12px; padding: 4px 10px; pointer-events: none; z-index: 2; }
 body.measuring #stage canvas { cursor: crosshair; }
+#paintpanel { position: absolute; left: 16px; right: 16px; bottom: 10px; max-width: 560px; z-index: 3; display: flex; flex-direction: column; gap: 8px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; box-shadow: 0 4px 16px rgba(40, 28, 20, 0.18); }
+#paintpanel[hidden] { display: none; }
+#paintpanel > .row:first-child { justify-content: space-between; flex-wrap: nowrap; }
+#paint-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: 0.9rem; }
+#paint-hint { margin: 0; font-size: 0.8rem; color: var(--muted); }
+#paint-sw { gap: 6px; }
+#paint-sw button { width: 30px; height: 30px; padding: 0; border-radius: 50%; border: 2px solid var(--line); }
+#paint-sw button[aria-pressed="true"] { border-color: var(--fg); box-shadow: 0 0 0 2px var(--panel) inset; }
+.pcustom { display: inline-flex; align-items: center; gap: 6px; font-size: 0.74rem; border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px 2px 3px; cursor: pointer; }
+.pcustom input { width: 24px; height: 24px; padding: 0; border: none; border-radius: 50%; background: none; }
+body.painting #views, body.painting #undo, body.painting #hint { display: none; }
+body.painting #stage canvas { cursor: pointer; }
 #flytag { position: absolute; left: 50%; top: 104px; transform: translateX(-50%); width: max-content; max-width: calc(100% - 32px); text-align: center; font-size: 0.74rem;
   background: var(--panel); border: 1px solid var(--line); color: var(--fg); border-radius: 12px; padding: 4px 10px; pointer-events: none; z-index: 2; }
 body.flying #stage canvas { cursor: none; }
@@ -226,6 +239,18 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       <button id="w-full" data-walls="full" aria-pressed="false" data-i18n="full">Full height</button>
     </div>
     <div class="row small"><button id="screens" aria-pressed="false" data-i18n="screens">Partitions</button><button id="dims" aria-pressed="true" data-i18n="dims">Measurements</button></div>
+    <div class="row small"><button id="paintbtn" aria-pressed="false" data-i18n="paintbtn">Paint walls</button></div>
+  </div>
+  <div id="paintpanel" hidden>
+    <div class="row"><b id="paint-name"></b><button id="paint-done" class="small" data-i18n="done">Done</button></div>
+    <p id="paint-hint" data-i18n="painthint"></p>
+    <div id="paint-edit">
+      <div id="paint-sw" class="row" role="group" aria-label="Colour"></div>
+      <div class="row small"><label class="pcustom"><input id="paint-color" type="color" value="#f4f0e8"><span data-i18n="pcustom">Custom colour</span></label>
+        <button id="paint-room" aria-pressed="false" data-i18n="pwhole">Whole room</button><button id="paint-white" data-i18n="pwhite">Back to white</button></div>
+      <div id="paint-wp" class="row small" role="group" aria-label="Wallpaper"></div>
+    </div>
+    <input id="paint-file" type="file" accept="image/*" hidden>
   </div>
   <div id="views" role="group" aria-label="View" class="small">
     <button id="v-over" data-view="over" aria-pressed="true" data-i18n="over">Overview</button>
@@ -388,6 +413,8 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       nosaved: 'No saved layouts yet.', shared: 'shared', device: 'this device', savedShared: 'Saved. Everyone who can open this page while signed in will see it.',
       savedLocal: 'Saved on this device only.', copied: 'Layout copied. Paste it into the chat.', copyfail: 'Select the text below and copy it.', needname: 'Type a name first.',
       aria: '3D model of apartment {flat}', bed1: 'Studio', bed2: 'Master bedroom', hall: 'Hallway', liv1: 'N11.01 living', liv2: 'N11.02 living', dopen: 'Open door', dclose: 'Close door', flyhint: 'W A S D to fly · E Q up and down · scroll for speed', flyspeed: 'Flight speed',
+      paintbtn: 'Paint walls', painthint: 'Tap a wall to paint it.', pcustom: 'Custom colour', pwhole: 'Whole room', pwhite: 'Back to white',
+      wpnone: 'Plain', wpstripe: 'Stripe', wpgrass: 'Grasscloth', wpcheck: 'Check', wpbot: 'Botanical', wpphoto: 'Photo…', wn: 'north wall', ws: 'south wall', we: 'east wall', ww: 'west wall',
       aikeynote: 'Claude can make new furniture and arrange the flat for you. To turn it on, paste an Anthropic API key. It is kept only in this browser, never in the page or the repository. A key with a monthly spending limit is safest.',
       aikeysave: 'Save key', aikeybad: 'That does not look like an Anthropic API key. It starts with sk-ant-.', aiph: 'Describe a piece of furniture, or ask to place, move or remove something',
       aisend: 'Send', aistop: 'Stop', aiphoto: 'Add a photo', ainew: 'New chat', aiexport: 'Copy my furniture', aiforget: 'Forget key', aiforgetq: 'Remove the API key from this browser?',
@@ -406,6 +433,8 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       nosaved: 'Henüz kayıtlı yerleşim yok.', shared: 'ortak', device: 'bu cihaz', savedShared: 'Kaydedildi. Oturum açıp bu sayfayı açabilen herkes görür.',
       savedLocal: 'Yalnızca bu cihaza kaydedildi.', copied: 'Yerleşim kopyalandı. Sohbete yapıştırın.', copyfail: 'Aşağıdaki metni seçip kopyalayın.', needname: 'Önce bir ad yazın.',
       aria: '{flat} dairesinin 3B modeli', bed1: 'Stüdyo', bed2: 'Ana yatak odası', hall: 'Koridor', liv1: 'N11.01 salon', liv2: 'N11.02 salon', dopen: 'Kapıyı aç', dclose: 'Kapıyı kapat', flyhint: 'Uçmak için W A S D · yukarı ve aşağı için E Q · hız için tekerlek', flyspeed: 'Uçuş hızı',
+      paintbtn: 'Duvarları boya', painthint: 'Boyamak için bir duvara dokunun.', pcustom: 'Özel renk', pwhole: 'Tüm oda', pwhite: 'Beyaza dön',
+      wpnone: 'Düz', wpstripe: 'Çizgili', wpgrass: 'Hasır doku', wpcheck: 'Kareli', wpbot: 'Botanik', wpphoto: 'Fotoğraf…', wn: 'kuzey duvarı', ws: 'güney duvarı', we: 'doğu duvarı', ww: 'batı duvarı',
       aikeynote: 'Claude sizin için yeni mobilyalar yapabilir ve daireyi düzenleyebilir. Açmak için bir Anthropic API anahtarı yapıştırın. Anahtar yalnızca bu tarayıcıda saklanır, sayfaya veya depoya asla eklenmez. Aylık harcama sınırı olan bir anahtar en güvenlisidir.',
       aikeysave: 'Anahtarı kaydet', aikeybad: 'Bu bir Anthropic API anahtarına benzemiyor. Anahtar sk-ant- ile başlar.', aiph: 'Bir mobilya tarif edin ya da bir şeyi yerleştirmemi, taşımamı veya kaldırmamı isteyin',
       aisend: 'Gönder', aistop: 'Durdur', aiphoto: 'Fotoğraf ekle', ainew: 'Yeni sohbet', aiexport: 'Mobilyalarımı kopyala', aiforget: 'Anahtarı unut', aiforgetq: 'API anahtarı bu tarayıcıdan silinsin mi?',
@@ -799,7 +828,44 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   var curFix = 'wall', FIX = {}, FIXSUF = '', ceiling = null, floorMesh = null, POLYS = [], ROOMS = [], SHELL = null;
   function room(en, trn, pts) {   // a named room outline in plan pixels, for the Claude assistant
     var pre = FIXSUF === '@1' ? 'N11.01 ' : FIXSUF === '@2' ? 'N11.02 ' : '';
-    ROOMS.push({ n: [pre + en, pre + trn], p: pts.map(function (p) { return [r2(X(p[0])), r2(Z(p[1]))]; }) });
+    ROOMS.push({ n: [pre + en, pre + trn], b: en, f: FIXSUF === '@1' ? 'n1101' : FIXSUF === '@2' ? 'n1102' : FLAT === 'both' ? 'hall' : FLAT, dx: FR.dx, dz: FR.dz,
+      p: pts.map(function (p) { return [r2(X(p[0])), r2(Z(p[1]))]; }) });
+  }
+  // ---- paintable walls: each plain wall box is covered, side by side, with thin panels that face into a room. Panels in the same room and
+  // the same plane form one wall surface (SURF), keyed by flat, room, side and the plane's position in that flat's own plan, so a colour
+  // chosen in the combined view shows in the single flat too. A room's sub-areas (play corner, kitchen) count as the open-plan room.
+  var SURF = {}, surfMats = {};
+  function paintRoomAt(x, z) { var best = -1; for (var i = 0; i < ROOMS.length; i++) if (inPoly(x, z, ROOMS[i].p)) best = i; return best; }
+  function surfMat(key) { return surfMats[key] || (surfMats[key] = mWall.clone()); }
+  function splitWalls() {
+    var out = [], OFF = 0.004;
+    walls.children.slice().forEach(function (m) {
+      if (!m.isMesh || fixBase(m.userData.fix) !== 'wall' || m.material !== mWall || m.rotation.y) return;   // plain painted boxes only, not the slanted piers
+      var b = new THREE.Box3().setFromObject(m), y0 = b.min.y, y1 = b.max.y;
+      [['n', 'x', b.min.z, -1], ['s', 'x', b.max.z, 1], ['w', 'z', b.min.x, -1], ['e', 'z', b.max.x, 1]].forEach(function (f) {
+        var ax = f[1] === 'x', a0 = ax ? b.min.x : b.min.z, a1 = ax ? b.max.x : b.max.z, segs = [], cur = null, plane = f[2] + f[3] * OFF;
+        if (a1 - a0 < 0.03) return;
+        for (var t = a0; ; t = Math.min(a1, t + 0.1)) {   // walk along the face; a new piece starts where the room in front changes
+          var q = ax ? [t, f[2] + f[3] * 0.15] : [f[2] + f[3] * 0.15, t], ri = paintRoomAt(q[0], q[1]);
+          if (!cur || cur.ri !== ri) { if (cur) cur.e = t; cur = { ri: ri, s: t }; segs.push(cur); }
+          if (t >= a1) break;
+        }
+        cur.e = a1;
+        segs.forEach(function (sg) {
+          if (sg.ri < 0 || sg.e - sg.s < 0.02) return;   // faces that look outside the flats are not painted
+          var R = ROOMS[sg.ri], side = { n: 's', s: 'n', e: 'w', w: 'e' }[f[0]];   // a face looking north is on the room's south side
+          var key = R.f + '|' + R.b + '|' + side + '|' + (Math.round((plane - (ax ? R.dz : R.dx)) * 20) / 20).toFixed(2);   // planes within a few cm count as one wall
+          var s0 = sg.s, s1 = sg.e, P = function (u, y) { return ax ? [u, y, plane] : [plane, y, u]; };
+          var vs = f[3] * (ax ? 1 : -1) > 0 ? [P(s0, y0), P(s1, y0), P(s1, y1), P(s0, y0), P(s1, y1), P(s0, y1)] : [P(s0, y0), P(s1, y1), P(s1, y0), P(s0, y0), P(s0, y1), P(s1, y1)];
+          var pos = [], nor = [], uv = [], n = ax ? [0, 0, f[3]] : [f[3], 0, 0];
+          vs.forEach(function (v) { pos.push(v[0], v[1], v[2]); nor.push(n[0], n[1], n[2]); uv.push(ax ? v[0] : v[2], v[1]); });   // UVs in metres along the wall and up it
+          var geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+          var pm = new THREE.Mesh(geo, surfMat(key)); pm.receiveShadow = true; pm.userData.fix = m.userData.fix; pm.userData.surface = key; out.push(pm);
+          if (!SURF[key]) SURF[key] = { ri: sg.ri, side: side, meshes: [] };
+        });
+      });
+    });
+    out.forEach(function (pm) { walls.add(pm); });
   }
   function reg(m) { var k = curFix ? curFix + FIXSUF : curFix; m.userData.fix = k; if (k) (FIX[k] = FIX[k] || []).push(m); return m; }
   function fixBase(k) { return String(k).split('@')[0]; }
@@ -810,7 +876,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     root.updateMatrixWorld(true); var inv = new THREE.Matrix4().copy(root.matrixWorld).invert(), sets = {}, order = [];
     root.traverse(function (m) {
       if (!m.isMesh || m.isSkinnedMesh || Array.isArray(m.material) || !m.geometry.attributes.uv || !m.geometry.attributes.normal || m.geometry.morphAttributes.position) return;
-      var key = m.material.uuid + '|' + (m.userData.fix || '') + '|' + m.castShadow + '|' + m.receiveShadow + '|' + m.renderOrder;
+      var key = m.material.uuid + '|' + (m.userData.fix || '') + '|' + (m.userData.surface || '') + '|' + m.castShadow + '|' + m.receiveShadow + '|' + m.renderOrder;
       if (!sets[key]) { sets[key] = []; order.push(key); } sets[key].push(m);
     });
     order.forEach(function (key) {
@@ -821,7 +887,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       parts.forEach(function (g) { pos.set(g.attributes.position.array, o * 3); nor.set(g.attributes.normal.array, o * 3); uv.set(g.attributes.uv.array, o * 2); o += g.attributes.position.count; g.dispose(); });
       var geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
       geo.computeBoundingBox(); geo.computeBoundingSphere();
-      var f = list[0], mm = new THREE.Mesh(geo, f.material); mm.castShadow = f.castShadow; mm.receiveShadow = f.receiveShadow; mm.renderOrder = f.renderOrder; mm.userData.fix = f.userData.fix;
+      var f = list[0], mm = new THREE.Mesh(geo, f.material); mm.castShadow = f.castShadow; mm.receiveShadow = f.receiveShadow; mm.renderOrder = f.renderOrder; mm.userData.fix = f.userData.fix; if (f.userData.surface) mm.userData.surface = f.userData.surface;
       list.forEach(function (m) { m.parent.remove(m); }); root.add(mm);
     });
   }
@@ -829,7 +895,9 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     SHELL = { walls: [], windows: [] };   // walls and windows as boxes in metres, for the Claude assistant; headers over doorways are left out
     Object.keys(FIX).forEach(function (k) { var b = fixBase(k); if (b !== 'wall' && b !== 'glazing') return; FIX[k].forEach(function (m) {
       var bb = new THREE.Box3().setFromObject(m); if (bb.min.y > 1.5) return; (b === 'wall' ? SHELL.walls : SHELL.windows).push([r2(bb.min.x), r2(bb.min.z), r2(bb.max.x), r2(bb.max.z)]); }); });
+    splitWalls();
     [walls, tall, low].forEach(mergeUnder);
+    walls.traverse(function (m) { var k = m.userData.surface; if (m.isMesh && k && SURF[k]) SURF[k].meshes.push(m); });
     FIX = {}; [walls, tall, low].forEach(function (g) { g.traverse(function (m) { var k = m.userData.fix; if (m.isMesh && k) (FIX[k] = FIX[k] || []).push(m); }); });
   }
   function box(g, x0, y0, x1, y1, h, mat, base) {
@@ -2340,7 +2408,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       y: it.y == null ? (b.y || 0) : +it.y, lock: !!it.lock, top: it.top == null ? !!b.top : !!it.top, g: null };
   }
   function plain(it) { return { k: it.k, x: r2(it.x), z: r2(it.z), r: Math.round(it.r * 10) / 10, w: r2(it.w), d: r2(it.d), h: r2(it.h), y: r2(it.y), lock: it.lock || undefined, top: !!it.top }; }
-  function snapshot() { return JSON.stringify(items.map(plain)); }
+  function snapshot() { return JSON.stringify({ items: items.map(plain), paint: paintFor() }); }
   function rebuild(it) {
     if (!it.g) { it.g = new THREE.Group(); it.g.userData.item = it; itemsG.add(it.g); }
     while (it.g.children.length) { var c = it.g.children[0]; it.g.remove(c); c.traverse(function (o) { if (o.geometry) o.geometry.dispose(); }); }
@@ -2379,7 +2447,9 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     } else localStorage.setItem(KEY + '-work', JSON.stringify({ v: 7, items: items.map(plain), types: typesFor(items) }));
   } catch (e) {} }
   $('undo').addEventListener('click', function () {
-    var s = undoStack.pop(); if (!s) return; setItems(JSON.parse(s)); commit(); $('undo').hidden = !undoStack.length;
+    var s = undoStack.pop(); if (!s) return; var o = JSON.parse(s);
+    if (Array.isArray(o)) setItems(o); else { setItems(o.items); paintRestore(o.paint); }
+    commit(); $('undo').hidden = !undoStack.length;
   });
 
   // ================= selection, gizmo, real-world dimension tags
@@ -2595,6 +2665,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     if (mod || e.altKey) return;
     if (k === 'm') { setRuler(!ruler.on); return; }
     if (k === 'escape' && ruler.on) { setRuler(false); return; }
+    if (k === 'escape' && paint.on) { setPaintMode(false); return; }
     if (k === 'w') setTool('move'); else if (k === 'e') setTool('rotate'); else if (k === 'r') setTool('scale');
     else if (k === ' ') { e.preventDefault(); setTool({ move: 'rotate', rotate: 'scale', scale: 'move' }[tool]); }
     else if (k === 'delete' || k === 'backspace') { if (it) { e.preventDefault(); $('a-del').click(); } }
@@ -2705,6 +2776,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   function rulerHint() { $('meashint').hidden = !ruler.on || walk.on; $('meashint').textContent = tr(!ruler.a ? 'meas1' : !ruler.b ? 'meas2' : 'meas3'); }
   onLang.push(rulerHint);
   function setRuler(on) {
+    if (on && paint.on) setPaintMode(false);
     ruler.on = on; ruler.a = ruler.b = ruler.hover = null; $('measbtn').setAttribute('aria-pressed', String(on)); document.body.classList.toggle('measuring', on);
     if (on) { select(null); hideHint(); } rulerHint(); dirty = true;
   }
@@ -2719,7 +2791,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   $('dims').setAttribute('aria-pressed', String(dimsOn));
   $('dims').addEventListener('click', function () { dimsOn = !dimsOn; try { localStorage.setItem('capston-dims', dimsOn ? 'on' : 'off'); } catch (e) {} this.setAttribute('aria-pressed', String(dimsOn)); refreshGizmo(); dirty = true; });
   function enterWalk() {
-    setRuler(false);
+    setRuler(false); setPaintMode(false);
     walk.prevWalls = document.querySelector('[data-walls][aria-pressed="true"]').dataset.walls; select(null); goal = null;
     walk.prevTab = (document.querySelector('[data-tab][aria-pressed="true"]') || { dataset: {} }).dataset.tab || null; openTab('layouts'); document.body.classList.remove('drawer');
     hideHint(); walk.on = true; walk.pitch = 0; walkKeys = {}; walk.sx = walk.sy = 0; setWalls('full'); ceiling.visible = true; backdrop.visible = true; nemo.enter(); updateWalkUI(); resize();
@@ -2845,7 +2917,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     if (e.button === 2 && e.pointerType === 'mouse' && !walk.on) { e.preventDefault(); startFly(e); return; }
     if (cam.free) { var P0 = camPos(); cam.free = false; cam.pol = Math.min(cam.pol, 1.5); aimFrom(P0); }
     canvas.setPointerCapture(e.pointerId); ptrs[e.pointerId] = { x: e.clientX, y: e.clientY }; goal = null; hideHint();
-    if (pts().length === 1) { var hit = ruler.on ? null : pick(e); down = { x: e.clientX, y: e.clientY, hit: hit, moved: 0 }; drag = ruler.on ? null : startDrag(e, hit); }
+    if (pts().length === 1) { var hit = ruler.on || paint.on ? null : pick(e); down = { x: e.clientX, y: e.clientY, hit: hit, moved: 0 }; drag = ruler.on || paint.on ? null : startDrag(e, hit); }
     else { if (drag && drag.touched) commit(); drag = null; down = null; }
   });
   canvas.addEventListener('pointermove', function (e) {
@@ -2872,7 +2944,8 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     if (!ptrs[e.pointerId]) return; delete ptrs[e.pointerId];
     if (drag && drag.touched) commit();
     if (drag && drag.it && drag.it.ol && !drag.it.lock) drag.it.ol.material.color.set(0x1f6fd9);
-    if (down && down.moved < 6 && e.type === 'pointerup' && ruler.on) rulerTap(e);
+    if (down && down.moved < 6 && e.type === 'pointerup' && paint.on) paintTap(e);
+    else if (down && down.moved < 6 && e.type === 'pointerup' && ruler.on) rulerTap(e);
     else if (down && down.moved < 6 && e.type === 'pointerup') { var h = down.hit; if (!h) select(null); else if (h.item) select({ item: h.item }); else if (h.fix) select({ fix: h.fix }); }
     drag = null; down = null; dirty = true; endMeasure();
   }
@@ -2914,6 +2987,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   function setWalls(mode) {
     shadowDirty = true;
     var k = mode === 'cut' ? 0.42 : 1; walls.scale.y = tall.scale.y = k; press('[data-walls]', function (x) { return x.dataset.walls === mode; });
+    if (PAINT) repaintAll();   // wallpaper keeps its real size when the walls are cut down
     if (sel) select(sel); dirty = true;
   }
   each('[data-walls]', function (b) { b.addEventListener('click', function () { setWalls(b.dataset.walls); }); });
@@ -2983,7 +3057,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       var d = document.createElement('div'); d.className = 'srow small';
       var n = document.createElement('span'); n.textContent = row.s.name + ' '; var w = document.createElement('small'); w.textContent = '· ' + tr(row.where); n.appendChild(w);
       var o = document.createElement('button'); o.textContent = tr('load'); var x = document.createElement('button'); x.textContent = tr('del');
-      o.addEventListener('click', function () { pushUndo(); addTypes(row.s.types); setItems(row.s.items || []); commit(); });
+      o.addEventListener('click', function () { pushUndo(); addTypes(row.s.types); setItems(row.s.items || []); if (row.s.paint) paintRestore(row.s.paint); commit(); });
       x.addEventListener('click', function () {
         if (row.where === 'device') { local = local.filter(function (l) { return l !== row.s; }); storeLocal(); renderSaved(); }
         else if (db) db.collection(COLL).doc(row.s.id).delete().catch(function () {});
@@ -2993,7 +3067,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
   }
   $('l-save').addEventListener('click', function () {
     var name = $('lname').value.trim(); if (!name) return say('needname');
-    var body = { name: name, items: items.map(plain), at: Date.now() }, ty = typesFor(items); if (ty) body.types = ty;
+    var body = { name: name, items: items.map(plain), at: Date.now() }, ty = typesFor(items), pt = paintFor(); if (ty) body.types = ty; if (Object.keys(pt).length) body.paint = pt;
     function toLocal() { local = local.filter(function (l) { return l.name !== name; }); local.push(body); storeLocal(); renderSaved(); say('savedLocal'); }
     if (!db) return toLocal();
     db.collection(COLL).doc(slug(name)).set(JSON.parse(JSON.stringify(body))).then(function () { say('savedShared'); }, toLocal);
@@ -3010,11 +3084,113 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     window.claude.use('db').then(function (d) {
       if (!d) return; db = d;
       d.collection(COLL).onSnapshot(function (snap) {
-        shared = snap.docs.map(function (doc) { var b = doc.data() || {}; return { id: doc.id, name: String(b.name || doc.id), items: Array.isArray(b.items) ? b.items : [], types: b.types }; });
+        shared = snap.docs.map(function (doc) { var b = doc.data() || {}; return { id: doc.id, name: String(b.name || doc.id), items: Array.isArray(b.items) ? b.items : [], types: b.types, paint: b.paint }; });
         renderSaved();
       }, function () {});
     }, function () {});
   }
+
+  // ================= wall paint: in paint mode a tap picks a wall (SURF), which takes a colour or a wallpaper, alone or with its whole room.
+  // Kept on this device in capston-paint (all flats in one map, keyed as SURF), in the Undo history, and inside saved layouts.
+  var PAINT = {}, paint = { on: false, key: null, whole: false };
+  try { PAINT = JSON.parse(localStorage.getItem('capston-paint') || '{}') || {}; } catch (e) { PAINT = {}; }
+  var SWATCHES = ['#f4f0e8', '#e6dccb', '#d8c6a8', '#b9c4a7', '#8fa58f', '#4d6250', '#c0795a', '#e2c2b8', '#a86e55', '#8c9db0', '#3d4b5e', '#4a4a48'];
+  var WALLPAPERS = [['none', 'wpnone'], ['stripe', 'wpstripe', 0.5], ['grass', 'wpgrass', 0.6], ['check', 'wpcheck', 0.32], ['bot', 'wpbot', 0.53], ['photo', 'wpphoto', 0.53]];
+  var wpCanvases = {};
+  function wpCanvas(name) {   // near-white patterns, so the chosen colour tints them; one tile each
+    if (wpCanvases[name]) return wpCanvases[name];
+    var c = document.createElement('canvas'); c.width = c.height = 256; var g = c.getContext('2d'), r = rng(name.length * 97), i;
+    g.fillStyle = '#ffffff'; g.fillRect(0, 0, 256, 256);
+    if (name === 'stripe') { g.fillStyle = 'rgba(0,0,0,0.13)'; g.fillRect(0, 0, 64, 256); g.fillRect(128, 0, 64, 256); g.fillStyle = 'rgba(0,0,0,0.06)'; g.fillRect(64, 0, 4, 256); g.fillRect(188, 0, 4, 256); }
+    else if (name === 'grass') { for (i = 0; i < 260; i++) { g.fillStyle = 'rgba(' + (r() > 0.5 ? '0,0,0,' : '255,255,255,') + (0.04 + r() * 0.1) + ')'; g.fillRect(0, r() * 256, 256, 0.6 + r() * 1.8); } for (i = 0; i < 4; i++) { g.fillStyle = 'rgba(0,0,0,0.05)'; g.fillRect(i * 64, 0, 1, 256); } }
+    else if (name === 'check') { g.fillStyle = 'rgba(0,0,0,0.09)'; g.fillRect(0, 0, 128, 256); g.fillRect(0, 0, 256, 128); }
+    else if (name === 'bot') {
+      for (i = 0; i < 14; i++) {
+        var x = r() * 256, y = r() * 256, a = r() * Math.PI * 2, L = 26 + r() * 30;
+        [-256, 0, 256].forEach(function (ox) { [-256, 0, 256].forEach(function (oy) {
+          g.save(); g.translate(x + ox, y + oy); g.rotate(a); g.fillStyle = 'rgba(0,0,0,' + (0.1 + (i % 3) * 0.05) + ')';
+          g.beginPath(); g.moveTo(0, 0); g.quadraticCurveTo(L * 0.5, -L * 0.35, L, 0); g.quadraticCurveTo(L * 0.5, L * 0.35, 0, 0); g.fill();
+          g.strokeStyle = 'rgba(0,0,0,0.12)'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(-L * 0.3, 0); g.lineTo(L, 0); g.stroke(); g.restore(); }); });
+      }
+    }
+    return (wpCanvases[name] = c);
+  }
+  function wpTile(wp) { for (var i = 0; i < WALLPAPERS.length; i++) if (WALLPAPERS[i][0] === wp) return WALLPAPERS[i][2] || 0.5; return 0.5; }
+  function inRoom(key) { var s = SURF[paint.key]; return !!s && (paint.whole ? SURF[key].ri === s.ri : key === paint.key); }
+  function applyPaint(key) {
+    var p = PAINT[key] || {}, m = surfMats[key]; if (!m) return;
+    m.color.set(p.c || '#f4f0e8').convertSRGBToLinear();
+    var sig = p.wp ? p.wp + (p.wp === 'photo' && p.img ? p.img.length + p.img.slice(-24) : '') : '';
+    if (m.userData.wp !== sig) {
+      if (m.map) m.map.dispose();
+      var t = null;
+      if (p.wp === 'photo' && p.img) t = new THREE.TextureLoader().load(p.img, function () { dirty = true; });
+      else if (p.wp && p.wp !== 'photo') t = new THREE.CanvasTexture(wpCanvas(p.wp));
+      if (t) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.encoding = THREE.sRGBEncoding; t.anisotropy = 4; }
+      m.map = t; m.userData.wp = sig; m.needsUpdate = true;
+    }
+    if (m.map) { var T = wpTile(p.wp); m.map.repeat.set(1 / T, walls.scale.y / T); }   // UVs are metres before the cut-away squash, so the pattern keeps its real size
+    m.emissive.setHex(paint.on && paint.key && inRoom(key) ? 0x141c28 : 0);   // a faint blue lift marks what will be painted
+    dirty = true;
+  }
+  function repaintAll() { Object.keys(SURF).forEach(applyPaint); }
+  function savePaint() { try { localStorage.setItem('capston-paint', JSON.stringify(PAINT)); } catch (e) {} }
+  function paintFor() { var o = {}; Object.keys(SURF).forEach(function (k) { if (PAINT[k]) o[k] = PAINT[k]; }); return o; }   // the paint of the walls shown
+  function paintRestore(map) { map = map || {}; Object.keys(SURF).forEach(function (k) { if (map[k]) PAINT[k] = map[k]; else delete PAINT[k]; applyPaint(k); }); savePaint(); refreshPaintUI(); }
+  function paintKeys(list, change) {   // change: fields to set, or null for plain white again
+    list.forEach(function (k) {
+      if (change === null) delete PAINT[k];
+      else { var q = {}, f; for (f in PAINT[k] || {}) q[f] = PAINT[k][f]; for (f in change) q[f] = change[f]; if (q.wp === 'none') { delete q.wp; delete q.img; } PAINT[k] = q; }
+      applyPaint(k);
+    });
+    savePaint();
+  }
+  function setPaint(change) {
+    if (!paint.key) return; pushUndo();
+    paintKeys(Object.keys(SURF).filter(inRoom), change); refreshPaintUI();
+  }
+  function refreshPaintUI() {
+    var k = paint.key, s = k && SURF[k], p = (k && PAINT[k]) || {}, c = (p.c || '#f4f0e8').toLowerCase();
+    $('paint-hint').hidden = !!s; $('paint-edit').hidden = !s;
+    $('paint-name').textContent = s ? nm(ROOMS[s.ri].n) + (paint.whole ? '' : ', ' + tr('w' + s.side)) : tr('paintbtn');
+    $('paint-room').setAttribute('aria-pressed', String(paint.whole)); $('paint-color').value = c;
+    each('#paint-sw button', function (b) { b.setAttribute('aria-pressed', String(b.dataset.c === c)); });
+    each('#paint-wp button', function (b) { b.setAttribute('aria-pressed', String(b.dataset.wp === (p.wp || 'none'))); });
+  }
+  function setPaintMode(on) {
+    paint.on = on; if (on) { setRuler(false); select(null); closeDisplay(); hideHint(); } else paint.key = null;
+    document.body.classList.toggle('painting', on); $('paintbtn').setAttribute('aria-pressed', String(on)); $('paintpanel').hidden = !on;
+    repaintAll(); refreshPaintUI(); dirty = true;
+  }
+  function paintTap(e) {
+    aim(e); var hits = ray.intersectObjects([walls], true).filter(function (h) { return h.object.visible; }), key = null;
+    for (var i = 0; i < hits.length && hits[i].distance - hits[0].distance < 0.08; i++) if (hits[i].object.userData.surface) { key = hits[i].object.userData.surface; break; }
+    paint.key = key; repaintAll(); refreshPaintUI();
+  }
+  SWATCHES.forEach(function (c) {
+    var b = document.createElement('button'); b.dataset.c = c; b.style.background = c; b.setAttribute('aria-label', c);
+    b.addEventListener('click', function () { setPaint({ c: c }); }); $('paint-sw').appendChild(b);
+  });
+  WALLPAPERS.forEach(function (w) {
+    var b = document.createElement('button'); b.dataset.wp = w[0]; b.dataset.i18n = w[1]; b.textContent = tr(w[1]);
+    b.addEventListener('click', function () { if (w[0] === 'photo') $('paint-file').click(); else setPaint({ wp: w[0] }); }); $('paint-wp').appendChild(b);
+  });
+  $('paint-color').addEventListener('change', function () { setPaint({ c: this.value.toLowerCase() }); });
+  $('paint-file').addEventListener('change', function () {   // a photo wallpaper, scaled down to 512 px so it stays small in storage
+    var f = this.files && this.files[0]; this.value = ''; if (!f) return;
+    var url = URL.createObjectURL(f), im = new Image();
+    im.onload = function () {
+      var k = Math.min(1, 512 / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+      c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(url); setPaint({ wp: 'photo', img: c.toDataURL('image/jpeg', 0.82), c: '#ffffff' });
+    };
+    im.src = url;
+  });
+  $('paint-room').addEventListener('click', function () { paint.whole = !paint.whole; repaintAll(); refreshPaintUI(); });
+  $('paint-white').addEventListener('click', function () { setPaint(null); });
+  $('paint-done').addEventListener('click', function () { setPaintMode(false); });
+  $('paintbtn').addEventListener('click', function () { setPaintMode(!paint.on); });
+  onLang.push(refreshPaintUI);
+  repaintAll();
 
   // ================= Claude assistant: makes furniture types and arranges items from a chat, calling the Claude API from this browser.
   // The API key is the viewer's own and stays in this browser (capston-claude-key); it is never part of the page. The tab shows once a
@@ -3047,6 +3223,7 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
     '- Pieces that sit on furniture (books, plants, monitors, speakers) settle by themselves on whatever is under their centre up to 1.45 m high; pass y as null for them.',
     '- Wall-hung pieces (art, wall shelving, TVs) take y as the height of their bottom edge; art is usually centred near 1.45 m.',
     '- Rugs (under 6 cm tall) may lie under other furniture.',
+    '- Walls can be painted with paint_walls, a whole room or one side of it, in a colour and optionally a wallpaper pattern. Suggest colours that suit the furniture when asked.',
     '',
     'Creating furniture (define_furniture)',
     '- Build it to the real dimensions the user gives. With a photo, follow its proportions, colours and main parts; estimate anything not stated from typical sizes.',
@@ -3068,6 +3245,8 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       L.push('- ' + (f ? f[0] : fixBase(k)) + suf + ': x ' + b[0] + '..' + b[2] + ', z ' + b[1] + '..' + b[3] + ', top ' + b[4]); });
     L.push('', 'Walls and columns, full height (x0, z0, x1, z1): ' + SHELL.walls.map(function (w) { return '(' + w.join(', ') + ')'; }).join(' '));
     L.push('', 'Windows (x0, z0, x1, z1): ' + SHELL.windows.map(function (w) { return '(' + w.join(', ') + ')'; }).join(' '));
+    var pw = {}; Object.keys(SURF).forEach(function (k) { var n = ROOMS[SURF[k].ri].n[0]; (pw[n] = pw[n] || {})[SURF[k].side] = 1; });
+    L.push('', 'Paintable walls (room: sides): ' + Object.keys(pw).map(function (n) { return n + ': ' + Object.keys(pw[n]).join(' '); }).join('; '));
     return L.join('\n');
   }
   function roomAt(x, z) { for (var i = 0; i < ROOMS.length; i++) if (inPoly(x, z, ROOMS[i].p)) return ROOMS[i].n[0]; return null; }
@@ -3110,6 +3289,10 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
         properties: { key: { type: ['string', 'null'], description: 'null for a new type, or the key of a custom type to revise.' }, name_en: { type: 'string' }, name_tr: { type: 'string' },
           category: { type: 'string', enum: CUSTOM_CATS }, width: { type: 'number' }, depth: { type: 'number' }, height: { type: 'number' },
           y: { type: 'number', description: 'Default height off the floor; 0 unless wall-hung.' }, sits_on_furniture: { type: 'boolean' }, parts: { type: 'array', items: PART } } } },
+    { name: 'paint_walls', description: 'Paint the walls of a room, or one side of it, in a colour, optionally with a wallpaper pattern. Returns how many wall surfaces changed.', strict: true,
+      input_schema: { type: 'object', additionalProperties: false, required: ['room', 'side', 'color', 'wallpaper'],
+        properties: { room: { type: 'string', description: 'A room name from the paintable walls list.' }, side: { type: 'string', enum: ['all', 'n', 's', 'e', 'w'] },
+          color: { type: ['string', 'null'], description: 'sRGB hex such as #b9c4a7, or null for the original white.' }, wallpaper: { type: 'string', enum: ['none', 'stripe', 'grasscloth', 'check', 'botanical'] } } } },
     { name: 'get_furniture_parts', description: 'Read the parts of a custom furniture type, before revising it.', strict: true,
       input_schema: { type: 'object', additionalProperties: false, required: ['key'], properties: { key: { type: 'string' } } } },
     { name: 'delete_furniture_type', description: 'Delete a custom furniture type made on this device. It must not be placed anywhere in the current layout.', strict: true,
@@ -3186,6 +3369,15 @@ body.walking:not(.drawer) .dock, body.walking:not(.drawer) #side, body.walking #
       if (old) aiChange();
       renderBank(); aiLog('act', '✦ ' + tr(old ? 'aredef' : 'adef') + ': ' + nm(b.n));
       return { key: key, rev: b.rev, name: b.n[0], parts: b.spec.parts.length, placed_copies_updated: items.filter(function (it) { return it.k === key; }).length };
+    },
+    paint_walls: function (a) {
+      var q = String(a.room || '').toLowerCase(), ks = Object.keys(SURF).filter(function (k) { var s = SURF[k]; return ROOMS[s.ri].n[0].toLowerCase().indexOf(q) >= 0 && (a.side === 'all' || s.side === a.side); });
+      if (!q || !ks.length) throw new Error('No paintable walls match ' + a.room + (a.side !== 'all' ? ' on side ' + a.side : '') + '.');
+      var c = a.color == null ? null : String(a.color).toLowerCase(); if (c && !/^#[0-9a-f]{6}$/.test(c)) throw new Error('Colour must be a hex like #b9c4a7.');
+      aiChange(); var wp = { stripe: 'stripe', grasscloth: 'grass', check: 'check', botanical: 'bot' }[a.wallpaper] || 'none';
+      paintKeys(ks, c == null && wp === 'none' ? null : { c: c || '#f4f0e8', wp: wp }); refreshPaintUI();
+      var rooms = {}; ks.forEach(function (k) { rooms[ROOMS[SURF[k].ri].n[0]] = 1; }); aiLog('act', '✓ ' + tr('paintbtn') + ': ' + Object.keys(rooms).map(function (n) { for (var i = 0; i < ROOMS.length; i++) if (ROOMS[i].n[0] === n) return nm(ROOMS[i].n); return n; }).join(', '));
+      return { walls_changed: ks.length, rooms: Object.keys(rooms) };
     },
     get_furniture_parts: function (a) {
       var b = BK[a.key]; if (!b) throw new Error('No furniture type with key ' + a.key + '.');
