@@ -2,7 +2,7 @@
 
 These notes come from building a 3D apartment layout planner: a floor plan traced into a 3D shell, furniture you can place, move and resize, a first-person walk mode, wall paint, and a built-in Claude assistant that makes furniture from a chat. The app is one `index.html` of about 3,800 lines with no build step, hosted on GitHub Pages.
 
-Copy this file into your own project as `CLAUDE.md` and delete whatever does not apply. Everything here was learned the hard way and worked in practice.
+Copy this file into your own project as `CLAUDE.md` and delete whatever does not apply. The code is MIT licensed (see `LICENSE`): reuse it freely, keeping the copyright notice. The embedded photos and artwork are not part of that licence, so replace them with your own. Everything here was learned the hard way and worked in practice.
 
 ## Shape of the app
 
